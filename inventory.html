@@ -1,0 +1,2268 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Inventory Management Dashboard">
+    <meta name="author" content="">
+    <meta name="generator" content="">
+    <title>Inventory Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="images/icon256.ico">
+    <link rel="apple-touch-icon" href="images/icon256.ico">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap-icons.css">
+    <link href="css/login.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f5f6fa;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        .navbar {
+            background-color: #1e3a5f !important;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .navbar-brand {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .nav-link {
+            font-weight: 500;
+            font-size: 14px;
+            margin: 0 10px;
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #e0e7ff !important;
+        }
+        .dashboard-container {
+            margin-top: 40px;
+            margin-bottom: 40px;
+            padding: 0 20px;
+        }
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            background: white;
+            border: 1px solid #e8eef7;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%);
+            color: white;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            font-weight: 600;
+            font-size: 15px;
+            padding: 18px 20px;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 30px 20px;
+        }
+        .stat-card:hover {
+            background-color: #fafbfc;
+        }
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1e3a5f;
+            margin: 15px 0;
+            letter-spacing: -1px;
+        }
+        .stat-label {
+            color: #697c8f;
+            font-size: 13px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .stat-label-subtitle {
+            color: #a0a8b8;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        .btn-primary {
+            background: #1e3a5f;
+            border: none;
+            font-weight: 600;
+            border-radius: 6px;
+            padding: 8px 20px;
+            font-size: 14px;
+        }
+        .btn-primary:hover {
+            background: #162d4a;
+            color: white;
+        }
+        .btn-secondary {
+            background: #6b7c93;
+            border: none;
+            font-weight: 600;
+            border-radius: 6px;
+            padding: 8px 20px;
+            font-size: 14px;
+        }
+        .btn-secondary:hover {
+            background: #555c6b;
+            color: white;
+        }
+        .welcome-section {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%);
+            border-radius: 8px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            color: white;
+        }
+        .welcome-title {
+            color: white;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+        .welcome-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 15px;
+            font-weight: 400;
+        }
+        .icon-box {
+            font-size: 40px;
+            color: #1e3a5f;
+            margin-bottom: 15px;
+            display: inline-block;
+            background: #ecf0f7;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .metric-icon {
+            font-size: 24px;
+            color: #1e3a5f;
+            opacity: 0.8;
+        }
+        .feature-card {
+            padding: 20px;
+            border-left: 4px solid #1e3a5f;
+            background: #f9fafb;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            border-left-color: #2d5a8c;
+            background: #f0f4f9;
+            transform: translateX(4px);
+        }
+        .feature-card h6 {
+            color: #1e3a5f;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .feature-card p {
+            color: #697c8f;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+        .section-title {
+            color: #1e3a5f;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .section-title i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        .dropdown-menu {
+            background-color: #ffffff;
+            border: 1px solid #e8eef7;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .dropdown-item {
+            color: #1e3a5f;
+            font-weight: 500;
+            font-size: 14px;
+            padding: 10px 16px;
+            transition: all 0.2s ease;
+        }
+        .dropdown-item:hover {
+            background-color: #f0f4f9;
+            color: #1e3a5f;
+        }
+        .dropdown-item.active {
+            background-color: #e8eef7;
+            color: #1e3a5f;
+        }
+        .dropdown-divider {
+            border-color: #e8eef7;
+            margin: 6px 0;
+        }
+        .inventory-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .inventory-table thead {
+            background-color: #f9fafb;
+            border-top: 1px solid #e8eef7;
+            border-bottom: 1px solid #e8eef7;
+        }
+        .inventory-table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            color: #1e3a5f;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .inventory-table tbody tr {
+            border-bottom: 1px solid #ecf0f7;
+            transition: background-color 0.2s ease;
+        }
+        .inventory-table tbody tr:hover {
+            background-color: #f9fafb;
+        }
+        .inventory-table td {
+            padding: 12px;
+            color: #1e3a5f;
+            font-size: 14px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-in-stock {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .badge-low-stock {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .badge-out-of-stock {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .btn-expand-record {
+            background: none;
+            border: none;
+            color: #1e3a5f;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        .btn-expand-record:hover {
+            background-color: #ecf0f7;
+            color: #2d5a8c;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-boxes me-2"></i>Inventory Management
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-list me-1"></i>Menu
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenu">
+                            <li><a class="dropdown-item" data-permission="dashboard" href="dashboard.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                            <li><a class="dropdown-item" data-permission="analytics" href="dashboard.html#analytics"><i class="bi bi-bar-chart me-2"></i>Analytics</a></li>
+                            <li><a class="dropdown-item" data-permission="reports" href="dashboard.html#reports"><i class="bi bi-file-earmark-text me-2"></i>Reports</a></li>
+                            <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Rizal" href="inventory.html?office=Rizal"><i class="bi bi-boxes me-2"></i>Inventory of Rizal</a></li>
+                            <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Cebu" href="inventory.html?office=Cebu"><i class="bi bi-boxes me-2"></i>Inventory of Cebu</a></li>
+                            <li><a class="dropdown-item" data-permission="inventory" href="#" id="clearInventoryMenuBtn"><i class="bi bi-trash me-2"></i>Clear Inventory</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" data-permission="attendance" href="#" id="attendanceBtn"><i class="bi bi-clock me-2"></i>Attendance</a></li>
+                            <li><a class="dropdown-item" data-permission="attendanceReport" href="#" id="attendanceReportBtn"><i class="bi bi-file-earmark-bar-graph me-2"></i>Attendance Report</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" data-permission="settings" href="dashboard.html#settings"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                            <li id="addAccountMenuItemDivider" style="display: none;"><hr class="dropdown-divider"></li>
+                            <li id="addAccountMenuItemContainer" style="display: none;">
+                                <a class="dropdown-item" href="dashboard.html" id="addAccountBtn"><i class="bi bi-person-plus me-2"></i>Add Account</a>
+                            </li>
+                            <li id="usersMenuItemDivider" style="display: none;"><hr class="dropdown-divider"></li>
+                            <li id="usersMenuItemContainer" style="display: none;">
+                                <a class="dropdown-item" href="dashboard.html" id="usersMenuBtn"><i class="bi bi-people me-2"></i>Users</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <span class="nav-link" id="userDisplay" style="cursor: default;">User</span>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-danger ms-2" id="logoutBtn">Logout</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid dashboard-container">
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <div class="welcome-title">Inventory Dashboard</div>
+            <div class="welcome-subtitle">
+                <i class="bi bi-check-circle-fill" style="font-size: 14px; margin-right: 8px;"></i>Manage your stock, products, and inventory levels
+            </div>
+        </div>
+
+        <!-- Key Metrics Section -->
+        <div class="section-title">
+            <i class="bi bi-boxes"></i>Inventory Overview
+        </div>
+        <div class="row mb-4">
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card stat-card">
+                    <div class="icon-box">
+                        <i class="bi bi-box"></i>
+                    </div>
+                    <div class="stat-label">Total POS</div>
+                    <div class="stat-value" id="totalProducts">156</div>
+                    <div class="stat-label-subtitle">↑ 8 new POS added</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card stat-card">
+                    <div class="icon-box">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <div class="stat-label">Active POS</div>
+                    <div class="stat-value" id="itemsInStock">1,249</div>
+                    <div class="stat-label-subtitle">Currently active</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card stat-card">
+                    <div class="icon-box">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-label">Damage POS</div>
+                    <div class="stat-value" id="lowStockItems">12</div>
+                    <div class="stat-label-subtitle">Damaged units</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card stat-card">
+                    <div class="icon-box">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    <div class="stat-label">Released POS</div>
+                    <div class="stat-value" id="inventoryValue">52</div>
+                    <div class="stat-label-subtitle">Released units (PCS)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CSV Upload Section -->
+        <div class="row mb-4">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-upload me-2"></i>Upload POS Data
+                    </div>
+                    <div class="card-body">
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <input type="file" id="csvFileInput" accept=".csv" placeholder="Select CSV file..." style="flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
+                            <button class="btn btn-primary" id="uploadCsvBtn"><i class="bi bi-check-circle me-2"></i>Upload CSV</button>
+                            <button class="btn btn-success" id="exportCsvBtn"><i class="bi bi-download me-2"></i>Export CSV</button>
+                            <button class="btn btn-secondary" id="clearDataBtn"><i class="bi bi-trash me-2"></i>Clear Data</button>
+                        </div>
+                        <small style="color: #697c8f; margin-top: 10px; display: block;">Upload a CSV file with columns: POS, QUANTITY, DAMAGE, POS RELEASED, REMAINING POS | Export current data to update and re-upload</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- POS Product Summary Table -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                        <div style="display: flex; align-items: center;">
+                            <i class="bi bi-boxes me-2"></i>POS Product Summary
+                        </div>
+                        <button id="addSummaryRecordBtn" class="btn btn-light btn-sm" type="button" style="background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.25); color: white; font-weight: 600;">
+                            <i class="bi bi-plus-circle me-1"></i>Add Summary Record
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <table class="inventory-table">
+                            <thead>
+                                <tr>
+                                    <th>POS Model</th>
+                                    <th>Quantity</th>
+                                    <th>Damage</th>
+                                    <th>POS Released</th>
+                                    <th>Remaining POS</th>
+                                    <th>Charger</th>
+                                </tr>
+                            </thead>
+                            <tbody id="posSummaryTableBody">
+                                <tr>
+                                    <td>V2 PRO</td>
+                                    <td>26</td>
+                                    <td>107</td>
+                                    <td>8</td>
+                                    <td>18</td>
+                                    <td>56</td>
+                                </tr>
+                                <tr>
+                                    <td>V2</td>
+                                    <td>91</td>
+                                    <td>-</td>
+                                    <td>86</td>
+                                    <td>5</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td>V2S</td>
+                                    <td>143</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>143</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td>SENRAISE</td>
+                                    <td>860</td>
+                                    <td>122</td>
+                                    <td>46</td>
+                                    <td>692</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr style="background-color: #f0f4f9; font-weight: 600;">
+                                    <td>TOTAL</td>
+                                    <td id="summaryTotalQty">1120</td>
+                                    <td id="summaryTotalDamage">229</td>
+                                    <td id="summaryTotalReleased">140</td>
+                                    <td id="summaryTotalRemaining">858</td>
+                                    <td id="summaryTotalCharger">56</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Inventory Table -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                        <div style="display: flex; align-items: center;">
+                            <i class="bi bi-list-check me-2"></i>Detailed POS Records <span id="recordCountBadge" style="background: #1e3a5f; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-left: 10px; font-weight: 600;">0 records</span>
+                        </div>
+                        <button id="openFullInventoryModalBtn" class="btn btn-light btn-sm" type="button" style="background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.25); color: white; font-weight: 600;">
+                            <i class="bi bi-fullscreen me-1"></i>Open
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                            <input type="text" id="searchInventory" placeholder="Search by POS NO., Serial #, Name, User ID, Address, Status, LOKALS, Lokals, or Issues..." style="flex: 1; padding: 8px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
+                            <button class="btn btn-primary" id="addProductBtn"><i class="bi bi-plus-circle me-2"></i>Add Record</button>
+                        </div>
+                        <table class="inventory-table">
+                            <thead>
+                                <tr>
+                                    <th>POS NO.</th>
+                                    <th>Serial Number</th>
+                                    <th>Full Name</th>
+                                    <th>User ID</th>
+                                    <th>Address</th>
+                                    <th>Status</th>
+                                    <th>LOKALS</th>
+                                    <th>Note/Issue</th>
+                                    <th>Transfer To</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryTableBody">
+                                <tr>
+                                    <td>P1</td>
+                                    <td>V222232H21189</td>
+                                    <td>Manuel Federigan</td>
+                                    <td>OnaM8</td>
+                                    <td>Sitio Broadway Dela Paz Lowe Antipolo City</td>
+                                    <td><span class="status-badge badge-in-stock">ACTIVE</span></td>
+                                    <td>LOST</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td>P10</td>
+                                    <td>V222232H20753</td>
+                                    <td>Bembem Dayadante</td>
+                                    <td>LinaM14</td>
+                                    <td>From cogeo</td>
+                                    <td><span class="status-badge badge-out-of-stock">DAMAGE</span></td>
+                                    <td>DAMAGE</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td>P11</td>
+                                    <td>V222232H21171</td>
+                                    <td>Gary Villacarlos Jr.</td>
+                                    <td>GaryM33</td>
+                                    <td>Cupang, Purok 5, Lower Antipolo City</td>
+                                    <td><span class="status-badge badge-out-of-stock">DAMAGE</span></td>
+                                    <td>DAMAGE</td>
+                                    <td>battery issue</td>
+                                    <td>-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detail View Modal -->
+    <div id="detailViewModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: none; align-items: center; justify-content: center; z-index: 2000; overflow-y: auto;">
+        <div id="detailViewContent" style="background: white; border-radius: 12px; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3); width: 90%; max-width: 900px; margin: 20px auto; overflow-y: auto; max-height: 90vh;">
+            <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%); color: white; padding: 30px; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 id="detailModalTitle" style="margin: 0; font-size: 28px; font-weight: 700; margin-bottom: 8px;">POS Record Details</h1>
+                    <p id="detailModalSubtitle" style="margin: 0; font-size: 14px; opacity: 0.9;">Complete inventory information</p>
+                </div>
+                <button id="closeDetailModal" style="background: rgba(255,255,255,0.2); border: none; color: white; font-size: 28px; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.3s;" title="Close">&times;</button>
+            </div>
+            <div style="padding: 40px;">
+                <div id="detailContent" style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Full Inventory Popout Modal -->
+    <div id="fullInventoryModal" style="position: fixed; inset: 0; background: rgba(10, 17, 29, 0.72); display: none; align-items: center; justify-content: center; z-index: 2100; padding: 24px;">
+        <div id="fullInventoryModalContent" style="background: white; border-radius: 12px; width: 96%; height: 90vh; max-width: 1600px; box-shadow: 0 20px 60px rgba(0,0,0,0.28); display: flex; flex-direction: column; overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%); color: white; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <h3 style="margin: 0; font-size: 24px; font-weight: 700;">Detailed POS Record Viewer</h3>
+                    <div style="font-size: 13px; opacity: 0.9; margin-top: 4px;">CSV fields from A to J are shown here</div>
+                </div>
+                <button id="closeFullInventoryModalBtn" class="btn btn-light btn-sm" type="button" style="background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.25); color: white; font-weight: 600;">Close</button>
+            </div>
+            <div style="overflow: auto; padding: 16px; flex: 1;">
+                <table class="inventory-table" style="margin-top: 0; min-width: 1500px;">
+                    <thead>
+                        <tr>
+                            <th>POS NO.</th>
+                            <th>Serial Number</th>
+                            <th>Full Name</th>
+                            <th>User ID</th>
+                            <th>Address</th>
+                            <th>Status</th>
+                            <th>LOKALS</th>
+                            <th>Note/Issue</th>
+                            <th>Transfer To</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fullInventoryTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clear Inventory Modal -->
+    <div id="clearInventoryModal" style="position: fixed; inset: 0; background: rgba(10, 17, 29, 0.72); display: none; align-items: center; justify-content: center; z-index: 2200; padding: 24px;">
+        <div style="background: white; border-radius: 12px; width: 90%; max-width: 620px; box-shadow: 0 20px 60px rgba(0,0,0,0.28); overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%); color: white; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <h3 style="margin: 0; font-size: 24px; font-weight: 700;">Clear Inventory</h3>
+                    <div style="font-size: 13px; opacity: 0.9; margin-top: 4px;">Developer tools</div>
+                </div>
+                <button id="cancelClearInventoryBtn" type="button" style="background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.25); color: white; font-weight: 600; border-radius: 6px; padding: 8px 14px;">Close</button>
+            </div>
+            <div style="padding: 24px;">
+                <div style="display: grid; gap: 16px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; color: #1e3a5f; font-weight: 600;">Office to wipe</label>
+                        <select id="clearInventoryOffice" style="width: 100%; padding: 10px 12px; border: 1px solid #dfe6ef; border-radius: 6px; color: #1e3a5f; background: white;">
+                            <option value="Rizal">Rizal</option>
+                            <option value="Cebu">Cebu</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; color: #1e3a5f; font-weight: 600;">Clear option</label>
+                        <select id="clearInventoryMode" style="width: 100%; padding: 10px 12px; border: 1px solid #dfe6ef; border-radius: 6px; color: #1e3a5f; background: white;">
+                            <option value="all">Clear everything</option>
+                            <option value="days">Clear records older than 1 day</option>
+                            <option value="week">Clear records older than 1 week</option>
+                            <option value="custom">Clear specific date range</option>
+                        </select>
+                    </div>
+
+                    <div id="clearInventoryCustomRange" style="display: none;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; color: #1e3a5f; font-weight: 600;">Start date</label>
+                                <input id="clearInventoryStartDate" type="date" style="width: 100%; padding: 10px 12px; border: 1px solid #dfe6ef; border-radius: 6px; color: #1e3a5f;">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; color: #1e3a5f; font-weight: 600;">End date</label>
+                                <input id="clearInventoryEndDate" type="date" style="width: 100%; padding: 10px 12px; border: 1px solid #dfe6ef; border-radius: 6px; color: #1e3a5f;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end;">
+                    <button id="confirmClearInventoryBtn" type="button" class="btn btn-danger"><i class="bi bi-trash me-2"></i>Apply Clear</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- Footer Stats -->
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ecf0f7; color: #697c8f; text-align: center; font-size: 12px;">
+            <p>Last updated: <span id="lastUpdateTime">Just now</span> | Data refreshes automatically every 5 minutes</p>
+        </div>
+    </div>
+
+    <!-- Add Summary Record Modal -->
+    <div id="addSummaryRecordModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: none; align-items: center; justify-content: center; z-index: 1100; overflow: hidden;">
+        <div style="background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); width: 90%; max-width: 500px; padding: 24px; position: relative;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                <h5 style="margin: 0; color: #1e3a5f; font-weight: 700;">Add POS Summary Record</h5>
+                <button type="button" id="closeSummaryRecordBtn" style="border: none; background: transparent; font-size: 24px; color: #697c8f; cursor: pointer; line-height: 1;">×</button>
+            </div>
+
+            <form id="summaryRecordForm">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; color: #1e3a5f; font-weight: 600;">POS Model</label>
+                        <input type="text" id="summaryModel" placeholder="e.g. V2 PRO" required style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; color: #1e3a5f; font-weight: 600;">Quantity</label>
+                        <input type="number" id="summaryQuantity" value="0" min="0" required style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; color: #1e3a5f; font-weight: 600;">Damage</label>
+                        <input type="number" id="summaryDamage" value="0" min="0" style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; color: #1e3a5f; font-weight: 600;">POS Released</label>
+                        <input type="number" id="summaryReleased" value="0" min="0" style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; color: #1e3a5f; font-weight: 600;">Remaining POS</label>
+                        <input type="number" id="summaryRemaining" value="0" min="0" style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; color: #1e3a5f; font-weight: 600;">Charger</label>
+                        <input type="number" id="summaryCharger" value="0" min="0" style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;"><i class="bi bi-check-circle me-2"></i>Save Record</button>
+                    <button type="button" id="cancelSummaryRecordBtn" class="btn btn-secondary" style="flex: 1;"><i class="bi bi-x-circle me-2"></i>Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Record Modal -->
+    <div id="addRecordModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: none; align-items: center; justify-content: center; z-index: 1000; overflow: hidden;">
+        <div id="addRecordModalContent" style="background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); padding: 40px; width: 90%; max-width: 600px; min-width: 400px; max-height: 90vh; margin: 20px auto; overflow-y: auto; resize: both; position: relative;">
+            <h2 style="color: #1e3a5f; font-size: 28px; font-weight: 700; margin-bottom: 30px; display: flex; align-items: center; cursor: move;" id="modalDragHandle">
+                <i class="bi bi-plus-circle me-2"></i>Add New POS Record
+            </h2>
+            
+            <form id="addRecordForm" style="display: flex; flex-direction: column; gap: 15px;">
+                <div>
+                    <label style="color: #1e3a5f; font-weight: 600; font-size: 14px; margin-bottom: 5px; display: block;">POS NO. *</label>
+                    <input type="text" id="formPosNo" placeholder="e.g., P1, P10, R1-0001" required style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
+                </div>
+                
+                <div>
+                    <label style="color: #1e3a5f; font-weight: 600; font-size: 14px; margin-bottom: 5px; display: block;">Serial Number *</label>
+                    <input type="text" id="formSerialNumber" placeholder="e.g., V222232H21189" required style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
+                </div>
+                
+                <div>
+                    <label style="color: #1e3a5f; font-weight: 600; font-size: 14px; margin-bottom: 5px; display: block;">Full Name</label>
+                    <input type="text" id="formFullName" placeholder="Employee name" style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
+                </div>
+                
+                <div>
+                    <label style="color: #1e3a5f; font-weight: 600; font-size: 14px; margin-bottom: 5px; display: block;">User ID</label>
+                    <input type="text" id="formUserId" placeholder="User identification" style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
+                </div>
+                
+                <div>
+                    <label style="color: #1e3a5f; font-weight: 600; font-size: 14px; margin-bottom: 5px; display: block;">Address</label>
+                    <textarea id="formAddress" placeholder="Location/Address" style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px; min-height: 80px; resize: vertical;"></textarea>
+                </div>
+                
+                <div>
+                    <label style="color: #1e3a5f; font-weight: 600; font-size: 14px; margin-bottom: 5px; display: block;">Status *</label>
+                    <select id="formStatus" required style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
+                        <option value="">-- Select Status --</option>
+                        <option value="ACTIVE">ACTIVE</option>
+                        <option value="DAMAGE">DAMAGE</option>
+                        <option value="LOST">LOST</option>
+                        <option value="DISABLED">DISABLED</option>
+                        <option value="NOT ACTIVE">NOT ACTIVE</option>
+                        <option value="TEST UNIT">TEST UNIT</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label style="color: #1e3a5f; font-weight: 600; font-size: 14px; margin-bottom: 5px; display: block;">LOKALS</label>
+                    <input type="text" id="formLokals" placeholder="Location details" style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
+                </div>
+                
+                <div>
+                    <label style="color: #1e3a5f; font-weight: 600; font-size: 14px; margin-bottom: 5px; display: block;">Note of Damage or Issue</label>
+                    <textarea id="formNoteIssue" placeholder="Describe any damage or issues" style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px; min-height: 80px; resize: vertical;"></textarea>
+                </div>
+                
+                <div>
+                    <label style="color: #1e3a5f; font-weight: 600; font-size: 14px; margin-bottom: 5px; display: block;">Transfer To</label>
+                    <input type="text" id="formTransferTo" placeholder="Transfer destination (if any)" style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
+                </div>
+
+                <div>
+                    <label style="color: #1e3a5f; font-weight: 600; font-size: 14px; margin-bottom: 5px; display: block;">Column J</label>
+                    <input type="text" id="formColumnJ" placeholder="Additional column J information" style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;"><i class="bi bi-check-circle me-2"></i>Add Record</button>
+                    <button type="button" id="closeAddRecordBtn" class="btn btn-secondary" style="flex: 1;"><i class="bi bi-x-circle me-2"></i>Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script>
+        function getLoggedInDisplayName() {
+            const username = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser") || "User";
+            const accounts = JSON.parse(localStorage.getItem("userAccounts")) || {};
+            const account = accounts[username];
+            const displayName = (account && account.name) ? account.name : username;
+
+            if (account && account.disabled) {
+                localStorage.removeItem("loggedInUser");
+                sessionStorage.removeItem("loggedInUser");
+                alert('This account has been disabled. Please contact an administrator.');
+                window.location.href = 'index.html';
+                return null;
+            }
+
+            return { username, displayName };
+        }
+
+        function getCurrentUserOffice() {
+            const urlOffice = new URLSearchParams(window.location.search).get("office");
+            if (urlOffice && ["Rizal", "Cebu"].includes(urlOffice.trim())) {
+                return urlOffice.trim();
+            }
+
+            const username = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser") || "User";
+            const accounts = JSON.parse(localStorage.getItem("userAccounts")) || {};
+            const account = accounts[username];
+
+            return account && account.office ? account.office.trim() : "";
+        }
+
+        function getInventoryStorageKeys(officeOverride = getCurrentUserOffice()) {
+            const office = officeOverride && ["Rizal", "Cebu"].includes(officeOverride.trim()) ? officeOverride.trim() : "";
+            const suffix = office ? `_${office}` : "";
+
+            return {
+                summaryKey: `posSummaryData${suffix}`,
+                recordsKey: `posRecordsData${suffix}`,
+                stateKey: `inventoryState${suffix}`,
+                inventoryKey: `posInventoryData${suffix}`,
+                clearedKey: `inventoryCleared${suffix}`
+            };
+        }
+
+        function getCurrentUserRole() {
+            const username = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser") || "User";
+            const accounts = JSON.parse(localStorage.getItem("userAccounts")) || {};
+            const account = accounts[username];
+
+            if (username === "admin" || (account && account.role === "Developer")) {
+                return "Developer";
+            }
+
+            return account && account.role ? account.role : "User";
+        }
+
+        function getCurrentUserPermissions() {
+            const username = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser") || "User";
+            const accounts = JSON.parse(localStorage.getItem("userAccounts")) || {};
+            const account = accounts[username];
+
+            if (username === "User" || username === "admin") {
+                return ["dashboard", "analytics", "reports", "inventory", "attendance", "attendanceReport", "settings"];
+            }
+
+            return account && Array.isArray(account.permissions) ? account.permissions : ["dashboard"];
+        }
+
+        function validateRequestedOfficeAccess() {
+            const requestedOffice = new URLSearchParams(window.location.search).get("office");
+
+            if (!requestedOffice) {
+                return true;
+            }
+
+            const normalizedOffice = requestedOffice.trim();
+
+            if (!['Rizal', 'Cebu'].includes(normalizedOffice)) {
+                return true;
+            }
+
+            const allowedOffices = getCurrentUserInventoryAccess();
+
+            if (allowedOffices.includes(normalizedOffice)) {
+                return true;
+            }
+
+            const fallbackOffice = allowedOffices[0] || getCurrentUserOffice();
+            alert(`You do not have access to ${normalizedOffice} inventory.`);
+
+            if (fallbackOffice) {
+                window.location.href = `inventory.html?office=${encodeURIComponent(fallbackOffice)}`;
+            } else {
+                window.location.href = 'dashboard.html';
+            }
+
+            return false;
+        }
+
+        function getCurrentUserInventoryAccess() {
+            const username = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser") || "User";
+            const accounts = JSON.parse(localStorage.getItem("userAccounts")) || {};
+            const account = accounts[username];
+
+            if (username === "admin" || (account && account.role === "Developer")) {
+                return ["Rizal", "Cebu"];
+            }
+
+            if (!account) {
+                return [];
+            }
+
+            if (Array.isArray(account.inventoryAccess) && account.inventoryAccess.length > 0) {
+                return account.inventoryAccess.filter(value => value === "Rizal" || value === "Cebu");
+            }
+
+            return account.office ? [account.office] : [];
+        }
+
+        function getStoredDashboardMenuState() {
+            try {
+                const storedState = localStorage.getItem('dashboardMenuState');
+                return storedState ? JSON.parse(storedState) : {};
+            } catch (error) {
+                return {};
+            }
+        }
+
+        function updateMenuVisibility() {
+            const storedDashboardMenuState = getStoredDashboardMenuState();
+            const permissions = new Set(storedDashboardMenuState.permissions && storedDashboardMenuState.permissions.length
+                ? storedDashboardMenuState.permissions
+                : getCurrentUserPermissions());
+            const allowedInventoryOffices = new Set(storedDashboardMenuState.allowedInventoryOffices && storedDashboardMenuState.allowedInventoryOffices.length
+                ? storedDashboardMenuState.allowedInventoryOffices
+                : getCurrentUserInventoryAccess());
+            const currentRole = storedDashboardMenuState.currentRole || getCurrentUserRole();
+            const clearDataBtn = document.getElementById("clearDataBtn");
+            const addAccountMenuContainer = document.getElementById('addAccountMenuItemContainer');
+            const addAccountMenuDivider = document.getElementById('addAccountMenuItemDivider');
+            const usersMenuContainer = document.getElementById('usersMenuItemContainer');
+            const usersMenuDivider = document.getElementById('usersMenuItemDivider');
+
+            if (clearDataBtn) {
+                clearDataBtn.style.display = currentRole === "Developer" ? '' : 'none';
+            }
+
+            if (currentRole === 'Developer') {
+                if (addAccountMenuContainer) addAccountMenuContainer.style.display = 'block';
+                if (addAccountMenuDivider) addAccountMenuDivider.style.display = 'block';
+                if (usersMenuContainer) usersMenuContainer.style.display = 'block';
+                if (usersMenuDivider) usersMenuDivider.style.display = 'block';
+            } else {
+                if (addAccountMenuContainer) addAccountMenuContainer.style.display = 'none';
+                if (addAccountMenuDivider) addAccountMenuDivider.style.display = 'none';
+                if (usersMenuContainer) usersMenuContainer.style.display = 'none';
+                if (usersMenuDivider) usersMenuDivider.style.display = 'none';
+            }
+
+            document.querySelectorAll('#adminMenu + .dropdown-menu [data-permission]').forEach(item => {
+                const menuEntry = item.closest('li');
+                if (!menuEntry) return;
+
+                if (item.id === 'clearInventoryMenuBtn') {
+                    menuEntry.style.display = currentRole === 'Developer' ? '' : 'none';
+                    return;
+                }
+
+                if (item.dataset.inventoryOffice) {
+                    const isAllowed = permissions.has(item.dataset.permission) && allowedInventoryOffices.has(item.dataset.inventoryOffice);
+                    menuEntry.style.display = isAllowed ? '' : 'none';
+                    return;
+                }
+
+                menuEntry.style.display = permissions.has(item.dataset.permission) ? '' : 'none';
+            });
+
+            document.querySelectorAll('#adminMenu + .dropdown-menu .dropdown-divider').forEach(divider => {
+                const dividerEntry = divider.closest('li');
+                const followingItems = [];
+                let nextEntry = dividerEntry && dividerEntry.nextElementSibling;
+                while (nextEntry && !nextEntry.querySelector('.dropdown-divider')) {
+                    followingItems.push(nextEntry);
+                    nextEntry = nextEntry.nextElementSibling;
+                }
+                if (dividerEntry) dividerEntry.style.display = followingItems.some(item => item.style.display !== 'none') ? '' : 'none';
+            });
+        }
+
+        // Get username from localStorage or sessionStorage
+        document.addEventListener("DOMContentLoaded", function () {
+            const loggedIn = getLoggedInDisplayName();
+            if (!loggedIn) return;
+
+            if (!validateRequestedOfficeAccess()) {
+                return;
+            }
+
+            const usernameDisplay = document.getElementById("usernameDisplay");
+            const userDisplay = document.getElementById("userDisplay");
+
+            if (usernameDisplay) usernameDisplay.textContent = loggedIn.displayName;
+            if (userDisplay) userDisplay.textContent = loggedIn.displayName;
+            updateMenuVisibility();
+
+            const attendanceBtn = document.getElementById("attendanceBtn");
+            if (attendanceBtn) {
+                attendanceBtn.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    window.location.href = "dashboard.html";
+                });
+            }
+
+            const attendanceReportBtn = document.getElementById("attendanceReportBtn");
+            if (attendanceReportBtn) {
+                attendanceReportBtn.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    window.location.href = "dashboard.html";
+                });
+            }
+            
+            // Load saved data from localStorage
+            loadSavedData();
+            setupInlineInventoryEditing();
+            
+            // Update last update time
+            const now = new Date();
+            document.getElementById("lastUpdateTime").textContent = now.toLocaleTimeString();
+        });
+
+        const INVENTORY_STORAGE_KEYS = ["posSummaryData", "posRecordsData", "inventoryState", "posInventoryData", "inventoryCleared"];
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        function renderEmptyInventoryState() {
+            const summaryBody = document.getElementById("posSummaryTableBody");
+            if (summaryBody) {
+                summaryBody.innerHTML = `
+                    <tr style="background-color: #f0f4f9; font-weight: 600;">
+                        <td>TOTAL</td>
+                        <td id="summaryTotalQty">0</td>
+                        <td id="summaryTotalDamage">0</td>
+                        <td id="summaryTotalReleased">0</td>
+                        <td id="summaryTotalRemaining">0</td>
+                        <td id="summaryTotalCharger">0</td>
+                        <td style="text-align: center; color: #697c8f;">Locked</td>
+                    </tr>
+                `;
+            }
+
+            const inventoryBody = document.getElementById("inventoryTableBody");
+            if (inventoryBody) {
+                inventoryBody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:20px;color:#697c8f;">No inventory data available</td></tr>';
+            }
+
+            const badge = document.getElementById("recordCountBadge");
+            if (badge) badge.textContent = "0 records";
+
+            [
+                ["summaryTotalQty", "0"],
+                ["summaryTotalDamage", "0"],
+                ["summaryTotalReleased", "0"],
+                ["summaryTotalRemaining", "0"],
+                ["summaryTotalCharger", "0"],
+                ["totalProducts", "0"],
+                ["itemsInStock", "0"],
+                ["lowStockItems", "0"],
+                ["inventoryValue", "0"]
+            ].forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) element.textContent = value;
+            });
+        }
+
+        function saveInventoryData(summaryData, recordsData) {
+            const persistedSummary = summaryData || {};
+            const persistedRecords = (recordsData || []).map((record) => ({
+                ...record,
+                recordDate: record.recordDate || new Date().toISOString()
+            }));
+            const storageKeys = getInventoryStorageKeys();
+
+            localStorage.removeItem(storageKeys.clearedKey);
+            localStorage.setItem(storageKeys.summaryKey, JSON.stringify(persistedSummary));
+            localStorage.setItem(storageKeys.recordsKey, JSON.stringify(persistedRecords));
+            localStorage.setItem(storageKeys.stateKey, JSON.stringify({
+                summaryData: persistedSummary,
+                recordsData: persistedRecords,
+                updatedAt: new Date().toISOString()
+            }));
+
+            const models = Object.keys(persistedSummary).filter(key => key !== 'TOTAL');
+            const quantities = models.map(model => {
+                const value = persistedSummary[model];
+                return parseInt(value && value.quantity) || 0;
+            });
+            localStorage.setItem(storageKeys.inventoryKey, JSON.stringify({ models, quantities }));
+        }
+
+        function clearInventoryStorage(officeOverride = getCurrentUserOffice()) {
+            const storageKeys = getInventoryStorageKeys(officeOverride);
+
+            INVENTORY_STORAGE_KEYS.forEach(key => {
+                localStorage.removeItem(key);
+                if (officeOverride && ["Rizal", "Cebu"].includes(officeOverride.trim())) {
+                    localStorage.removeItem(`${key}_${officeOverride.trim()}`);
+                }
+            });
+
+            localStorage.removeItem(storageKeys.clearedKey);
+            localStorage.setItem(storageKeys.clearedKey, "true");
+            localStorage.setItem(storageKeys.summaryKey, JSON.stringify({}));
+            localStorage.setItem(storageKeys.recordsKey, JSON.stringify([]));
+            localStorage.setItem(storageKeys.stateKey, JSON.stringify({
+                summaryData: {},
+                recordsData: [],
+                updatedAt: new Date().toISOString()
+            }));
+            localStorage.setItem(storageKeys.inventoryKey, JSON.stringify({ models: [], quantities: [] }));
+        }
+
+        // Load saved data from localStorage
+        function loadSavedData() {
+            const storageKeys = getInventoryStorageKeys();
+            const isCleared = localStorage.getItem(storageKeys.clearedKey) === "true";
+            const savedState = JSON.parse(localStorage.getItem(storageKeys.stateKey) || "null");
+            const savedSummary = savedState ? savedState.summaryData : JSON.parse(localStorage.getItem(storageKeys.summaryKey) || "null");
+            const savedRecords = savedState ? savedState.recordsData : JSON.parse(localStorage.getItem(storageKeys.recordsKey) || "null");
+
+            if (isCleared || (!savedSummary && !savedRecords)) {
+                renderEmptyInventoryState();
+                return;
+            }
+            
+            if (savedSummary) {
+                updateSummaryDisplay(savedSummary);
+            }
+            if (savedRecords) {
+                populateInventoryTable(savedRecords);
+            }
+        }
+
+        // CSV File Upload Handler
+        document.getElementById("uploadCsvBtn").addEventListener("click", function () {
+            const fileInput = document.getElementById("csvFileInput");
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert("Please select a CSV file first!");
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function (e) {
+                try {
+                    const csv = e.target.result;
+                    const { summaryData, recordsData } = parseCSV(csv);
+                    
+                    saveInventoryData(summaryData, recordsData);
+                    updateSummaryDisplay(summaryData);
+                    populateInventoryTable(recordsData);
+                    
+                    const now = new Date();
+                    document.getElementById("lastUpdateTime").textContent = now.toLocaleTimeString();
+                    
+                    alert("CSV file uploaded and processed successfully!");
+                    fileInput.value = "";
+                } catch (error) {
+                    alert("Error parsing CSV file: " + error.message);
+                }
+            };
+            
+            reader.readAsText(file);
+        });
+
+        // Parse CSV file
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            let summaryData = {};
+            let recordsData = [];
+            let inDetailsSection = false;
+            let headerIndex = -1;
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                if (!line) {
+                    // Empty line - might be separator
+                    if (summaryData.TOTAL && !inDetailsSection) {
+                        inDetailsSection = true;
+                    }
+                    continue;
+                }
+                
+                const fields = parseCSVLine(line);
+                
+                // Check if this is the details header row
+                if (fields[0] && fields[0].toUpperCase() === "POS NO.") {
+                    inDetailsSection = true;
+                    headerIndex = i;
+                    continue;
+                }
+                
+                if (!inDetailsSection) {
+                    // Summary section (POS products)
+                    if (fields[0] && fields[0] !== "POS") {
+                        const posModel = fields[0];
+                        const quantity = fields[1] || "-";
+                        const damage = fields[2] || "-";
+                        const released = fields[3] || "-";
+                        const remaining = fields[4] || "-";
+                        const charger = fields[5] || "-";
+                        
+                        summaryData[posModel] = {
+                            quantity, damage, released, remaining, charger
+                        };
+                    }
+                } else {
+                    // Details section (POS records)
+                    if (fields[0] && fields[0] !== "POS NO." && headerIndex >= 0) {
+                        const record = {
+                            posNo: fields[0] || "-",
+                            serialNumber: fields[1] || "-",
+                            fullName: fields[2] || "-",
+                            userId: fields[3] || "-",
+                            address: fields[4] || "-",
+                            status: fields[5] || "-",
+                            lokals: fields[6] || "-",
+                            noteIssue: fields[7] || "-",
+                            transferTo: fields[8] || "-",
+                        };
+                        
+                        if (record.posNo && record.posNo.toUpperCase() !== "COLUMN 3") {
+                            recordsData.push(record);
+                        }
+                    }
+                }
+            }
+            
+            return { summaryData, recordsData };
+        }
+
+        // Parse CSV line (handles quoted fields)
+        function parseCSVLine(line) {
+            const result = [];
+            let current = "";
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const nextChar = line[i + 1];
+                
+                if (char === '"') {
+                    if (inQuotes && nextChar === '"') {
+                        current += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = "";
+                } else {
+                    current += char;
+                }
+            }
+            
+            result.push(current.trim());
+            return result;
+        }
+
+        // Update summary display and metrics
+        function updateSummaryDisplay(summaryData) {
+            const tbody = document.getElementById("posSummaryTableBody");
+            let totalQty = 0, totalDamage = 0, totalReleased = 0, totalRemaining = 0, totalCharger = 0;
+            let models = [], quantities = [];
+            
+            // Rebuild summary table
+            let html = "";
+            for (const [model, data] of Object.entries(summaryData)) {
+                if (model === "TOTAL") continue;
+                
+                const qty = parseInt(data.quantity) || 0;
+                const dmg = parseInt(data.damage) || 0;
+                const rel = parseInt(data.released) || 0;
+                const rem = parseInt(data.remaining) || 0;
+                const chr = parseInt(data.charger) || 0;
+                
+                totalQty += qty;
+                totalDamage += dmg;
+                totalReleased += rel;
+                totalRemaining += rem;
+                totalCharger += chr;
+                
+                models.push(model);
+                quantities.push(qty);
+                
+                html += `
+                    <tr>
+                        <td>${model}</td>
+                        <td>${qty}</td>
+                        <td>${dmg > 0 ? dmg : "-"}</td>
+                        <td>${rel > 0 ? rel : "-"}</td>
+                        <td>${rem}</td>
+                        <td>${chr > 0 ? chr : "-"}</td>
+                    </tr>
+                `;
+            }
+            
+            // Add TOTAL row
+            html += `
+                <tr style="background-color: #f0f4f9; font-weight: 600;">
+                    <td>TOTAL</td>
+                    <td>${totalQty}</td>
+                    <td>${totalDamage}</td>
+                    <td>${totalReleased}</td>
+                    <td>${totalRemaining}</td>
+                    <td>${totalCharger}</td>
+                </tr>
+            `;
+            
+            tbody.innerHTML = html;
+            
+            // Save inventory data for dashboard
+            localStorage.setItem('posInventoryData', JSON.stringify({
+                models: models,
+                quantities: quantities
+            }));
+            
+            // Update dashboard metrics to correspond with POS Product Summary
+            // Total POS = Total Quantity
+            const totalProductsEl = document.getElementById("totalProducts");
+            if (totalProductsEl) totalProductsEl.textContent = totalQty;
+            
+            // Active POS = Remaining POS (active/working units)
+            const itemsInStockEl = document.getElementById("itemsInStock");
+            if (itemsInStockEl) itemsInStockEl.textContent = totalRemaining;
+            
+            // Damage POS = Total Damage
+            const lowStockItemsEl = document.getElementById("lowStockItems");
+            if (lowStockItemsEl) lowStockItemsEl.textContent = totalDamage;
+            
+            // Released POS = Total Released
+            const inventoryValueEl = document.getElementById("inventoryValue");
+            if (inventoryValueEl) inventoryValueEl.textContent = totalReleased;
+            
+            // Update summary totals
+            const summaryTotalQtyEl = document.getElementById("summaryTotalQty");
+            if (summaryTotalQtyEl) summaryTotalQtyEl.textContent = totalQty;
+            const summaryTotalDamageEl = document.getElementById("summaryTotalDamage");
+            if (summaryTotalDamageEl) summaryTotalDamageEl.textContent = totalDamage;
+            const summaryTotalReleasedEl = document.getElementById("summaryTotalReleased");
+            if (summaryTotalReleasedEl) summaryTotalReleasedEl.textContent = totalReleased;
+            const summaryTotalRemainingEl = document.getElementById("summaryTotalRemaining");
+            if (summaryTotalRemainingEl) summaryTotalRemainingEl.textContent = totalRemaining;
+            const summaryTotalChargerEl = document.getElementById("summaryTotalCharger");
+            if (summaryTotalChargerEl) summaryTotalChargerEl.textContent = totalCharger;
+        }
+
+        // Populate inventory table with POS records
+        function populateInventoryTable(recordsData) {
+            const tbody = document.getElementById("inventoryTableBody");
+            let html = "";
+            
+            recordsData.forEach((record, index) => {
+                const statusClass = getStatusBadgeClass(record.status);
+                const displayName = record.fullName && record.fullName.trim() ? record.fullName : "N/A";
+                const displayNote = record.noteIssue && record.noteIssue !== "-" ? record.noteIssue : "-";
+                const displayLokals = record.lokals && record.lokals !== "-" ? record.lokals : "-";
+                const displayTransferTo = record.transferTo && record.transferTo !== "-" ? record.transferTo : "-";
+                
+                html += `
+                    <tr data-record-index="${index}">
+                        <td>${record.posNo}</td>
+                        <td>${record.serialNumber}</td>
+                        <td>${displayName}</td>
+                        <td>${record.userId || "-"}</td>
+                        <td>${record.address || "-"}</td>
+                        <td><span class="status-badge ${statusClass}">${record.status}</span></td>
+                        <td>${displayLokals}</td>
+                        <td>${displayNote}</td>
+                        <td>${displayTransferTo}</td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+            
+            // Update record count badge
+            const recordCount = recordsData.length;
+            document.getElementById("recordCountBadge").textContent = recordCount + " record" + (recordCount !== 1 ? "s" : "");
+            
+            // Attach expand button listeners
+            document.querySelectorAll(".btn-expand-record").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    const index = this.getAttribute("data-index");
+                    showDetailView(recordsData[index]);
+                });
+            });
+        }
+
+        function setupInlineInventoryEditing() {
+            const tbody = document.getElementById("inventoryTableBody");
+            if (!tbody) return;
+
+            tbody.addEventListener("click", function (event) {
+                const badge = event.target.closest(".status-badge");
+                const cell = badge && badge.closest("td");
+                const row = cell && cell.closest("tr[data-record-index]");
+                if (!badge || !cell || !row || cell.querySelector("select")) return;
+
+                const select = document.createElement("select");
+                ["ACTIVE", "DAMAGE", "LOST", "DISABLED", "NOT ACTIVE", "TEST UNIT"].forEach(status => {
+                    const option = document.createElement("option");
+                    option.value = status;
+                    option.textContent = status;
+                    option.selected = status === badge.textContent.trim();
+                    select.appendChild(option);
+                });
+                select.style.cssText = "padding: 4px 6px; border: 1px solid #1e3a5f; border-radius: 4px; font: inherit; color: #1e3a5f;";
+                cell.textContent = "";
+                cell.appendChild(select);
+                select.focus();
+
+                const originalValue = badge.textContent.trim();
+                let statusEditFinished = false;
+                const finishStatusEdit = function (save) {
+                    if (statusEditFinished || select !== cell.querySelector("select")) return;
+                    statusEditFinished = true;
+                    const value = save ? select.value : originalValue;
+                    if (save) persistInventoryField(row, "status", value);
+                    cell.innerHTML = `<span class="status-badge ${getStatusBadgeClass(value)}">${escapeHtml(value)}</span>`;
+                };
+
+                select.addEventListener("change", function () {
+                    finishStatusEdit(true);
+                });
+                select.addEventListener("keydown", function (keyEvent) {
+                    if (keyEvent.key === "Enter") finishStatusEdit(true);
+                    if (keyEvent.key === "Escape") finishStatusEdit(false);
+                });
+                select.addEventListener("blur", function () {
+                    finishStatusEdit(false);
+                });
+            });
+
+            tbody.addEventListener("dblclick", function (event) {
+                const cell = event.target.closest("td");
+                const row = cell && cell.closest("tr[data-record-index]");
+                if (!cell || !row || cell.querySelector("input, select")) return;
+
+                const fieldNames = ["posNo", "serialNumber", "fullName", "userId", "address", "status", "lokals", "noteIssue", "transferTo"];
+                const fieldName = fieldNames[cell.cellIndex];
+                if (!fieldName) return;
+
+                const originalValue = cell.textContent.trim();
+                const input = document.createElement("input");
+                input.type = "text";
+                input.value = originalValue === "-" || originalValue === "N/A" ? "" : originalValue;
+                input.style.cssText = "width: 100%; min-width: 80px; padding: 6px 8px; border: 1px solid #1e3a5f; border-radius: 4px; font: inherit; color: #1e3a5f;";
+                cell.textContent = "";
+                cell.appendChild(input);
+                input.focus();
+                input.select();
+
+                const finishEdit = function (save) {
+                    if (input !== cell.querySelector("input")) return;
+                    const value = save ? input.value.trim() || "-" : originalValue;
+                    if (save) persistInventoryField(row, fieldName, value);
+
+                    if (fieldName === "status" && save) {
+                        cell.innerHTML = `<span class="status-badge ${getStatusBadgeClass(value)}">${escapeHtml(value)}</span>`;
+                    } else {
+                        cell.textContent = value;
+                    }
+                };
+
+                input.addEventListener("keydown", function (keyEvent) {
+                    if (keyEvent.key === "Enter") {
+                        keyEvent.preventDefault();
+                        finishEdit(true);
+                    } else if (keyEvent.key === "Escape") {
+                        keyEvent.preventDefault();
+                        finishEdit(false);
+                    }
+                });
+                input.addEventListener("blur", function () {
+                    finishEdit(true);
+                });
+            });
+        }
+
+        function persistInventoryField(row, fieldName, value) {
+            const recordIndex = Number(row.dataset.recordIndex);
+            const storageKeys = getInventoryStorageKeys();
+            const savedState = JSON.parse(localStorage.getItem(storageKeys.stateKey) || "null");
+            const recordsData = savedState && Array.isArray(savedState.recordsData)
+                ? savedState.recordsData
+                : JSON.parse(localStorage.getItem(storageKeys.recordsKey) || "[]");
+
+            if (!recordsData[recordIndex]) return;
+            recordsData[recordIndex][fieldName] = value;
+            const summaryData = JSON.parse(localStorage.getItem(storageKeys.summaryKey) || "{}");
+            saveInventoryData(summaryData, recordsData);
+        }
+
+        // Get appropriate badge class based on status
+        function getStatusBadgeClass(status) {
+            switch (status.toUpperCase()) {
+                case "ACTIVE":
+                    return "badge-in-stock";
+                case "DAMAGE":
+                case "LOST":
+                case "DISABLED":
+                    return "badge-out-of-stock";
+                case "NOT ACTIVE":
+                case "TEST UNIT":
+                    return "badge-low-stock";
+                default:
+                    return "badge-neutral";
+            }
+        }
+
+        // Export CSV button
+        document.getElementById("exportCsvBtn").addEventListener("click", function () {
+            const storageKeys = getInventoryStorageKeys();
+            const savedSummary = localStorage.getItem(storageKeys.summaryKey);
+            const savedRecords = localStorage.getItem(storageKeys.recordsKey);
+            
+            if (!savedSummary) {
+                alert("No data to export! Please upload a CSV file first.");
+                return;
+            }
+            
+            const summaryData = JSON.parse(savedSummary);
+            const recordsData = savedRecords ? JSON.parse(savedRecords) : [];
+            
+            let csvContent = "POS,QUANTITY,DAMAGE,POS RELEASED,REMAINING POS,Charger,,,,\n";
+            
+            // Add summary data
+            let totalQty = 0, totalDamage = 0, totalReleased = 0, totalRemaining = 0, totalCharger = 0;
+            
+            for (const [model, data] of Object.entries(summaryData)) {
+                if (model === "TOTAL") continue;
+                
+                const qty = parseInt(data.quantity) || 0;
+                const dmg = parseInt(data.damage) || 0;
+                const rel = parseInt(data.released) || 0;
+                const rem = parseInt(data.remaining) || 0;
+                const chr = parseInt(data.charger) || 0;
+                
+                totalQty += qty;
+                totalDamage += dmg;
+                totalReleased += rel;
+                totalRemaining += rem;
+                totalCharger += chr;
+                
+                const damnageVal = dmg > 0 ? dmg : "";
+                const relVal = rel > 0 ? rel : "";
+                const chrVal = chr > 0 ? chr : "";
+                csvContent += `${model},${qty},${damnageVal},${relVal},${rem},${chrVal},,,,\n`;
+            }
+            
+            // Add TOTAL row
+            csvContent += `TOTAL,${totalQty},${totalDamage},${totalReleased},${totalRemaining},${totalCharger},,,,\n`;
+            
+            // Add empty line separator
+            csvContent += ",,,,,,,,,\n";
+            
+            // Add records section header
+            csvContent += "POS NO.,SERIAL NUMBER,FULL NAME,USER ID,ADDRESS,STATUS,LOKALS,NOTE OF DAMAGE OR ISSUE,TRANSFER TO,COLUMN J\n";
+            
+            // Add record data
+            recordsData.forEach(record => {
+                const posNo = record.posNo.includes(",") ? `"${record.posNo}"` : record.posNo;
+                const serialNumber = record.serialNumber.includes(",") ? `"${record.serialNumber}"` : record.serialNumber;
+                const fullName = record.fullName.includes(",") ? `"${record.fullName}"` : record.fullName;
+                const userId = record.userId.includes(",") ? `"${record.userId}"` : record.userId;
+                const address = record.address.includes(",") ? `"${record.address}"` : record.address;
+                const status = record.status || "";
+                const lokals = record.lokals || "";
+                const noteIssue = record.noteIssue.includes(",") ? `"${record.noteIssue}"` : record.noteIssue;
+                const transferTo = record.transferTo || "";
+                const columnJ = record.columnJ ? (record.columnJ.includes(",") ? `"${record.columnJ}"` : record.columnJ) : "";
+                
+                csvContent += `${posNo},${serialNumber},${fullName},${userId},${address},${status},${lokals},${noteIssue},${transferTo},${columnJ}\n`;
+            });
+            
+            // Create blob and download
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute("href", url);
+            link.setAttribute("download", "POS_MASTERLIST_" + new Date().toISOString().slice(0, 10) + ".csv");
+            link.style.visibility = "hidden";
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert("CSV file exported successfully!");
+        });
+
+        function getRecordDateValue(record) {
+            if (!record) return null;
+            if (record.recordDate) return record.recordDate;
+            if (record.dateAdded) return record.dateAdded;
+            if (record.createdAt) return record.createdAt;
+            if (record.updatedAt) return record.updatedAt;
+            return null;
+        }
+
+        function toggleClearInventoryCustomRange() {
+            const mode = document.getElementById("clearInventoryMode")?.value || "all";
+            const customContainer = document.getElementById("clearInventoryCustomRange");
+            if (customContainer) {
+                customContainer.style.display = mode === "custom" ? "block" : "none";
+            }
+        }
+
+        function openClearInventoryModal() {
+            const modal = document.getElementById("clearInventoryModal");
+            const officeSelect = document.getElementById("clearInventoryOffice");
+            const currentOffice = getCurrentUserOffice();
+
+            if (officeSelect) {
+                officeSelect.value = currentOffice || "Rizal";
+            }
+
+            if (modal) {
+                modal.style.display = "flex";
+            }
+
+            toggleClearInventoryCustomRange();
+        }
+
+        function applyClearInventorySelection() {
+            const officeSelect = document.getElementById("clearInventoryOffice");
+            const modeSelect = document.getElementById("clearInventoryMode");
+            const startInput = document.getElementById("clearInventoryStartDate");
+            const endInput = document.getElementById("clearInventoryEndDate");
+
+            if (!officeSelect || !modeSelect) {
+                return;
+            }
+
+            const normalizedOffice = officeSelect.value;
+            if (normalizedOffice !== "Rizal" && normalizedOffice !== "Cebu") {
+                alert("Please choose either Rizal or Cebu.");
+                return;
+            }
+
+            const mode = modeSelect.value;
+            const storageKeys = getInventoryStorageKeys(normalizedOffice);
+            const savedRecords = JSON.parse(localStorage.getItem(storageKeys.recordsKey) || "[]");
+            const savedSummary = JSON.parse(localStorage.getItem(storageKeys.summaryKey) || "{}");
+
+            if (mode === "all") {
+                if (!confirm(`Are you sure you want to clear all inventory data for ${normalizedOffice}?`)) {
+                    return;
+                }
+
+                clearInventoryStorage(normalizedOffice);
+                const csvFileInput = document.getElementById("csvFileInput");
+                if (csvFileInput) csvFileInput.value = "";
+                renderEmptyInventoryState();
+                closeClearInventoryModal();
+                return;
+            }
+
+            const now = new Date();
+            let removeBeforeDate = null;
+            let startDate = null;
+            let endDate = null;
+
+            if (mode === "days") {
+                removeBeforeDate = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+            } else if (mode === "week") {
+                removeBeforeDate = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+            } else if (mode === "custom") {
+                startDate = startInput && startInput.value ? new Date(`${startInput.value}T00:00:00`) : null;
+                endDate = endInput && endInput.value ? new Date(`${endInput.value}T23:59:59`) : null;
+
+                if (!startDate || !endDate) {
+                    alert("Please select both a start and end date for a custom clear.");
+                    return;
+                }
+            }
+
+            const filteredRecords = savedRecords.filter((record) => {
+                const recordDate = getRecordDateValue(record);
+                if (!recordDate) {
+                    return true;
+                }
+
+                const parsedRecordDate = new Date(recordDate);
+                if (Number.isNaN(parsedRecordDate.getTime())) {
+                    return true;
+                }
+
+                if (mode === "days" || mode === "week") {
+                    return parsedRecordDate >= removeBeforeDate;
+                }
+
+                if (startDate && parsedRecordDate < startDate) {
+                    return true;
+                }
+
+                if (endDate && parsedRecordDate > endDate) {
+                    return true;
+                }
+
+                return false;
+            });
+
+            const finalRecords = filteredRecords;
+
+            if (!confirm(`Delete records from ${normalizedOffice} within the selected date range? This will remove matching entries and reset the current summary for that office.`)) {
+                return;
+            }
+
+            localStorage.setItem(storageKeys.recordsKey, JSON.stringify(finalRecords));
+            localStorage.setItem(storageKeys.stateKey, JSON.stringify({
+                summaryData: {},
+                recordsData: finalRecords,
+                updatedAt: new Date().toISOString()
+            }));
+            localStorage.setItem(storageKeys.summaryKey, JSON.stringify({}));
+            localStorage.setItem(storageKeys.inventoryKey, JSON.stringify({ models: [], quantities: [] }));
+
+            const csvFileInput = document.getElementById("csvFileInput");
+            if (csvFileInput) csvFileInput.value = "";
+
+            renderEmptyInventoryState();
+            closeClearInventoryModal();
+        }
+
+        function closeClearInventoryModal() {
+            const modal = document.getElementById("clearInventoryModal");
+            if (modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        function clearInventoryData() {
+            openClearInventoryModal();
+        }
+
+        // Clear Data button
+        document.getElementById("clearDataBtn").addEventListener("click", clearInventoryData);
+
+        document.getElementById("clearInventoryMenuBtn")?.addEventListener("click", function (e) {
+            e.preventDefault();
+            clearInventoryData();
+        });
+
+        document.getElementById("cancelClearInventoryBtn")?.addEventListener("click", closeClearInventoryModal);
+        document.getElementById("confirmClearInventoryBtn")?.addEventListener("click", applyClearInventorySelection);
+        document.getElementById("clearInventoryMode")?.addEventListener("change", toggleClearInventoryCustomRange);
+
+        // Logout function
+        document.getElementById("logoutBtn").addEventListener("click", function () {
+            localStorage.removeItem("loggedInUser");
+            sessionStorage.removeItem("loggedInUser");
+            window.location.href = "index.html";
+        });
+
+        // Make modal draggable and resizable
+        let isDragging = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+        let isResizing = false;
+        let resizeStartX = 0;
+        let resizeStartY = 0;
+        let resizeStartWidth = 0;
+        let resizeStartHeight = 0;
+
+        const modal = document.getElementById("addRecordModal");
+        const modalContent = document.getElementById("addRecordModalContent");
+        const dragHandle = document.getElementById("modalDragHandle");
+
+        // Drag functionality
+        dragHandle.addEventListener("mousedown", function (e) {
+            isDragging = true;
+            const rect = modalContent.getBoundingClientRect();
+            dragOffsetX = e.clientX - rect.left;
+            dragOffsetY = e.clientY - rect.top;
+        });
+
+        document.addEventListener("mousemove", function (e) {
+            if (isDragging) {
+                const modalOverlay = modal;
+                const maxX = window.innerWidth - 100;
+                const maxY = window.innerHeight - 100;
+                
+                let newX = e.clientX - dragOffsetX;
+                let newY = e.clientY - dragOffsetY;
+                
+                // Keep modal within viewport
+                newX = Math.max(0, Math.min(newX, maxX));
+                newY = Math.max(0, Math.min(newY, maxY));
+                
+                modalContent.style.position = "fixed";
+                modalContent.style.margin = "0";
+                modalContent.style.left = newX + "px";
+                modalContent.style.top = newY + "px";
+            }
+        });
+
+        document.addEventListener("mouseup", function () {
+            isDragging = false;
+        });
+
+        // Resize functionality
+        modalContent.addEventListener("mousedown", function (e) {
+            // Check if resize is from bottom-right corner
+            const rect = modalContent.getBoundingClientRect();
+            const distFromBottomRight = Math.sqrt(
+                Math.pow(e.clientX - (rect.right - 10), 2) +
+                Math.pow(e.clientY - (rect.bottom - 10), 2)
+            );
+            
+            if (distFromBottomRight < 20 && !isDragging) {
+                isResizing = true;
+                resizeStartX = e.clientX;
+                resizeStartY = e.clientY;
+                resizeStartWidth = rect.width;
+                resizeStartHeight = rect.height;
+                modalContent.style.cursor = "nwse-resize";
+            }
+        });
+
+        document.addEventListener("mousemove", function (e) {
+            if (isResizing) {
+                const newWidth = resizeStartWidth + (e.clientX - resizeStartX);
+                const newHeight = resizeStartHeight + (e.clientY - resizeStartY);
+                
+                // Minimum size constraints
+                if (newWidth >= 400) {
+                    modalContent.style.width = newWidth + "px";
+                }
+                if (newHeight >= 300) {
+                    modalContent.style.height = newHeight + "px";
+                }
+            }
+        });
+
+        document.addEventListener("mouseup", function () {
+            isResizing = false;
+            modalContent.style.cursor = "auto";
+        });
+
+        // Summary modal controls
+        document.getElementById("addSummaryRecordBtn").addEventListener("click", function () {
+            document.getElementById("addSummaryRecordModal").style.display = "flex";
+            document.getElementById("summaryRecordForm").reset();
+            document.getElementById("summaryQuantity").value = "0";
+            document.getElementById("summaryDamage").value = "0";
+            document.getElementById("summaryReleased").value = "0";
+            document.getElementById("summaryRemaining").value = "0";
+            document.getElementById("summaryCharger").value = "0";
+        });
+
+        document.getElementById("closeSummaryRecordBtn").addEventListener("click", function () {
+            document.getElementById("addSummaryRecordModal").style.display = "none";
+        });
+
+        document.getElementById("cancelSummaryRecordBtn").addEventListener("click", function () {
+            document.getElementById("addSummaryRecordModal").style.display = "none";
+        });
+
+        document.getElementById("addSummaryRecordModal").addEventListener("click", function (e) {
+            if (e.target === this) {
+                this.style.display = "none";
+            }
+        });
+
+        function calculateRemainingPos(quantity, damage, released) {
+            const result = Number(quantity) - Number(damage) - Number(released);
+            return Math.round(Number.isFinite(result) ? result : 0);
+        }
+
+        ['summaryQuantity', 'summaryDamage', 'summaryReleased'].forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.addEventListener('input', function () {
+                    const quantity = parseInt(document.getElementById('summaryQuantity').value, 10) || 0;
+                    const damage = parseInt(document.getElementById('summaryDamage').value, 10) || 0;
+                    const released = parseInt(document.getElementById('summaryReleased').value, 10) || 0;
+                    const remaining = calculateRemainingPos(quantity, damage, released);
+                    document.getElementById('summaryRemaining').value = remaining;
+                });
+            }
+        });
+
+        document.getElementById("summaryRecordForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const model = document.getElementById("summaryModel").value.trim();
+            const quantity = parseInt(document.getElementById("summaryQuantity").value, 10) || 0;
+            const damage = parseInt(document.getElementById("summaryDamage").value, 10) || 0;
+            const released = parseInt(document.getElementById("summaryReleased").value, 10) || 0;
+            const remaining = calculateRemainingPos(quantity, damage, released);
+            const charger = parseInt(document.getElementById("summaryCharger").value, 10) || 0;
+
+            if (!model) {
+                alert("Please enter the POS model name.");
+                return;
+            }
+
+            const storageKeys = getInventoryStorageKeys();
+            const currentSummary = JSON.parse(localStorage.getItem(storageKeys.summaryKey) || "{}");
+            currentSummary[model] = {
+                quantity: quantity,
+                damage: damage,
+                released: released,
+                remaining: remaining,
+                charger: charger
+            };
+
+            const recordsData = JSON.parse(localStorage.getItem(storageKeys.recordsKey) || "[]");
+            saveInventoryData(currentSummary, recordsData);
+            updateSummaryDisplay(currentSummary);
+            document.getElementById("addSummaryRecordModal").style.display = "none";
+            document.getElementById("summaryRecordForm").reset();
+            document.getElementById("summaryQuantity").value = "0";
+            document.getElementById("summaryDamage").value = "0";
+            document.getElementById("summaryReleased").value = "0";
+            document.getElementById("summaryRemaining").value = "0";
+            document.getElementById("summaryCharger").value = "0";
+            alert("Summary record added successfully!");
+        });
+
+        // Add Record button - Open modal
+        document.getElementById("addProductBtn").addEventListener("click", function () {
+            // Reset modal to default position and size
+            modalContent.style.position = "relative";
+            modalContent.style.left = "auto";
+            modalContent.style.top = "auto";
+            modalContent.style.width = "90%";
+            modalContent.style.maxWidth = "600px";
+            modalContent.style.height = "auto";
+            
+            document.getElementById("addRecordModal").style.display = "flex";
+            document.getElementById("addRecordForm").reset();
+        });
+
+        // Close Add Record modal
+        document.getElementById("closeAddRecordBtn").addEventListener("click", function () {
+            document.getElementById("addRecordModal").style.display = "none";
+        });
+
+        // Close modal when clicking on overlay
+        document.getElementById("addRecordModal").addEventListener("click", function (e) {
+            if (e.target === this) {
+                this.style.display = "none";
+            }
+        });
+
+        // Handle Add Record form submission
+        document.getElementById("addRecordForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            
+            const newRecord = {
+                posNo: document.getElementById("formPosNo")?.value || "",
+                serialNumber: document.getElementById("formSerialNumber")?.value || "",
+                fullName: document.getElementById("formFullName")?.value || "",
+                userId: document.getElementById("formUserId")?.value || "",
+                address: document.getElementById("formAddress")?.value || "",
+                status: document.getElementById("formStatus")?.value || "",
+                lokals: document.getElementById("formLokals")?.value || "",
+                noteIssue: document.getElementById("formNoteIssue")?.value || "",
+                transferTo: document.getElementById("formTransferTo")?.value || "",
+                columnJ: document.getElementById("formColumnJ")?.value || "",
+                recordDate: new Date().toISOString()
+            };
+            
+            const storageKeys = getInventoryStorageKeys();
+            let recordsData = JSON.parse(localStorage.getItem(storageKeys.recordsKey) || "[]");
+            
+            recordsData.push(newRecord);
+            
+            const currentSummary = JSON.parse(localStorage.getItem(storageKeys.summaryKey) || "{}");
+            saveInventoryData(currentSummary, recordsData);
+            
+            // Add row to table
+            addRecordToTable(newRecord);
+            
+            // Close modal and reset form
+            document.getElementById("addRecordModal").style.display = "none";
+            document.getElementById("addRecordForm").reset();
+            
+            alert("Record added successfully!");
+        });
+
+        // Add record to table
+        function addRecordToTable(record) {
+            const tbody = document.getElementById("inventoryTableBody");
+            const statusClass = getStatusBadgeClass(record.status);
+            const displayNote = record.noteIssue && record.noteIssue !== "-" ? record.noteIssue : "-";
+            const displayLokals = record.lokals && record.lokals !== "-" ? record.lokals : "-";
+            const displayTransferTo = record.transferTo && record.transferTo !== "-" ? record.transferTo : "-";
+            const displayColumnJ = record.columnJ && record.columnJ !== "-" ? record.columnJ : "-";
+            const recordIndex = document.querySelectorAll("#inventoryTableBody tr").length;
+            
+            const row = tbody.insertRow(0);
+            row.dataset.recordIndex = String(recordIndex);
+            row.innerHTML = `
+                <td>${record.posNo}</td>
+                <td>${record.serialNumber}</td>
+                <td>${record.fullName || "-"}</td>
+                <td>${record.userId || "-"}</td>
+                <td>${record.address || "-"}</td>
+                <td><span class="status-badge ${statusClass}">${record.status}</span></td>
+                <td>${displayLokals}</td>
+                <td>${displayNote}</td>
+                <td>${displayTransferTo}</td>
+                <td>${displayColumnJ}</td>
+            `;
+            
+            // Update record count
+            const recordCount = document.querySelectorAll("#inventoryTableBody tr").length;
+            document.getElementById("recordCountBadge").textContent = recordCount + " record" + (recordCount !== 1 ? "s" : "");
+            
+        }
+
+        // Search functionality - searches across all CSV fields
+        document.getElementById("searchInventory").addEventListener("keyup", function (e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll("#inventoryTableBody tr");
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const posNo = row.cells[0] ? row.cells[0].textContent.toLowerCase() : "";
+                const serialNumber = row.cells[1] ? row.cells[1].textContent.toLowerCase() : "";
+                const fullName = row.cells[2] ? row.cells[2].textContent.toLowerCase() : "";
+                const userId = row.cells[3] ? row.cells[3].textContent.toLowerCase() : "";
+                const address = row.cells[4] ? row.cells[4].textContent.toLowerCase() : "";
+                const status = row.cells[5] ? row.cells[5].textContent.toLowerCase() : "";
+                const lokals = row.cells[6] ? row.cells[6].textContent.toLowerCase() : "";
+                const noteIssue = row.cells[7] ? row.cells[7].textContent.toLowerCase() : "";
+                const transferTo = row.cells[8] ? row.cells[8].textContent.toLowerCase() : "";
+                const columnJ = row.cells[9] ? row.cells[9].textContent.toLowerCase() : "";
+                
+                const isMatch = !searchTerm || 
+                    posNo.includes(searchTerm) || 
+                    serialNumber.includes(searchTerm) || 
+                    fullName.includes(searchTerm) || 
+                    userId.includes(searchTerm) ||
+                    address.includes(searchTerm) ||
+                    status.includes(searchTerm) ||
+                    lokals.includes(searchTerm) ||
+                    noteIssue.includes(searchTerm) ||
+                    transferTo.includes(searchTerm) ||
+                    columnJ.includes(searchTerm);
+                
+                if (isMatch) {
+                    row.style.display = "";
+                    visibleCount++;
+                } else {
+                    row.style.display = "none";
+                }
+            });
+            
+            const totalCount = rows.length;
+            if (searchTerm) {
+                console.log("Search results: " + visibleCount + " of " + totalCount + " records");
+            }
+        });
+
+        function openFullInventoryModal() {
+            const storageKeys = getInventoryStorageKeys();
+            const records = JSON.parse(localStorage.getItem(storageKeys.recordsKey) || "[]");
+            const tableBody = document.getElementById("fullInventoryTableBody");
+            if (!tableBody) return;
+
+            if (!records.length) {
+                tableBody.innerHTML = "<tr><td colspan='10' style='padding: 20px; text-align: center; color: #697c8f;'>No records available</td></tr>";
+            } else {
+                tableBody.innerHTML = records.map(record => {
+                    const statusClass = getStatusBadgeClass(record.status);
+                    const displayName = record.fullName && record.fullName.trim() ? record.fullName : "-";
+                    const displayNote = record.noteIssue && record.noteIssue !== "-" ? record.noteIssue : "-";
+                    const displayLokals = record.lokals && record.lokals !== "-" ? record.lokals : "-";
+                    const displayTransferTo = record.transferTo && record.transferTo !== "-" ? record.transferTo : "-";
+                    const displayColumnJ = record.columnJ && record.columnJ !== "-" ? record.columnJ : "-";
+                    return `
+                        <tr>
+                            <td>${record.posNo || "-"}</td>
+                            <td>${record.serialNumber || "-"}</td>
+                            <td>${displayName}</td>
+                            <td>${record.userId || "-"}</td>
+                            <td>${record.address || "-"}</td>
+                            <td><span class="status-badge ${statusClass}">${record.status || "-"}</span></td>
+                            <td>${displayLokals}</td>
+                            <td>${displayNote}</td>
+                            <td>${displayTransferTo}</td>
+                            <td>${displayColumnJ}</td>
+                        </tr>
+                    `;
+                }).join("");
+            }
+
+            document.getElementById("fullInventoryModal").style.display = "flex";
+        }
+
+        document.getElementById("openFullInventoryModalBtn").addEventListener("click", openFullInventoryModal);
+        document.getElementById("closeFullInventoryModalBtn").addEventListener("click", function() {
+            document.getElementById("fullInventoryModal").style.display = "none";
+        });
+        document.getElementById("fullInventoryModal").addEventListener("click", function (e) {
+            if (e.target === this) {
+                this.style.display = "none";
+            }
+        });
+
+        // Show detail view modal with all record information
+        function deleteRecordFromInventory(recordToDelete) {
+            if (!recordToDelete) return;
+
+            const storageKeys = getInventoryStorageKeys();
+            const recordsData = JSON.parse(localStorage.getItem(storageKeys.recordsKey) || "[]");
+            const filteredRecords = recordsData.filter(record => {
+                const samePos = String(record.posNo || "") === String(recordToDelete.posNo || "");
+                const sameSerial = String(record.serialNumber || "") === String(recordToDelete.serialNumber || "");
+                return !(samePos && sameSerial);
+            });
+
+            const summaryData = JSON.parse(localStorage.getItem(storageKeys.summaryKey) || "{}");
+            saveInventoryData(summaryData, filteredRecords);
+
+            if (filteredRecords.length === 0) {
+                document.getElementById("posSummaryTableBody").innerHTML = "";
+            } else {
+                populateInventoryTable(filteredRecords);
+            }
+
+            const savedState = JSON.parse(localStorage.getItem("inventoryState") || "{}") || {};
+            if (savedState.summaryData) {
+                savedState.summaryData = summaryData;
+                savedState.recordsData = filteredRecords;
+                savedState.updatedAt = new Date().toISOString();
+                localStorage.setItem("inventoryState", JSON.stringify(savedState));
+            }
+
+            document.getElementById("detailViewModal").style.display = "none";
+            alert("Record deleted successfully!");
+            location.reload();
+        }
+
+        function escapeDetailHtml(value) {
+            return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;").replace(/'/g, "&#39;");
+        }
+
+        function saveEditedDetailRecord(originalRecord) {
+            const form = document.getElementById("detailRecordForm");
+            if (!form) return;
+
+            const updatedRecord = {
+                posNo: form.querySelector("[name='posNo']").value.trim() || originalRecord.posNo || "-",
+                serialNumber: form.querySelector("[name='serialNumber']").value.trim() || originalRecord.serialNumber || "-",
+                fullName: form.querySelector("[name='fullName']").value.trim() || "-",
+                userId: form.querySelector("[name='userId']").value.trim() || "-",
+                address: form.querySelector("[name='address']").value.trim() || "-",
+                status: form.querySelector("[name='status']").value.trim() || originalRecord.status || "ACTIVE",
+                lokals: form.querySelector("[name='lokals']").value.trim() || "-",
+                noteIssue: form.querySelector("[name='noteIssue']").value.trim() || "-",
+                transferTo: form.querySelector("[name='transferTo']").value.trim() || "-",
+                columnJ: form.querySelector("[name='columnJ']").value.trim() || "-"
+            };
+
+            const storageKeys = getInventoryStorageKeys();
+            const recordsData = JSON.parse(localStorage.getItem(storageKeys.recordsKey) || "[]");
+            const recordIndex = recordsData.findIndex(record => {
+                const samePos = String(record.posNo || "") === String(originalRecord.posNo || "");
+                const sameSerial = String(record.serialNumber || "") === String(originalRecord.serialNumber || "");
+                return samePos && sameSerial;
+            });
+
+            if (recordIndex >= 0) {
+                recordsData[recordIndex] = updatedRecord;
+            } else {
+                recordsData.push(updatedRecord);
+            }
+
+            const summaryData = JSON.parse(localStorage.getItem(storageKeys.summaryKey) || "{}");
+            saveInventoryData(summaryData, recordsData);
+            populateInventoryTable(recordsData);
+
+            document.getElementById("detailViewModal").style.display = "none";
+            alert("Record updated successfully!");
+        }
+
+        function showDetailView(record) {
+            if (!record) return;
+
+            document.getElementById("detailModalTitle").textContent = `POS Record: ${record.posNo}`;
+            document.getElementById("detailModalSubtitle").textContent = `Serial: ${record.serialNumber}`;
+
+            const statusOptions = ["ACTIVE", "DAMAGE", "LOST", "DISABLED", "NOT ACTIVE", "TEST UNIT"];
+            const detailHTML = `
+                <div style="width: 100%; overflow: auto;">
+                    <table class="inventory-table" style="margin-top: 0; width: 100%; min-width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="padding: 12px 10px; text-align: left;">POS NO.</th>
+                                <th style="padding: 12px 10px; text-align: left;">Serial Number</th>
+                                <th style="padding: 12px 10px; text-align: left;">Full Name</th>
+                                <th style="padding: 12px 10px; text-align: left;">User ID</th>
+                                <th style="padding: 12px 10px; text-align: left;">Address</th>
+                                <th style="padding: 12px 10px; text-align: left;">Status</th>
+                                <th style="padding: 12px 10px; text-align: left;">LOKALS</th>
+                                <th style="padding: 12px 10px; text-align: left;">Note/Issue</th>
+                                <th style="padding: 12px 10px; text-align: left;">Transfer To</th>
+                                <th style="padding: 12px 10px; text-align: left;">Column J</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 12px 10px; vertical-align: top;"><input name="posNo" value="${escapeDetailHtml(record.posNo || "")}" style="width: 100%; min-width: 120px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; font-weight: 700; color: #1e3a5f;" /></td>
+                                <td style="padding: 12px 10px; vertical-align: top;"><input name="serialNumber" value="${escapeDetailHtml(record.serialNumber || "")}" style="width: 100%; min-width: 180px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; font-family: 'Courier New', monospace; color: #2d5a8c;" /></td>
+                                <td style="padding: 12px 10px; vertical-align: top;"><input name="fullName" value="${escapeDetailHtml(record.fullName || "")}" style="width: 100%; min-width: 160px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; color: #1e3a5f;" /></td>
+                                <td style="padding: 12px 10px; vertical-align: top;"><input name="userId" value="${escapeDetailHtml(record.userId || "")}" style="width: 100%; min-width: 120px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; color: #1e3a5f;" /></td>
+                                <td style="padding: 12px 10px; vertical-align: top;"><textarea name="address" style="width: 100%; min-width: 180px; min-height: 70px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; resize: vertical; color: #1e3a5f;">${escapeDetailHtml(record.address || "")}</textarea></td>
+                                <td style="padding: 12px 10px; vertical-align: top;">
+                                    <select name="status" style="width: 100%; min-width: 120px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; color: #1e3a5f; background: white;">
+                                        ${statusOptions.map(status => `<option value="${status}" ${String(record.status || "").toUpperCase() === status ? "selected" : ""}>${status}</option>`).join("")}
+                                    </select>
+                                </td>
+                                <td style="padding: 12px 10px; vertical-align: top;"><input name="lokals" value="${escapeDetailHtml(record.lokals || "")}" style="width: 100%; min-width: 120px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; color: #1e3a5f;" /></td>
+                                <td style="padding: 12px 10px; vertical-align: top;"><textarea name="noteIssue" style="width: 100%; min-width: 160px; min-height: 70px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; resize: vertical; color: #1e3a5f;">${escapeDetailHtml(record.noteIssue || "")}</textarea></td>
+                                <td style="padding: 12px 10px; vertical-align: top;"><input name="transferTo" value="${escapeDetailHtml(record.transferTo || "")}" style="width: 100%; min-width: 120px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; color: #1e3a5f;" /></td>
+                                <td style="padding: 12px 10px; vertical-align: top;"><textarea name="columnJ" style="width: 100%; min-width: 160px; min-height: 70px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; resize: vertical; color: #1e3a5f;">${escapeDetailHtml(record.columnJ || "")}</textarea></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                    <button id="deleteDetailRecordBtn" type="button" style="background: #dc3545; color: white; border: none; border-radius: 8px; padding: 12px 18px; font-weight: 700; cursor: pointer;">Delete Record</button>
+                    <button id="saveDetailRecordBtn" type="button" style="background: #1e3a5f; color: white; border: none; border-radius: 8px; padding: 12px 18px; font-weight: 700; cursor: pointer;">Save Changes</button>
+                </div>
+            `;
+
+            document.getElementById("detailContent").innerHTML = detailHTML;
+
+            const saveBtn = document.getElementById("saveDetailRecordBtn");
+            if (saveBtn) {
+                saveBtn.addEventListener("click", function () {
+                    saveEditedDetailRecord(record);
+                });
+            }
+
+            const deleteBtn = document.getElementById("deleteDetailRecordBtn");
+            if (deleteBtn) {
+                deleteBtn.addEventListener("click", function () {
+                    const confirmed = confirm(`Delete this POS record for ${record.posNo}?`);
+                    if (confirmed) {
+                        deleteRecordFromInventory(record);
+                    }
+                });
+            }
+
+            document.getElementById("detailViewModal").style.display = "flex";
+        }
+
+        // Close detail view modal
+        document.getElementById("closeDetailModal").addEventListener("click", function() {
+            document.getElementById("detailViewModal").style.display = "none";
+        });
+
+        // Close clear inventory modal when clicking overlay
+        document.getElementById("clearInventoryModal")?.addEventListener("click", function (e) {
+            if (e.target === this) {
+                closeClearInventoryModal();
+            }
+        });
+
+        // Close modal when clicking on overlay
+        document.getElementById("detailViewModal").addEventListener("click", function(e) {
+            if (e.target === this) {
+                this.style.display = "none";
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener("keydown", function(e) {
+            if (e.key === "Escape") {
+                document.getElementById("detailViewModal").style.display = "none";
+                document.getElementById("addRecordModal").style.display = "none";
+            }
+        });
+    </script>
+</body>
+</html>

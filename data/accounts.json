@@ -1,0 +1,35 @@
+{
+  "admin": {
+    "username": "admin",
+    "name": "System Administrator",
+    "email": "admin@system.com",
+    "password": "Admin123!",
+    "role": "Developer",
+    "permissions": ["dashboard", "analytics", "reports", "inventory", "attendance", "attendanceReport", "settings"],
+    "office": "",
+    "inventoryAccess": ["Rizal", "Cebu"],
+    "disabled": false
+  },
+  "testuser": {
+    "username": "testuser",
+    "name": "Test User",
+    "email": "testuser@system.com",
+    "password": "Test123!",
+    "role": "User",
+    "permissions": ["dashboard"],
+    "office": "Rizal",
+    "inventoryAccess": ["Rizal"],
+    "disabled": false
+  },
+  "demo": {
+    "username": "demo",
+    "name": "Demo User",
+    "email": "demo@system.com",
+    "password": "Demo123!",
+    "role": "User",
+    "permissions": ["dashboard"],
+    "office": "Cebu",
+    "inventoryAccess": ["Cebu"],
+    "disabled": false
+  }
+}
