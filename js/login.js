@@ -115,7 +115,16 @@ const TEST_CREDENTIALS = {
     "demo": "Demo123!"
 };
 
+function isLocalBackendHost() {
+    const host = window.location.hostname || '';
+    return host === 'localhost' || host === '127.0.0.1' || host === '::1';
+}
+
 function getBackendApiUrl(pathname = '/api/login') {
+    if (!isLocalBackendHost()) {
+        return null;
+    }
+
     const origin = window.location.origin || 'http://localhost:3000';
     const backendOrigin = /:\d+$/.test(origin)
         ? origin.replace(/:\d+$/, ':3000')
@@ -124,12 +133,32 @@ function getBackendApiUrl(pathname = '/api/login') {
     return `${backendOrigin}${pathname}`;
 }
 
+async function loadStaticAccountSeed() {
+    if (isLocalBackendHost()) {
+        return null;
+    }
+
+    try {
+        const response = await fetch('data/accounts.json', { cache: 'no-store' });
+        if (!response.ok) {
+            return null;
+        }
+
+        const accounts = await response.json();
+        return accounts && typeof accounts === 'object' ? accounts : null;
+    } catch (error) {
+        console.warn('Static account seed unavailable.', error);
+        return null;
+    }
+}
+
 async function login() {
     // Check for test credentials (development mode)
     const inputValue = document.getElementById("UsernameInput").value.trim();
     const password = document.getElementById("PasswordInput").value;
     const messageDiv = document.getElementById("divMessage");
-    const accounts = ensureDefaultAdminAccount();
+    let accounts = ensureDefaultAdminAccount();
+    const backendUrl = getBackendApiUrl('/api/login');
 
     if (!inputValue || !password) {
         messageDiv.textContent = "✗ Please enter both username and password";
@@ -139,38 +168,47 @@ async function login() {
 
     let backendMessage = null;
 
-    try {
-        const response = await fetch(getBackendApiUrl('/api/login'), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                usernameOrEmail: inputValue,
-                password: password
-            })
-        });
+    if (backendUrl) {
+        try {
+            const response = await fetch(backendUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    usernameOrEmail: inputValue,
+                    password: password
+                })
+            });
 
-        const result = await response.json();
+            const result = await response.json();
 
-        if (result.ok) {
-            messageDiv.textContent = "✓ Login successful!";
-            messageDiv.style.color = "green";
+            if (result.ok) {
+                messageDiv.textContent = "✓ Login successful!";
+                messageDiv.style.color = "green";
 
-            writeStoredValue("loggedInUser", result.account.username);
-            writeStoredValue("userAccounts", JSON.stringify(result.accounts || {}));
+                writeStoredValue("loggedInUser", result.account.username);
+                writeStoredValue("userAccounts", JSON.stringify(result.accounts || {}));
 
-            setTimeout(function() {
-                window.location.href = "dashboard.html";
-            }, 500);
+                setTimeout(function() {
+                    window.location.href = "dashboard.html";
+                }, 500);
 
-            console.log("Stored backend account login: " + result.account.username);
-            return;
+                console.log("Stored backend account login: " + result.account.username);
+                return;
+            }
+
+            backendMessage = result.message || "Invalid credentials";
+        } catch (error) {
+            console.warn("Backend login unavailable, falling back to local login flow.", error);
         }
+    }
 
-        backendMessage = result.message || "Invalid credentials";
-    } catch (error) {
-        console.warn("Backend login unavailable, falling back to local login flow.", error);
+    const staticAccounts = await loadStaticAccountSeed();
+    if (staticAccounts) {
+        const storedAccounts = JSON.parse(readStoredValue("userAccounts") || "{}") || {};
+        accounts = { ...staticAccounts, ...storedAccounts };
+        writeStoredValue("userAccounts", JSON.stringify(accounts));
     }
 
     let sqliteResult = { status: "fallback" };

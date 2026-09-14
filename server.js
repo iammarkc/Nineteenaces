@@ -174,23 +174,44 @@ async function handleApiLogin(request, response) {
 }
 
 async function handleApiAccounts(request, response) {
-  if (request.method !== 'GET') {
-    sendJson(response, 405, { ok: false, message: 'Method not allowed.' });
+  if (request.method === 'GET') {
+    try {
+      const accounts = await loadAccounts();
+      const safeAccounts = {};
+      Object.keys(accounts).forEach((key) => {
+        safeAccounts[key] = sanitizeAccount(accounts[key]);
+      });
+
+      sendJson(response, 200, { ok: true, accounts: safeAccounts });
+    } catch (error) {
+      console.error('Accounts fetch error:', error);
+      sendJson(response, 500, { ok: false, message: 'Unable to load accounts.' });
+    }
     return;
   }
 
-  try {
-    const accounts = await loadAccounts();
-    const safeAccounts = {};
-    Object.keys(accounts).forEach((key) => {
-      safeAccounts[key] = sanitizeAccount(accounts[key]);
+  if (request.method === 'POST') {
+    let body = '';
+    request.on('data', chunk => {
+      body += chunk;
     });
 
-    sendJson(response, 200, { ok: true, accounts: safeAccounts });
-  } catch (error) {
-    console.error('Accounts fetch error:', error);
-    sendJson(response, 500, { ok: false, message: 'Unable to load accounts.' });
+    request.on('end', async () => {
+      try {
+        const parsed = body ? JSON.parse(body) : {};
+        const accounts = parsed && typeof parsed === 'object' ? parsed : {};
+
+        await saveAccounts(accounts);
+        sendJson(response, 200, { ok: true, message: 'Accounts saved successfully.' });
+      } catch (error) {
+        console.error('Accounts save error:', error);
+        sendJson(response, 500, { ok: false, message: 'Unable to save accounts.' });
+      }
+    });
+    return;
   }
+
+  sendJson(response, 405, { ok: false, message: 'Method not allowed.' });
 }
 
 async function serveStaticFile(response, filePath) {

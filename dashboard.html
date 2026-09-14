@@ -1576,8 +1576,48 @@
             return JSON.parse(localStorage.getItem('userAccounts')) || {};
         }
 
-        function saveAccounts(accounts) {
-            localStorage.setItem('userAccounts', JSON.stringify(accounts));
+        function getBackendApiUrl(pathname = '/api/accounts') {
+            const host = window.location.hostname || '';
+            if (host !== 'localhost' && host !== '127.0.0.1' && host !== '::1') {
+                return null;
+            }
+
+            const origin = window.location.origin || 'http://localhost:3000';
+            const backendOrigin = /:\d+$/.test(origin)
+                ? origin.replace(/:\d+$/, ':3000')
+                : `${origin}:3000`;
+
+            return `${backendOrigin}${pathname}`;
+        }
+
+        async function saveAccounts(accounts) {
+            try {
+                localStorage.setItem('userAccounts', JSON.stringify(accounts));
+            } catch (error) {
+                console.warn('Unable to save accounts locally.', error);
+            }
+
+            const backendUrl = getBackendApiUrl('/api/accounts');
+            if (!backendUrl) {
+                return;
+            }
+
+            try {
+                const response = await fetch(backendUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(accounts)
+                });
+
+                const result = await response.json();
+                if (!result || !result.ok) {
+                    throw new Error(result && result.message ? result.message : 'Backend save failed.');
+                }
+            } catch (error) {
+                console.warn('Unable to sync accounts to the shared backend.', error);
+            }
         }
 
         function getAccountStatus(account) {
@@ -1994,7 +2034,7 @@
                 disabled: false
             };
 
-            localStorage.setItem('userAccounts', JSON.stringify(accounts));
+            saveAccounts(accounts);
             alert('Account created successfully!');
             document.getElementById('addAccountModal').classList.remove('active');
             resetAddAccountForm();
