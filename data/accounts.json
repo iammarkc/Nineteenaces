@@ -55,6 +55,7 @@
     "username": "Testceb",
     "name": "Testceb",
     "email": "Testceb@gmail.com",
+    "password": "Admin123!",
     "role": "IT Admin",
     "permissions": [
       "Cebu",

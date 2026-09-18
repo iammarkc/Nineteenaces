@@ -135,7 +135,10 @@ function isLocalBackendHost() {
 }
 
 function getBackendApiUrl(pathname = '/api/login') {
-    if (!isLocalBackendHost()) {
+    const hostname = window.location.hostname || '';
+    const isGitHubPages = hostname === 'github.io' || hostname.endsWith('.github.io');
+
+    if (!isLocalBackendHost() || isGitHubPages) {
         return null;
     }
 
