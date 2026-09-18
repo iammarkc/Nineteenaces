@@ -17,9 +17,7 @@
     const accountsCollection = database.collection("accounts");
 
     window.sharedAttendance = {
-        ready: firebase.auth().signInAnonymously().catch(error => {
-            console.warn("Shared attendance authentication unavailable.", error);
-        }),
+        ready: Promise.resolve(),
         async load() {
             await this.ready;
             const snapshot = await recordsCollection.get();
