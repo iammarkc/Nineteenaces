@@ -917,7 +917,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-shared.js?v=20260918-3"></script>
+    <script src="js/firebase-shared.js?v=20260918-4"></script>
     <script src="js/change-password.js?v=20260918-2"></script>
     <script>
         function getLoggedInDisplayName() {
@@ -1864,7 +1864,8 @@
                 try {
                     await window.sharedAccounts.save(accounts);
                 } catch (error) {
-                    console.warn("Shared account save failed; local copy retained.", error);
+                    localStorage.setItem("userAccounts", JSON.stringify(accounts));
+                    throw new Error("Shared account save failed. Check Firebase rules and deployment.");
                 }
             }
 

@@ -9,12 +9,9 @@
         measurementId: "G-P1FSYLFE5Z"
     };
 
-    if (!window.firebase) return;
-
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.firestore();
-    const recordsCollection = database.collection("attendanceRecords");
-    const accountsCollection = database.collection("accounts");
+    if (window.firebase) firebase.initializeApp(firebaseConfig);
+    const database = window.firebase ? firebase.firestore() : null;
+    const recordsCollection = database ? database.collection("attendanceRecords") : null;
     const firestoreRestBase = "https://firestore.googleapis.com/v1/projects/nineteenaces-8ba08/databases/(default)/documents";
 
     function toFirestoreValue(value) {
@@ -64,6 +61,7 @@
     window.sharedAttendance = {
         ready: Promise.resolve(),
         async load() {
+            if (!recordsCollection) throw new Error("Firebase SDK unavailable");
             await this.ready;
             const snapshot = await recordsCollection.get();
             return snapshot.docs.reduce((records, document) => {
@@ -72,6 +70,7 @@
             }, {});
         },
         async save(records) {
+            if (!recordsCollection) throw new Error("Firebase SDK unavailable");
             await this.ready;
             const batch = database.batch();
             Object.entries(records).forEach(([key, record]) => {
@@ -81,6 +80,7 @@
             await batch.commit();
         },
         async clearDate(date) {
+            if (!recordsCollection) throw new Error("Firebase SDK unavailable");
             await this.ready;
             const snapshot = await recordsCollection.where("date", "==", date).get();
             const batch = database.batch();
