@@ -9,9 +9,6 @@
         measurementId: "G-P1FSYLFE5Z"
     };
 
-    if (window.firebase) firebase.initializeApp(firebaseConfig);
-    const database = window.firebase ? firebase.firestore() : null;
-    const recordsCollection = database ? database.collection("attendanceRecords") : null;
     const firestoreRestBase = "https://firestore.googleapis.com/v1/projects/nineteenaces-8ba08/databases/(default)/documents";
 
     function toFirestoreValue(value) {

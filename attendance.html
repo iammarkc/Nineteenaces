@@ -129,10 +129,7 @@
     </div>
 
     <script src="js/bootstrap.bundle.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-shared.js?v=20260918-5"></script>
+    <script src="js/firebase-shared.js?v=20260918-6"></script>
     <script src="js/change-password.js?v=20260918-2"></script>
     <script>
         const storedAccounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
@@ -156,7 +153,11 @@
         function writeRecords(records) {
             localStorage.setItem(storageKey, JSON.stringify(records));
             if (window.sharedAttendance) {
-                window.sharedAttendance.save(records).catch(error => console.warn("Shared attendance save failed.", error));
+                window.sharedAttendance.save(records).catch(error => {
+                    console.error("Shared attendance save failed.", error);
+                    const notice = document.getElementById("clockNotice");
+                    if (notice) notice.textContent = "Saved on this device, but cloud sync failed. Check Firestore rules and connection.";
+                });
             }
         }
         function recordKey(employeeId) { return `${dateInput.value}:${employeeId}`; }
