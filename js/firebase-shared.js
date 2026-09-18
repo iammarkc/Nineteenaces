@@ -78,9 +78,16 @@
     }
 
     async function clearAttendanceFromFirestore(date) {
+        return clearAttendanceRangeFromFirestore(date, date);
+    }
+
+    async function clearAttendanceRangeFromFirestore(start, end) {
         const records = await loadAttendanceFromFirestore();
         const recordIds = Object.entries(records)
-            .filter(([, record]) => record.date === date)
+            .filter(([recordId, record]) => {
+                const recordDate = record.date || recordId.split(":")[0];
+                return !start || !end || (recordDate >= start && recordDate <= end);
+            })
             .map(([recordId]) => recordId);
         await Promise.all(recordIds.map(async recordId => {
             const response = await fetch(`${firestoreRestBase}/attendanceRecords/${encodeURIComponent(recordId)}?key=${firebaseConfig.apiKey}`, { method: "DELETE" });
@@ -102,6 +109,9 @@
         },
         async clearDate(date) {
             return clearAttendanceFromFirestore(date);
+        },
+        async clearRange(start, end) {
+            return clearAttendanceRangeFromFirestore(start, end);
         },
         async loadAccounts() {
             return loadAccountsFromFirestore();

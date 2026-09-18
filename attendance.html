@@ -128,6 +128,17 @@
         </div>
     </div>
 
+    <div class="clock-modal" id="clearAttendanceModal" role="dialog" aria-modal="true" aria-labelledby="clearAttendanceTitle">
+        <div class="clock-modal-content">
+            <div class="clock-modal-header"><h2 id="clearAttendanceTitle" style="font-size: 20px; margin: 0;"><i class="bi bi-trash me-2"></i>Clear Attendance</h2><button class="btn btn-light btn-sm" id="closeClearAttendanceBtn" type="button">Close</button></div>
+            <div class="clock-modal-body">
+                <div class="clock-field"><label for="clearAttendanceRange">Clear records by</label><select id="clearAttendanceRange"><option value="day">Selected day</option><option value="week">Selected week</option><option value="month">Selected month</option><option value="all">Entire attendance data</option></select></div>
+                <p id="clearAttendanceDescription" style="color: #697c8f; font-size: 13px;">This will clear attendance for the selected date.</p>
+                <div class="clock-actions"><button class="btn btn-danger" id="confirmClearAttendanceBtn" type="button"><i class="bi bi-trash me-1"></i>Clear attendance</button><button class="btn btn-secondary" id="cancelClearAttendanceBtn" type="button">Cancel</button></div>
+            </div>
+        </div>
+    </div>
+
     <script src="js/bootstrap.bundle.min.js"></script>
     <script src="js/firebase-shared.js?v=20260918-6"></script>
     <script src="js/change-password.js?v=20260918-2"></script>
@@ -225,15 +236,46 @@
         document.addEventListener("change", event => { const editor = event.target.closest("select[data-status-id]"); if (editor && canEditAttendance) updateEmployeeStatus(editor.dataset.statusId, editor.value); });
         [searchInput, dateInput, officeInput].forEach(input => input.addEventListener("input", render));
         document.getElementById("markAllPresentBtn").addEventListener("click", () => { employees.forEach(employee => updateEmployee(employee.id, "in")); });
-        document.getElementById("clearAttendanceBtn").addEventListener("click", () => {
-            if (!canEditAttendance || !confirm(`Clear attendance for ${dateInput.value}?`)) return;
+        const clearAttendanceModal = document.getElementById("clearAttendanceModal");
+        const clearAttendanceRange = document.getElementById("clearAttendanceRange");
+        const clearAttendanceDescription = document.getElementById("clearAttendanceDescription");
+        function getClearDateRange(range) {
+            if (range === "all") return { start: null, end: null };
+            const selected = new Date(`${dateInput.value}T00:00:00`);
+            if (range === "day") return { start: dateInput.value, end: dateInput.value };
+            if (range === "month") {
+                const start = new Date(selected.getFullYear(), selected.getMonth(), 1);
+                const end = new Date(selected.getFullYear(), selected.getMonth() + 1, 0);
+                return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) };
+            }
+            const start = new Date(selected);
+            start.setDate(selected.getDate() - selected.getDay());
+            const end = new Date(start);
+            end.setDate(start.getDate() + 6);
+            return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) };
+        }
+        function updateClearDescription() {
+            const range = clearAttendanceRange.value;
+            const labels = { day: `This will clear attendance for ${dateInput.value}.`, week: "This will clear attendance for the selected week.", month: "This will clear attendance for the selected month.", all: "This will permanently clear all attendance data." };
+            clearAttendanceDescription.textContent = labels[range];
+        }
+        document.getElementById("clearAttendanceBtn").addEventListener("click", () => { if (canEditAttendance) { updateClearDescription(); clearAttendanceModal.classList.add("active"); } });
+        document.getElementById("closeClearAttendanceBtn").addEventListener("click", () => clearAttendanceModal.classList.remove("active"));
+        document.getElementById("cancelClearAttendanceBtn").addEventListener("click", () => clearAttendanceModal.classList.remove("active"));
+        clearAttendanceModal.addEventListener("click", event => { if (event.target === clearAttendanceModal) clearAttendanceModal.classList.remove("active"); });
+        clearAttendanceRange.addEventListener("change", updateClearDescription);
+        document.getElementById("confirmClearAttendanceBtn").addEventListener("click", async () => {
+            const range = clearAttendanceRange.value;
+            const dates = getClearDateRange(range);
+            if (!confirm(range === "all" ? "Clear all attendance data?" : `Clear attendance for the selected ${range}?`)) return;
             const records = readRecords();
-            const selectedDatePrefix = `${dateInput.value}:`;
             Object.keys(records).forEach(key => {
-                if (key.startsWith(selectedDatePrefix)) delete records[key];
+                const recordDate = records[key].date || key.split(":")[0];
+                if (range === "all" || (recordDate >= dates.start && recordDate <= dates.end)) delete records[key];
             });
             localStorage.setItem(storageKey, JSON.stringify(records));
-            if (window.sharedAttendance) window.sharedAttendance.clearDate(dateInput.value).catch(error => console.warn("Shared attendance clear failed.", error));
+            if (window.sharedAttendance) await window.sharedAttendance.clearRange(dates.start, dates.end).catch(error => console.warn("Shared attendance clear failed.", error));
+            clearAttendanceModal.classList.remove("active");
             render();
         });
         document.getElementById("exportAttendanceBtn").addEventListener("click", () => { const csv = ["Date,Employee,Employee ID,Office,Time in,Time out,Status", ...getRows().map(row => [dateInput.value, row.name, row.id, row.office, row.timeIn || "", row.timeOut || "", row.status || "Pending"].map(value => `"${String(value).replace(/"/g, '""')}"`).join(","))].join("\n"); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); link.download = `attendance-${dateInput.value}.csv`; link.click(); URL.revokeObjectURL(link.href); });
