@@ -58,34 +58,53 @@
         }));
     }
 
+    async function loadAttendanceFromFirestore() {
+        const response = await fetch(`${firestoreRestBase}/attendanceRecords?key=${firebaseConfig.apiKey}`, { cache: "no-store" });
+        if (!response.ok) throw new Error(`Firestore attendance read failed: ${response.status}`);
+        const result = await response.json();
+        return (result.documents || []).reduce((records, document) => {
+            const recordId = document.name.split("/").pop();
+            records[recordId] = Object.keys(document.fields || {}).reduce((record, key) => ({ ...record, [key]: fromFirestoreValue(document.fields[key]) }), {});
+            return records;
+        }, {});
+    }
+
+    async function saveAttendanceToFirestore(records) {
+        await Promise.all(Object.entries(records).map(async ([recordId, record]) => {
+            const response = await fetch(`${firestoreRestBase}/attendanceRecords/${encodeURIComponent(recordId)}?key=${firebaseConfig.apiKey}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ fields: Object.keys(record).reduce((fields, key) => ({ ...fields, [key]: toFirestoreValue(record[key]) }), {}) })
+            });
+            if (!response.ok) throw new Error(`Firestore attendance write failed: ${response.status}`);
+        }));
+    }
+
+    async function clearAttendanceFromFirestore(date) {
+        const records = await loadAttendanceFromFirestore();
+        const recordIds = Object.entries(records)
+            .filter(([, record]) => record.date === date)
+            .map(([recordId]) => recordId);
+        await Promise.all(recordIds.map(async recordId => {
+            const response = await fetch(`${firestoreRestBase}/attendanceRecords/${encodeURIComponent(recordId)}?key=${firebaseConfig.apiKey}`, { method: "DELETE" });
+            if (!response.ok) throw new Error(`Firestore attendance delete failed: ${response.status}`);
+        }));
+    }
+
     window.sharedAttendance = {
         ready: Promise.resolve(),
         async load() {
-            if (!recordsCollection) throw new Error("Firebase SDK unavailable");
-            await this.ready;
-            const snapshot = await recordsCollection.get();
-            return snapshot.docs.reduce((records, document) => {
-                records[document.id] = document.data();
-                return records;
-            }, {});
+            return loadAttendanceFromFirestore();
         },
         async save(records) {
-            if (!recordsCollection) throw new Error("Firebase SDK unavailable");
-            await this.ready;
-            const batch = database.batch();
-            Object.entries(records).forEach(([key, record]) => {
-                const date = record.date || key.split(":")[0];
-                batch.set(recordsCollection.doc(key), { ...record, date }, { merge: true });
-            });
-            await batch.commit();
+            const normalizedRecords = Object.entries(records).reduce((normalized, [key, record]) => ({
+                ...normalized,
+                [key]: { ...record, date: record.date || key.split(":")[0] }
+            }), {});
+            return saveAttendanceToFirestore(normalizedRecords);
         },
         async clearDate(date) {
-            if (!recordsCollection) throw new Error("Firebase SDK unavailable");
-            await this.ready;
-            const snapshot = await recordsCollection.where("date", "==", date).get();
-            const batch = database.batch();
-            snapshot.docs.forEach(document => batch.delete(document.ref));
-            await batch.commit();
+            return clearAttendanceFromFirestore(date);
         },
         async loadAccounts() {
             return loadAccountsFromFirestore();
