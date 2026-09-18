@@ -137,7 +137,7 @@
             .filter(account => account && account.username && !account.disabled)
             .map(account => ({
                 name: account.name || account.username,
-                id: account.employeeId || account.username,
+                id: account.username,
                 office: account.office === "Both" ? "Both Offices" : (account.office || "Unassigned")
             }));
         const storageKey = "attendanceRecords";
@@ -255,7 +255,7 @@
         dateInput.value = today();
         clockDateInput.value = dateInput.value;
         const loggedInEmployee = currentAccount && currentAccount.name
-            ? { name: currentAccount.name, id: `ACCOUNT-${currentAccount.username || accountName}`, office: currentAccount.office || "" }
+            ? { name: currentAccount.name, id: currentAccount.username || accountName, office: currentAccount.office === "Both" ? "Both Offices" : (currentAccount.office || "Unassigned") }
             : null;
         const clockEmployees = loggedInEmployee && !["Developer", "IT Admin"].includes(currentAccount.role)
             ? [loggedInEmployee]
