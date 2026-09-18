@@ -176,6 +176,18 @@ async function loadStaticAccountSeed() {
     }
 }
 
+async function loadSharedAccountSeed() {
+    if (!window.sharedAccounts) return null;
+
+    try {
+        const accounts = await window.sharedAccounts.load();
+        return accounts && typeof accounts === "object" ? accounts : null;
+    } catch (error) {
+        console.warn("Shared account store unavailable.", error);
+        return null;
+    }
+}
+
 async function login() {
     // Check for test credentials (development mode)
     const inputValue = document.getElementById("UsernameInput").value.trim();
@@ -232,6 +244,13 @@ async function login() {
     if (staticAccounts) {
         const storedAccounts = JSON.parse(readStoredValue("userAccounts") || "{}") || {};
         accounts = { ...staticAccounts, ...storedAccounts };
+        writeStoredValue("userAccounts", JSON.stringify(accounts));
+    }
+
+    const sharedAccounts = await loadSharedAccountSeed();
+    if (sharedAccounts) {
+        const storedAccounts = JSON.parse(readStoredValue("userAccounts") || "{}") || {};
+        accounts = { ...accounts, ...storedAccounts, ...sharedAccounts };
         writeStoredValue("userAccounts", JSON.stringify(accounts));
     }
 

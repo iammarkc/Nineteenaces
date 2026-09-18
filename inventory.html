@@ -397,6 +397,7 @@
                             <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Rizal" href="inventory.html?office=Rizal"><i class="bi bi-boxes me-2"></i>Inventory of Rizal</a></li>
                             <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Cebu" href="inventory.html?office=Cebu"><i class="bi bi-boxes me-2"></i>Inventory of Cebu</a></li>
                             <li><a class="dropdown-item" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
+                            <li><button class="dropdown-item" id="changePasswordMenuBtn" type="button"><i class="bi bi-key me-2"></i>Change Password</button></li>
                             <li><a class="dropdown-item" data-permission="inventory" href="#" id="clearInventoryMenuBtn"><i class="bi bi-trash me-2"></i>Clear Inventory</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li id="addAccountMenuItemDivider" style="display: none;"><hr class="dropdown-divider"></li>
@@ -903,7 +904,21 @@
         </div>
     </div>
 
+    <div class="account-modal-overlay" id="changePasswordModal">
+        <div class="account-modal" role="dialog" aria-modal="true" aria-labelledby="changePasswordTitle">
+            <h2 id="changePasswordTitle"><i class="bi bi-key me-2"></i>Change Password</h2>
+            <div class="account-form-group"><label for="newPasswordInput">New Password</label><input id="newPasswordInput" type="password" autocomplete="new-password"></div>
+            <div class="account-form-group"><label for="confirmPasswordInput">Confirm New Password</label><input id="confirmPasswordInput" type="password" autocomplete="new-password"></div>
+            <div class="account-modal-buttons"><button type="button" class="btn-submit" id="savePasswordBtn">Save Password</button><button type="button" class="btn-cancel" id="cancelPasswordBtn">Cancel</button></div>
+        </div>
+    </div>
+
     <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-shared.js?v=20260918-2"></script>
+    <script src="js/change-password.js?v=20260918-2"></script>
     <script>
         function getLoggedInDisplayName() {
             const username = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser") || "User";
@@ -1845,6 +1860,14 @@
         async function saveInventoryAccounts(accounts) {
             localStorage.setItem("userAccounts", JSON.stringify(accounts));
 
+            if (window.sharedAccounts) {
+                try {
+                    await window.sharedAccounts.save(accounts);
+                } catch (error) {
+                    console.warn("Shared account save failed; local copy retained.", error);
+                }
+            }
+
             if (!window.location.hostname || isGitHubPages()) {
                 return;
             }
@@ -1864,6 +1887,15 @@
         async function getInventoryAccounts() {
             const localAccounts = JSON.parse(localStorage.getItem("userAccounts")) || {};
             let accounts = localAccounts;
+
+            if (window.sharedAccounts) {
+                try {
+                    const sharedAccounts = await window.sharedAccounts.load();
+                    accounts = { ...accounts, ...sharedAccounts };
+                } catch (error) {
+                    console.warn("Shared account load failed; using local copy.", error);
+                }
+            }
 
             if (!isGitHubPages() && window.location.hostname) {
                 try {
@@ -1978,9 +2010,14 @@
             delete accounts[originalUsername];
             accounts[username] = updatedAccount;
 
-            await saveInventoryAccounts(accounts);
-            closeInventoryAccountModals();
-            openInventoryUsers();
+            try {
+                await saveInventoryAccounts(accounts);
+                closeInventoryAccountModals();
+                openInventoryUsers();
+                alert("Account changes saved successfully.");
+            } catch (error) {
+                alert("Unable to save account changes in this browser.");
+            }
         });
 
         document.getElementById("inventorySubmitUserBtn")?.addEventListener("click", async function () {

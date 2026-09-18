@@ -233,6 +233,45 @@ async function handleApiAccounts(request, response) {
   sendJson(response, 405, { ok: false, message: 'Method not allowed.' });
 }
 
+async function handleApiChangePassword(request, response) {
+  if (request.method !== 'POST') {
+    sendJson(response, 405, { ok: false, message: 'Method not allowed.' });
+    return;
+  }
+
+  let body = '';
+  request.on('data', chunk => {
+    body += chunk;
+  });
+
+  request.on('end', async () => {
+    try {
+      const payload = body ? JSON.parse(body) : {};
+      const username = String(payload.username || '').trim();
+      const newPassword = String(payload.newPassword || '');
+      const accounts = await loadAccounts();
+      const account = accounts[username];
+
+      if (!account) {
+        sendJson(response, 404, { ok: false, message: 'Account not found.' });
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        sendJson(response, 400, { ok: false, message: 'New password must be at least 6 characters.' });
+        return;
+      }
+
+      accounts[username] = { ...account, password: newPassword };
+      await saveAccounts(accounts);
+      sendJson(response, 200, { ok: true, account: sanitizeAccount(accounts[username]) });
+    } catch (error) {
+      console.error('Password change error:', error);
+      sendJson(response, 500, { ok: false, message: 'Unable to change password.' });
+    }
+  });
+}
+
 async function serveStaticFile(response, filePath) {
   try {
     const resolvedPath = path.resolve(ROOT_DIR, filePath);
@@ -272,6 +311,11 @@ async function main() {
 
     if (pathname === '/api/accounts') {
       await handleApiAccounts(request, response);
+      return;
+    }
+
+    if (pathname === '/api/change-password') {
+      await handleApiChangePassword(request, response);
       return;
     }
 

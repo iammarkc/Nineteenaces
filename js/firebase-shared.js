@@ -14,6 +14,7 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.firestore();
     const recordsCollection = database.collection("attendanceRecords");
+    const accountsCollection = database.collection("accounts");
 
     window.sharedAttendance = {
         ready: firebase.auth().signInAnonymously().catch(error => {
@@ -42,6 +43,28 @@
             const batch = database.batch();
             snapshot.docs.forEach(document => batch.delete(document.ref));
             await batch.commit();
+        },
+        async loadAccounts() {
+            await this.ready;
+            const snapshot = await accountsCollection.get();
+            return snapshot.docs.reduce((accounts, document) => {
+                accounts[document.id] = document.data();
+                return accounts;
+            }, {});
+        },
+        async saveAccounts(accounts) {
+            await this.ready;
+            const batch = database.batch();
+            Object.entries(accounts).forEach(([username, account]) => {
+                batch.set(accountsCollection.doc(username), account, { merge: true });
+            });
+            await batch.commit();
         }
+    };
+
+    window.sharedAccounts = {
+        ready: window.sharedAttendance.ready,
+        load: () => window.sharedAttendance.loadAccounts(),
+        save: accounts => window.sharedAttendance.saveAccounts(accounts)
     };
 })();
