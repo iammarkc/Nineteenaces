@@ -140,7 +140,7 @@
     </div>
 
     <script src="js/bootstrap.bundle.min.js"></script>
-    <script src="js/firebase-shared.js?v=20260918-6"></script>
+    <script src="js/firebase-shared.js?v=20260918-7"></script>
     <script src="js/change-password.js?v=20260918-2"></script>
     <script>
         const storedAccounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
@@ -274,7 +274,12 @@
                 if (range === "all" || (recordDate >= dates.start && recordDate <= dates.end)) delete records[key];
             });
             localStorage.setItem(storageKey, JSON.stringify(records));
-            if (window.sharedAttendance) await window.sharedAttendance.clearRange(dates.start, dates.end).catch(error => console.warn("Shared attendance clear failed.", error));
+            try {
+                if (window.sharedAttendance) await window.sharedAttendance.clearRange(dates.start, dates.end);
+            } catch (error) {
+                console.error("Shared attendance clear failed.", error);
+                alert("This device was cleared, but the shared attendance could not be cleared. Check Firestore rules and try again.");
+            }
             clearAttendanceModal.classList.remove("active");
             render();
         });
@@ -306,11 +311,12 @@
         clockEmployeeInput.disabled = !canEditAttendance;
         render();
         if (window.sharedAttendance) {
-            window.sharedAttendance.load().then(sharedRecords => {
-                const mergedRecords = { ...readRecords(), ...sharedRecords };
-                localStorage.setItem(storageKey, JSON.stringify(mergedRecords));
+            const refreshSharedAttendance = () => window.sharedAttendance.load().then(sharedRecords => {
+                localStorage.setItem(storageKey, JSON.stringify(sharedRecords));
                 render();
             }).catch(error => console.warn("Shared attendance load failed.", error));
+            refreshSharedAttendance();
+            window.setInterval(refreshSharedAttendance, 10000);
         }
     </script>
 </body>
