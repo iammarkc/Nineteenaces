@@ -42,6 +42,16 @@
         .status-pending { color: #586b7d; background: #e9eef3; }
         .action-btn { border: 1px solid #d8e1eb; background: white; color: var(--navy); border-radius: 5px; padding: 5px 8px; margin-right: 4px; }
         .action-btn:hover { background: #edf3f9; }
+        .status-editor { border: 1px solid #d8e1eb; border-radius: 5px; color: var(--ink); padding: 5px 8px; font-size: 12px; margin-right: 4px; }
+        .clock-modal { position: fixed; inset: 0; z-index: 2300; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(10, 17, 29, .72); }
+        .clock-modal.active { display: flex; }
+        .clock-modal-content { width: min(680px, 100%); max-height: 90vh; overflow-y: auto; background: white; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,.28); }
+        .clock-modal-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 22px; color: white; background: linear-gradient(135deg, var(--navy), var(--blue)); }
+        .clock-modal-body { padding: 22px; }
+        .clock-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+        .clock-field label { color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+        .clock-field input, .clock-field select { border: 1px solid #d8e1eb; border-radius: 6px; padding: 10px 12px; color: var(--ink); background: white; }
+        .clock-actions { display: flex; gap: 10px; flex-wrap: wrap; }
         .empty-state { color: var(--muted); text-align: center; padding: 38px 16px !important; }
         @media (max-width: 575px) { .attendance-container { margin-top: 24px; padding: 0 12px; } .hero { padding: 26px 22px; } .hero h1 { font-size: 25px; } .toolbar { padding: 14px; } }
     </style>
@@ -58,6 +68,8 @@
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenu">
                             <li><a class="dropdown-item" id="attendanceInventoryMenuItem" href="inventory.html"><i class="bi bi-boxes me-2"></i>Inventory</a></li>
                             <li><a class="dropdown-item active" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
+                            <li><button class="dropdown-item" id="openClockModalMenuBtn" type="button"><i class="bi bi-clock me-2"></i>Clock in / out</button></li>
+                            <li><button class="dropdown-item" id="changePasswordMenuBtn" type="button"><i class="bi bi-key me-2"></i>Change Password</button></li>
                         </ul>
                     </li>
                     <li class="nav-item"><span class="nav-link" id="userDisplay">User</span></li>
@@ -87,32 +99,83 @@
                 <input id="attendanceDate" type="date" aria-label="Attendance date">
                 <select id="attendanceOffice" aria-label="Filter by office"><option value="All">All offices</option><option value="Rizal">Rizal</option><option value="Cebu">Cebu</option></select>
                 <button class="btn btn-primary" id="exportAttendanceBtn" type="button" title="Export attendance as CSV"><i class="bi bi-download me-1"></i>Export</button>
+                <button class="btn btn-outline-danger" id="clearAttendanceBtn" type="button" title="Clear selected day's attendance"><i class="bi bi-trash me-1"></i>Clear day</button>
             </div>
             <div class="table-responsive"><table class="attendance-table"><thead><tr><th>Employee</th><th>Employee ID</th><th>Office</th><th>Time in</th><th>Time out</th><th>Status</th><th>Actions</th></tr></thead><tbody id="attendanceTableBody"></tbody></table></div>
         </section>
     </main>
 
+    <div class="clock-modal" id="clockModal" role="dialog" aria-modal="true" aria-labelledby="clockModalTitle">
+        <div class="clock-modal-content">
+            <div class="clock-modal-header"><h2 id="clockModalTitle" style="font-size: 20px; margin: 0;">Clock-in / Clock-out</h2><button class="btn btn-light btn-sm" id="closeClockModalBtn" type="button" aria-label="Close clock dialog">Close</button></div>
+            <div class="clock-modal-body">
+                <div class="clock-field"><label for="clockEmployee">Employee</label><select id="clockEmployee"></select></div>
+                <div class="clock-field"><label for="clockDate">Work date</label><input id="clockDate" type="date"></div>
+                <div class="clock-actions"><button class="btn btn-success" id="clockInBtn" type="button"><i class="bi bi-box-arrow-in-right me-1"></i>Time in now</button><button class="btn btn-warning" id="clockOutBtn" type="button"><i class="bi bi-box-arrow-right me-1"></i>Time out now</button></div>
+                <p id="clockNotice" style="color: #697c8f; font-size: 13px; margin: 16px 0 0;">Select an employee to record time.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="clock-modal" id="changePasswordModal" role="dialog" aria-modal="true" aria-labelledby="changePasswordTitle">
+        <div class="clock-modal-content">
+            <div class="clock-modal-header"><h2 id="changePasswordTitle" style="font-size: 20px; margin: 0;"><i class="bi bi-key me-2"></i>Change Password</h2><button class="btn btn-light btn-sm" id="cancelPasswordBtn" type="button">Close</button></div>
+            <div class="clock-modal-body">
+                <div class="clock-field"><label for="newPasswordInput">New Password</label><input id="newPasswordInput" type="password" autocomplete="new-password"></div>
+                <div class="clock-field"><label for="confirmPasswordInput">Confirm New Password</label><input id="confirmPasswordInput" type="password" autocomplete="new-password"></div>
+                <button class="btn btn-primary" id="savePasswordBtn" type="button"><i class="bi bi-check-circle me-1"></i>Save Password</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-shared.js?v=20260918-1"></script>
+    <script src="js/change-password.js?v=20260918-2"></script>
     <script>
-        const employees = [
-            { name: "Manuel Federigan", id: "EMP-001", office: "Rizal" },
-            { name: "Bembem Dayadante", id: "EMP-002", office: "Rizal" },
-            { name: "Gary Villacarlos Jr.", id: "EMP-003", office: "Rizal" },
-            { name: "Maria Santos", id: "EMP-004", office: "Cebu" },
-            { name: "John Reyes", id: "EMP-005", office: "Cebu" }
-        ];
+        const storedAccounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
+        const employees = Object.values(storedAccounts)
+            .filter(account => account && account.username && !account.disabled)
+            .map(account => ({
+                name: account.name || account.username,
+                id: account.employeeId || account.username,
+                office: account.office === "Both" ? "Both Offices" : (account.office || "Unassigned")
+            }));
         const storageKey = "attendanceRecords";
         const dateInput = document.getElementById("attendanceDate");
         const searchInput = document.getElementById("attendanceSearch");
         const officeInput = document.getElementById("attendanceOffice");
+        const clockModal = document.getElementById("clockModal");
+        const clockDateInput = document.getElementById("clockDate");
+        const clockEmployeeInput = document.getElementById("clockEmployee");
 
         function today() { return new Date().toISOString().slice(0, 10); }
         function readRecords() { try { return JSON.parse(localStorage.getItem(storageKey) || "{}"); } catch (error) { return {}; } }
-        function writeRecords(records) { localStorage.setItem(storageKey, JSON.stringify(records)); }
+        function writeRecords(records) {
+            localStorage.setItem(storageKey, JSON.stringify(records));
+            if (window.sharedAttendance) {
+                window.sharedAttendance.save(records).catch(error => console.warn("Shared attendance save failed.", error));
+            }
+        }
         function recordKey(employeeId) { return `${dateInput.value}:${employeeId}`; }
         function getRows() {
             const records = readRecords();
-            return employees.map(employee => ({ ...employee, ...(records[recordKey(employee.id)] || {}) }));
+            const selectedDatePrefix = `${dateInput.value}:`;
+            return Object.entries(records)
+                .filter(([key, record]) => key.startsWith(selectedDatePrefix) && (record.timeIn || record.timeOut))
+                .map(([key, record]) => {
+                    const employeeId = record.employeeId || key.slice(selectedDatePrefix.length);
+                    const employee = employees.find(item => item.id === employeeId) || {};
+                    return {
+                        ...employee,
+                        name: record.employeeName || employee.name || employeeId,
+                        id: employeeId,
+                        office: record.office || employee.office || "Unassigned",
+                        ...record
+                    };
+                });
         }
         function statusClass(status) { return status === "Present" ? "status-present" : status === "Late" ? "status-late" : status === "Absent" ? "status-absent" : "status-pending"; }
         function render() {
@@ -125,30 +188,87 @@
             document.getElementById("lateCount").textContent = rows.filter(row => row.status === "Late").length;
             document.getElementById("absentCount").textContent = rows.filter(row => row.status === "Absent").length;
             const body = document.getElementById("attendanceTableBody");
-            body.innerHTML = filtered.length ? filtered.map(row => `<tr><td><strong>${escapeHtml(row.name)}</strong></td><td>${row.id}</td><td>${row.office}</td><td>${row.timeIn || "-"}</td><td>${row.timeOut || "-"}</td><td><span class="status ${statusClass(row.status)}">${row.status || "Pending"}</span></td><td><button class="action-btn" data-action="in" data-id="${row.id}" title="Clock in"><i class="bi bi-box-arrow-in-right"></i></button><button class="action-btn" data-action="out" data-id="${row.id}" title="Clock out"><i class="bi bi-box-arrow-right"></i></button><button class="action-btn" data-action="absent" data-id="${row.id}" title="Mark absent"><i class="bi bi-person-dash"></i></button></td></tr>`).join("") : `<tr><td class="empty-state" colspan="7">No employees match the selected filters.</td></tr>`;
+            body.innerHTML = filtered.length ? filtered.map(row => `<tr><td><strong>${escapeHtml(row.name)}</strong></td><td>${row.id}</td><td>${row.office}</td><td>${row.timeIn || "-"}</td><td>${row.timeOut || "-"}</td><td><span class="status ${statusClass(row.status)}">${row.status || "Pending"}</span></td><td>${canEditAttendance ? `<select class="status-editor" data-status-id="${row.id}" aria-label="Edit attendance status for ${escapeHtml(row.name)}"><option value="Pending" ${(!row.status || row.status === "Pending") ? "selected" : ""}>Pending</option><option value="Present" ${row.status === "Present" ? "selected" : ""}>Present</option><option value="Late" ${row.status === "Late" ? "selected" : ""}>Late</option><option value="Absent" ${row.status === "Absent" ? "selected" : ""}>Absent</option></select>` : ""}<button class="action-btn" data-action="in" data-id="${row.id}" title="Clock in"><i class="bi bi-box-arrow-in-right"></i></button><button class="action-btn" data-action="out" data-id="${row.id}" title="Clock out"><i class="bi bi-box-arrow-right"></i></button><button class="action-btn" data-action="absent" data-id="${row.id}" title="Mark absent"><i class="bi bi-person-dash"></i></button></td></tr>`).join("") : `<tr><td class="empty-state" colspan="7">No employees match the selected filters.</td></tr>`;
         }
         function escapeHtml(value) { return String(value).replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[character])); }
         function updateEmployee(employeeId, action) {
             const records = readRecords();
             const key = recordKey(employeeId);
             const current = records[key] || {};
+            const employee = employees.find(item => item.id === employeeId) || {};
             const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-            records[key] = { ...current, status: action === "absent" ? "Absent" : (action === "in" ? "Present" : current.status || "Present"), ...(action === "in" ? { timeIn: time } : {}), ...(action === "out" ? { timeOut: time } : {}) };
+            records[key] = { ...current, date: dateInput.value, employeeId, employeeName: employee.name, office: employee.office, status: action === "absent" ? "Absent" : (action === "in" ? "Present" : current.status || "Present"), ...(action === "in" ? { timeIn: time } : {}), ...(action === "out" ? { timeOut: time } : {}) };
             writeRecords(records); render();
         }
+        function updateEmployeeStatus(employeeId, status) {
+            const records = readRecords();
+            const key = recordKey(employeeId);
+            const employee = employees.find(item => item.id === employeeId) || {};
+            records[key] = { ...(records[key] || {}), date: dateInput.value, employeeId, employeeName: employee.name, office: employee.office, status };
+            writeRecords(records);
+            render();
+        }
+        function updateClockTime(type) {
+            const employeeId = clockEmployeeInput.value;
+            const records = readRecords();
+            const key = `${clockDateInput.value}:${employeeId}`;
+            const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+            const employee = employees.find(item => item.id === employeeId) || {};
+            records[key] = { ...(records[key] || {}), date: clockDateInput.value, employeeId, employeeName: employee.name, office: employee.office, [type === "in" ? "timeIn" : "timeOut"]: time, status: "Present" };
+            writeRecords(records);
+            dateInput.value = clockDateInput.value;
+            render();
+            document.getElementById("clockNotice").textContent = `${type === "in" ? "Time in" : "Time out"} recorded at ${time}.`;
+        }
         document.addEventListener("click", event => { const button = event.target.closest("button[data-action]"); if (button) updateEmployee(button.dataset.id, button.dataset.action); });
+        document.addEventListener("change", event => { const editor = event.target.closest("select[data-status-id]"); if (editor && canEditAttendance) updateEmployeeStatus(editor.dataset.statusId, editor.value); });
         [searchInput, dateInput, officeInput].forEach(input => input.addEventListener("input", render));
         document.getElementById("markAllPresentBtn").addEventListener("click", () => { employees.forEach(employee => updateEmployee(employee.id, "in")); });
-        document.getElementById("exportAttendanceBtn").addEventListener("click", () => { const csv = ["Employee,Employee ID,Office,Time in,Time out,Status", ...getRows().map(row => [row.name, row.id, row.office, row.timeIn || "", row.timeOut || "", row.status || "Pending"].map(value => `"${String(value).replace(/"/g, '""')}"`).join(","))].join("\n"); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); link.download = `attendance-${dateInput.value}.csv`; link.click(); URL.revokeObjectURL(link.href); });
+        document.getElementById("clearAttendanceBtn").addEventListener("click", () => {
+            if (!canEditAttendance || !confirm(`Clear attendance for ${dateInput.value}?`)) return;
+            const records = readRecords();
+            const selectedDatePrefix = `${dateInput.value}:`;
+            Object.keys(records).forEach(key => {
+                if (key.startsWith(selectedDatePrefix)) delete records[key];
+            });
+            localStorage.setItem(storageKey, JSON.stringify(records));
+            if (window.sharedAttendance) window.sharedAttendance.clearDate(dateInput.value).catch(error => console.warn("Shared attendance clear failed.", error));
+            render();
+        });
+        document.getElementById("exportAttendanceBtn").addEventListener("click", () => { const csv = ["Date,Employee,Employee ID,Office,Time in,Time out,Status", ...getRows().map(row => [dateInput.value, row.name, row.id, row.office, row.timeIn || "", row.timeOut || "", row.status || "Pending"].map(value => `"${String(value).replace(/"/g, '""')}"`).join(","))].join("\n"); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); link.download = `attendance-${dateInput.value}.csv`; link.click(); URL.revokeObjectURL(link.href); });
+        document.getElementById("openClockModalMenuBtn").addEventListener("click", () => { clockDateInput.value = dateInput.value; clockModal.classList.add("active"); });
+        document.getElementById("closeClockModalBtn").addEventListener("click", () => clockModal.classList.remove("active"));
+        clockModal.addEventListener("click", event => { if (event.target === clockModal) clockModal.classList.remove("active"); });
+        document.getElementById("clockInBtn").addEventListener("click", () => updateClockTime("in"));
+        document.getElementById("clockOutBtn").addEventListener("click", () => updateClockTime("out"));
+        clockDateInput.addEventListener("change", () => { dateInput.value = clockDateInput.value; render(); });
         document.getElementById("logoutBtn").addEventListener("click", () => { localStorage.removeItem("loggedInUser"); sessionStorage.removeItem("loggedInUser"); window.location.href = "index.html"; });
         const accountName = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser");
-        document.getElementById("userDisplay").textContent = accountName || "User";
         const accounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
         const currentAccount = accounts[accountName];
+        document.getElementById("userDisplay").textContent = (currentAccount && currentAccount.name) || accountName || "User";
+        const canEditAttendance = currentAccount && ["Developer", "IT Admin"].includes(currentAccount.role);
+        if (!canEditAttendance) document.getElementById("clearAttendanceBtn").style.display = "none";
         const hasInventoryAccess = currentAccount && Array.isArray(currentAccount.permissions) && currentAccount.permissions.includes("inventory") && (!Array.isArray(currentAccount.inventoryAccess) || currentAccount.inventoryAccess.length > 0);
         if (!hasInventoryAccess) document.getElementById("attendanceInventoryMenuItem").closest("li").style.display = "none";
         dateInput.value = today();
+        clockDateInput.value = dateInput.value;
+        const loggedInEmployee = currentAccount && currentAccount.name
+            ? { name: currentAccount.name, id: `ACCOUNT-${currentAccount.username || accountName}`, office: currentAccount.office || "" }
+            : null;
+        const clockEmployees = loggedInEmployee && !["Developer", "IT Admin"].includes(currentAccount.role)
+            ? [loggedInEmployee]
+            : employees;
+        clockEmployeeInput.innerHTML = clockEmployees.map(employee => `<option value="${escapeHtml(employee.id)}">${escapeHtml(employee.name)}${employee.office ? ` (${escapeHtml(employee.office)})` : ""}</option>`).join("");
+        clockEmployeeInput.disabled = !canEditAttendance;
         render();
+        if (window.sharedAttendance) {
+            window.sharedAttendance.load().then(sharedRecords => {
+                const mergedRecords = { ...readRecords(), ...sharedRecords };
+                localStorage.setItem(storageKey, JSON.stringify(mergedRecords));
+                render();
+            }).catch(error => console.warn("Shared attendance load failed.", error));
+        }
     </script>
 </body>
 </html>
