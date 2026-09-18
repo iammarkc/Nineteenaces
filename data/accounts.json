@@ -3,33 +3,94 @@
     "username": "admin",
     "name": "System Administrator",
     "email": "admin@system.com",
-    "password": "Admin123!",
     "role": "Developer",
-    "permissions": ["dashboard", "analytics", "reports", "inventory", "attendance", "attendanceReport", "settings"],
+    "permissions": [
+      "dashboard",
+      "analytics",
+      "reports",
+      "inventory",
+      "attendance",
+      "attendanceReport",
+      "settings"
+    ],
     "office": "",
-    "inventoryAccess": ["Rizal", "Cebu"],
-    "disabled": false
+    "inventoryAccess": [
+      "Rizal",
+      "Cebu"
+    ],
+    "disabled": false,
+    "password": "Admin123!"
   },
   "testuser": {
     "username": "testuser",
     "name": "Test User",
     "email": "testuser@system.com",
-    "password": "Test123!",
     "role": "User",
-    "permissions": ["dashboard"],
+    "permissions": [
+      "dashboard"
+    ],
     "office": "Rizal",
-    "inventoryAccess": ["Rizal"],
-    "disabled": false
+    "inventoryAccess": [
+      "Rizal"
+    ],
+    "disabled": false,
+    "password": "Test123!"
   },
   "demo": {
     "username": "demo",
     "name": "Demo User",
     "email": "demo@system.com",
-    "password": "Demo123!",
     "role": "User",
-    "permissions": ["dashboard"],
+    "permissions": [
+      "dashboard"
+    ],
     "office": "Cebu",
-    "inventoryAccess": ["Cebu"],
+    "inventoryAccess": [
+      "Cebu"
+    ],
+    "disabled": false,
+    "password": "Demo123!"
+  },
+  "Testceb": {
+    "username": "Testceb",
+    "name": "Testceb",
+    "email": "Testceb@gmail.com",
+    "role": "IT Admin",
+    "permissions": [
+      "Cebu",
+      "analytics",
+      "reports",
+      "inventory",
+      "attendance",
+      "attendanceReport",
+      "settings"
+    ],
+    "office": "Cebu",
+    "inventoryAccess": [
+      "Cebu"
+    ],
+    "disabled": false
+  },
+  "Testrizal": {
+    "name": "Testrizal",
+    "username": "Testrizal",
+    "email": "Testrizal@gmail.com",
+    "password": "Admin123!",
+    "office": "Rizal",
+    "inventoryAccess": [
+      "Rizal"
+    ],
+    "role": "IT Admin",
+    "permissions": [
+      "Rizal",
+      "analytics",
+      "reports",
+      "inventory",
+      "attendance",
+      "attendanceReport",
+      "settings",
+      "dashboard"
+    ],
     "disabled": false
   }
 }

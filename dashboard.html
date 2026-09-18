@@ -777,9 +777,6 @@
                             <i class="bi bi-list me-1"></i>Menu
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenu">
-                            <li><a class="dropdown-item active" data-permission="dashboard" href="dashboard.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
-                            <li><a class="dropdown-item" data-permission="analytics" href="dashboard.html#analytics"><i class="bi bi-bar-chart me-2"></i>Analytics</a></li>
-                            <li><a class="dropdown-item" data-permission="reports" href="dashboard.html#reports"><i class="bi bi-file-earmark-text me-2"></i>Reports</a></li>
                             <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Rizal" href="inventory.html?office=Rizal"><i class="bi bi-boxes me-2"></i>Inventory of Rizal</a></li>
                             <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Cebu" href="inventory.html?office=Cebu"><i class="bi bi-boxes me-2"></i>Inventory of Cebu</a></li>
                             <li><hr class="dropdown-divider"></li>
@@ -789,11 +786,11 @@
                             <li><a class="dropdown-item" data-permission="settings" href="dashboard.html#settings"><i class="bi bi-gear me-2"></i>Settings</a></li>
                             <li id="addAccountMenuItemDivider" style="display: none;"><hr class="dropdown-divider"></li>
                             <li id="addAccountMenuItemContainer" style="display: none;">
-                                <a class="dropdown-item" href="#" id="addAccountBtn"><i class="bi bi-person-plus me-2"></i>Add Account</a>
+                                <a class="dropdown-item" href="#add-account" id="addAccountBtn"><i class="bi bi-person-plus me-2"></i>Add Account</a>
                             </li>
                             <li id="usersMenuItemDivider" style="display: none;"><hr class="dropdown-divider"></li>
                             <li id="usersMenuItemContainer" style="display: none;">
-                                <a class="dropdown-item" href="#" id="usersMenuBtn"><i class="bi bi-people me-2"></i>Users</a>
+                                <a class="dropdown-item" href="#users" id="usersMenuBtn"><i class="bi bi-people me-2"></i>Users</a>
                             </li>
                         </ul>
                     </li>
@@ -958,8 +955,8 @@
             </div>
             
             <div class="modal-buttons">
-                <button class="btn-submit" id="submitAddAccountBtn">Add Account</button>
-                <button class="btn-cancel" id="cancelAddAccountBtn">Cancel</button>
+                <button type="button" class="btn-submit" id="submitAddAccountBtn">Add Account</button>
+                <button type="button" class="btn-cancel" id="cancelAddAccountBtn">Cancel</button>
             </div>
         </div>
     </div>
@@ -1310,6 +1307,20 @@
             loadAttendanceReport();
         });
 
+        function openMenuActionFromHash() {
+            const action = window.location.hash;
+
+            if (action === "#attendance") {
+                document.getElementById("attendanceBtn").click();
+            } else if (action === "#attendance-report") {
+                document.getElementById("attendanceReportBtn").click();
+            } else if (action === "#add-account") {
+                document.getElementById("addAccountBtn").click();
+            } else if (action === "#users") {
+                document.getElementById("usersMenuBtn").click();
+            }
+        }
+
         // Close report modal
         document.getElementById("closeReportBtn").addEventListener("click", function () {
             document.getElementById("reportModal").classList.remove("active");
@@ -1577,15 +1588,9 @@
         }
 
         function getBackendApiUrl(pathname = '/api/accounts') {
-            const host = window.location.hostname || '';
-            if (host !== 'localhost' && host !== '127.0.0.1' && host !== '::1') {
-                return null;
-            }
-
-            const origin = window.location.origin || 'http://localhost:3000';
-            const backendOrigin = /:\d+$/.test(origin)
-                ? origin.replace(/:\d+$/, ':3000')
-                : `${origin}:3000`;
+            const protocol = window.location.protocol || 'http:';
+            const host = window.location.hostname || 'localhost';
+            const backendOrigin = `${protocol}//${host}:3100`;
 
             return `${backendOrigin}${pathname}`;
         }
@@ -1617,6 +1622,37 @@
                 }
             } catch (error) {
                 console.warn('Unable to sync accounts to the shared backend.', error);
+            }
+        }
+
+        async function loadAccountsFromBackend() {
+            const backendUrl = getBackendApiUrl('/api/accounts');
+
+            try {
+                const response = await fetch(backendUrl, { cache: 'no-store' });
+                const result = await response.json();
+
+                if (!result || !result.ok || !result.accounts) {
+                    return;
+                }
+
+                const localAccounts = JSON.parse(localStorage.getItem('userAccounts')) || {};
+                const mergedAccounts = Object.keys(result.accounts).reduce((accounts, username) => ({
+                    ...accounts,
+                    [username]: {
+                        ...result.accounts[username],
+                        ...(localAccounts[username] && localAccounts[username].password
+                            ? { password: localAccounts[username].password }
+                            : {})
+                    }
+                }), {});
+
+                localStorage.setItem('userAccounts', JSON.stringify(mergedAccounts));
+                saveAccounts(mergedAccounts);
+                updateAddAccountVisibility();
+                updateMenuVisibility();
+            } catch (error) {
+                console.warn('Unable to load shared accounts.', error);
             }
         }
 
@@ -1871,6 +1907,8 @@
             document.getElementById('usersModal').classList.add('active');
         });
 
+        openMenuActionFromHash();
+
         document.getElementById('closeUsersModalBtn').addEventListener('click', function () {
             document.getElementById('usersModal').classList.remove('active');
             document.getElementById('userDetailsPanel').style.display = 'none';
@@ -2103,6 +2141,7 @@
         initializeAccounts();
         updateAddAccountVisibility();
         updateMenuVisibility();
+        loadAccountsFromBackend();
     </script>
 </body>
 </html>

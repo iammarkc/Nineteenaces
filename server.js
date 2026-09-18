@@ -1,12 +1,14 @@
 const http = require('http');
 const fs = require('fs/promises');
+const os = require('os');
 const path = require('path');
 const { URL } = require('url');
 
 const ROOT_DIR = __dirname;
 const DATA_DIR = path.join(ROOT_DIR, 'data');
-const ACCOUNTS_FILE = path.join(DATA_DIR, 'accounts.json');
-const PORT = process.env.PORT || 3000;
+const SEED_ACCOUNTS_FILE = path.join(DATA_DIR, 'accounts.json');
+const ACCOUNTS_FILE = path.join(os.tmpdir(), 'r2-lucky9-games-accounts.json');
+const PORT = process.env.PORT || 3100;
 const HOST = '0.0.0.0';
 
 const MIME_TYPES = {
@@ -60,12 +62,18 @@ const DEFAULT_ACCOUNTS = {
 };
 
 async function ensureAccountsFile() {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-
   try {
     await fs.access(ACCOUNTS_FILE);
   } catch (error) {
-    await fs.writeFile(ACCOUNTS_FILE, JSON.stringify(DEFAULT_ACCOUNTS, null, 2), 'utf8');
+    let seedAccounts = DEFAULT_ACCOUNTS;
+
+    try {
+      seedAccounts = JSON.parse(await fs.readFile(SEED_ACCOUNTS_FILE, 'utf8'));
+    } catch (seedError) {
+      // Use built-in accounts when the seed file is unavailable.
+    }
+
+    await fs.writeFile(ACCOUNTS_FILE, JSON.stringify(seedAccounts, null, 2), 'utf8');
   }
 }
 
@@ -199,7 +207,18 @@ async function handleApiAccounts(request, response) {
     request.on('end', async () => {
       try {
         const parsed = body ? JSON.parse(body) : {};
-        const accounts = parsed && typeof parsed === 'object' ? parsed : {};
+        const submittedAccounts = parsed && typeof parsed === 'object' ? parsed : {};
+        const existingAccounts = await loadAccounts();
+        const accounts = { ...existingAccounts };
+
+        Object.keys(submittedAccounts).forEach((username) => {
+          const submittedAccount = submittedAccounts[username];
+          const existingAccount = existingAccounts[username];
+
+          accounts[username] = existingAccount && submittedAccount && !submittedAccount.password
+            ? { ...existingAccount, ...submittedAccount, password: existingAccount.password }
+            : submittedAccount;
+        });
 
         await saveAccounts(accounts);
         sendJson(response, 200, { ok: true, message: 'Accounts saved successfully.' });

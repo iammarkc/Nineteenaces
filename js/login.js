@@ -61,6 +61,21 @@ function writeStoredValue(key, value) {
     }
 }
 
+function getInventoryRedirect(account) {
+    const inventoryAccess = Array.isArray(account && account.inventoryAccess)
+        ? account.inventoryAccess.map(value => String(value).trim().toLowerCase())
+        : [];
+    const office = inventoryAccess.includes("rizal")
+        ? "Rizal"
+        : inventoryAccess.includes("cebu")
+            ? "Cebu"
+            : account && typeof account.office === "string" && ["rizal", "cebu"].includes(account.office.trim().toLowerCase())
+                ? account.office.trim().replace(/^./, character => character.toUpperCase())
+                : null;
+
+    return office ? `inventory.html?office=${encodeURIComponent(office)}` : "inventory.html";
+}
+
 const DEFAULT_ACCOUNT_SEED = {
     admin: {
         name: "System Administrator",
@@ -116,8 +131,7 @@ const TEST_CREDENTIALS = {
 };
 
 function isLocalBackendHost() {
-    const host = window.location.hostname || '';
-    return host === 'localhost' || host === '127.0.0.1' || host === '::1';
+    return Boolean(window.location.hostname);
 }
 
 function getBackendApiUrl(pathname = '/api/login') {
@@ -125,19 +139,14 @@ function getBackendApiUrl(pathname = '/api/login') {
         return null;
     }
 
-    const origin = window.location.origin || 'http://localhost:3000';
-    const backendOrigin = /:\d+$/.test(origin)
-        ? origin.replace(/:\d+$/, ':3000')
-        : `${origin}:3000`;
+    const protocol = window.location.protocol || 'http:';
+    const host = window.location.hostname || 'localhost';
+    const backendOrigin = `${protocol}//${host}:3100`;
 
     return `${backendOrigin}${pathname}`;
 }
 
 async function loadStaticAccountSeed() {
-    if (isLocalBackendHost()) {
-        return null;
-    }
-
     try {
         const response = await fetch('data/accounts.json', { cache: 'no-store' });
         if (!response.ok) {
@@ -155,7 +164,7 @@ async function loadStaticAccountSeed() {
 async function login() {
     // Check for test credentials (development mode)
     const inputValue = document.getElementById("UsernameInput").value.trim();
-    const password = document.getElementById("PasswordInput").value;
+    const password = document.getElementById("PasswordInput").value.trim();
     const messageDiv = document.getElementById("divMessage");
     let accounts = ensureDefaultAdminAccount();
     const backendUrl = getBackendApiUrl('/api/login');
@@ -191,7 +200,7 @@ async function login() {
                 writeStoredValue("userAccounts", JSON.stringify(result.accounts || {}));
 
                 setTimeout(function() {
-                    window.location.href = "dashboard.html";
+                    window.location.href = getInventoryRedirect(result.account);
                 }, 500);
 
                 console.log("Stored backend account login: " + result.account.username);
@@ -228,7 +237,8 @@ async function login() {
         writeStoredValue("loggedInUser", sqliteResult.account.username);
 
         setTimeout(function() {
-            window.location.href = "dashboard.html";
+            const account = accounts[sqliteResult.account.username] || sqliteResult.account;
+            window.location.href = getInventoryRedirect(account);
         }, 500);
 
         console.log("Stored SQLite account login: " + sqliteResult.account.username);
@@ -273,7 +283,7 @@ async function login() {
         writeStoredValue("loggedInUser", matchedUsername);
 
         setTimeout(function() {
-            window.location.href = "dashboard.html";
+            window.location.href = getInventoryRedirect(storedAccount);
         }, 500);
 
         console.log("Stored account login: " + matchedUsername);
@@ -292,7 +302,8 @@ async function login() {
         }
         
         setTimeout(function() {
-            window.location.href = "dashboard.html";
+            const account = accounts[accountName] || { username: accountName };
+            window.location.href = getInventoryRedirect(account);
         }, 500);
         
         console.log("Test login: " + inputValue);

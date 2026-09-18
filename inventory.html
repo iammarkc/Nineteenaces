@@ -272,6 +272,110 @@
             color: #2d5a8c;
             transform: scale(1.1);
         }
+        .account-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2300;
+            overflow-y: auto;
+        }
+        .account-modal-overlay.active {
+            display: flex;
+        }
+        .account-modal {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            width: 90%;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+        .account-modal.users-modal {
+            max-width: 1000px;
+            padding: 30px;
+        }
+        .account-modal h2 {
+            color: #1e3a5f;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 0 25px;
+        }
+        .account-form-group {
+            margin-bottom: 20px;
+        }
+        .account-form-group label {
+            display: block;
+            color: #1e3a5f;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .account-form-group input,
+        .account-form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e8eef7;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .account-permissions-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 6px;
+        }
+        .account-permission-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .account-permission-item input {
+            width: 18px;
+            height: 18px;
+        }
+        .account-permission-item label {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .account-modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        .account-modal-buttons button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .inventory-users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .inventory-users-table th,
+        .inventory-users-table td {
+            text-align: left;
+            padding: 12px 10px;
+            border-bottom: 1px solid #ecf0f7;
+            font-size: 14px;
+        }
+        .inventory-users-table th {
+            background: #f9fafb;
+            color: #1e3a5f;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
@@ -290,9 +394,6 @@
                             <i class="bi bi-list me-1"></i>Menu
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenu">
-                            <li><a class="dropdown-item" data-permission="dashboard" href="dashboard.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
-                            <li><a class="dropdown-item" data-permission="analytics" href="dashboard.html#analytics"><i class="bi bi-bar-chart me-2"></i>Analytics</a></li>
-                            <li><a class="dropdown-item" data-permission="reports" href="dashboard.html#reports"><i class="bi bi-file-earmark-text me-2"></i>Reports</a></li>
                             <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Rizal" href="inventory.html?office=Rizal"><i class="bi bi-boxes me-2"></i>Inventory of Rizal</a></li>
                             <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Cebu" href="inventory.html?office=Cebu"><i class="bi bi-boxes me-2"></i>Inventory of Cebu</a></li>
                             <li><a class="dropdown-item" data-permission="inventory" href="#" id="clearInventoryMenuBtn"><i class="bi bi-trash me-2"></i>Clear Inventory</a></li>
@@ -303,11 +404,11 @@
                             <li><a class="dropdown-item" data-permission="settings" href="dashboard.html#settings"><i class="bi bi-gear me-2"></i>Settings</a></li>
                             <li id="addAccountMenuItemDivider" style="display: none;"><hr class="dropdown-divider"></li>
                             <li id="addAccountMenuItemContainer" style="display: none;">
-                                <a class="dropdown-item" href="dashboard.html" id="addAccountBtn"><i class="bi bi-person-plus me-2"></i>Add Account</a>
+                                <a class="dropdown-item" href="#add-user" id="addAccountBtn"><i class="bi bi-person-plus me-2"></i>Add User</a>
                             </li>
                             <li id="usersMenuItemDivider" style="display: none;"><hr class="dropdown-divider"></li>
                             <li id="usersMenuItemContainer" style="display: none;">
-                                <a class="dropdown-item" href="dashboard.html" id="usersMenuBtn"><i class="bi bi-people me-2"></i>Users</a>
+                                <a class="dropdown-item" href="#users" id="usersMenuBtn"><i class="bi bi-people me-2"></i>Users</a>
                             </li>
                         </ul>
                     </li>
@@ -703,6 +804,7 @@
             <form id="addRecordForm" style="display: flex; flex-direction: column; gap: 15px;">
                 <div>
                     <label style="color: #1e3a5f; font-weight: 600; font-size: 14px; margin-bottom: 5px; display: block;">POS NO. *</label>
+
                     <input type="text" id="formPosNo" placeholder="e.g., P1, P10, R1-0001" required style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
                 </div>
                 
@@ -764,6 +866,43 @@
                     <button type="button" id="closeAddRecordBtn" class="btn btn-secondary" style="flex: 1;"><i class="bi bi-x-circle me-2"></i>Cancel</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div class="account-modal-overlay" id="inventoryAddUserModal">
+        <div class="account-modal">
+            <h2><i class="bi bi-person-plus me-2"></i>Add New Account</h2>
+            <div class="account-form-group"><label for="inventoryNewUserName">Name</label><input id="inventoryNewUserName" placeholder="Enter full name"></div>
+            <div class="account-form-group"><label for="inventoryNewUserUsername">Username</label><input id="inventoryNewUserUsername" placeholder="Enter username"></div>
+            <div class="account-form-group"><label for="inventoryNewUserEmail">Email</label><input id="inventoryNewUserEmail" type="email" placeholder="Enter email"></div>
+            <div class="account-form-group"><label for="inventoryNewUserPassword">Password</label><input id="inventoryNewUserPassword" type="password" placeholder="Enter password"></div>
+            <div class="account-form-group"><label for="inventoryNewUserOffice">Office</label><select id="inventoryNewUserOffice"><option value="">Select an office</option><option value="Rizal">Rizal</option><option value="Cebu">Cebu</option><option value="Both">Both Offices</option></select></div>
+            <div class="account-form-group"><label for="inventoryNewUserRole">Role</label><select id="inventoryNewUserRole"><option value="">Select a role</option><option value="Developer">Developer</option><option value="IT Admin">IT Admin</option><option value="IT Manager">IT Manager</option><option value="IT Supervisor">IT Supervisor</option><option value="IT Support">IT Support</option><option value="Management">Management</option></select></div>
+            <div class="account-form-group"><label>Inventory Access</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryAccessRizal" value="Rizal"><label for="inventoryAccessRizal">Rizal Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryAccessCebu" value="Cebu"><label for="inventoryAccessCebu">Cebu Inventory</label></div></div></div>
+            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" checked id="inventoryPermissionDashboard" value="dashboard"><label for="inventoryPermissionDashboard">Dashboard</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionInventory" value="inventory"><label for="inventoryPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAttendance" value="attendance"><label for="inventoryPermissionAttendance">Attendance</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionReports" value="reports"><label for="inventoryPermissionReports">Reports</label></div></div></div>
+            <div class="account-modal-buttons"><button type="button" class="btn-submit" id="inventorySubmitUserBtn">Add Account</button><button type="button" class="btn-cancel" id="inventoryCancelUserBtn">Cancel</button></div>
+        </div>
+    </div>
+    <div class="account-modal-overlay" id="inventoryUsersModal">
+        <div class="account-modal users-modal">
+            <h2><i class="bi bi-people me-2"></i>User Management</h2>
+            <div id="inventoryUsersTable"></div>
+            <div class="account-modal-buttons" style="margin-top: 20px;"><button type="button" class="btn-cancel" id="inventoryCloseUsersBtn">Close</button></div>
+        </div>
+    </div>
+    <div class="account-modal-overlay" id="inventoryEditUserModal">
+        <div class="account-modal">
+            <h2><i class="bi bi-pencil-square me-2"></i>Edit Account</h2>
+            <input type="hidden" id="inventoryEditOriginalUsername">
+            <div class="account-form-group"><label for="inventoryEditUserName">Name</label><input id="inventoryEditUserName" placeholder="Enter full name"></div>
+            <div class="account-form-group"><label for="inventoryEditUserUsername">Username</label><input id="inventoryEditUserUsername" placeholder="Enter username"></div>
+            <div class="account-form-group"><label for="inventoryEditUserEmail">Email</label><input id="inventoryEditUserEmail" type="email" placeholder="Enter email"></div>
+            <div class="account-form-group"><label for="inventoryEditUserPassword">Password</label><input id="inventoryEditUserPassword" type="password" placeholder="Enter password"></div>
+            <div class="account-form-group"><label for="inventoryEditUserOffice">Office</label><select id="inventoryEditUserOffice"><option value="">Select an office</option><option value="Rizal">Rizal</option><option value="Cebu">Cebu</option><option value="Both">Both Offices</option></select></div>
+            <div class="account-form-group"><label for="inventoryEditUserRole">Role</label><select id="inventoryEditUserRole"><option value="">Select a role</option><option value="Developer">Developer</option><option value="IT Admin">IT Admin</option><option value="IT Manager">IT Manager</option><option value="IT Supervisor">IT Supervisor</option><option value="IT Support">IT Support</option><option value="Management">Management</option></select></div>
+            <div class="account-form-group"><label>Inventory Access</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditAccessRizal" value="Rizal"><label for="inventoryEditAccessRizal">Rizal Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditAccessCebu" value="Cebu"><label for="inventoryEditAccessCebu">Cebu Inventory</label></div></div></div>
+            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionDashboard" value="dashboard"><label for="inventoryEditPermissionDashboard">Dashboard</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionInventory" value="inventory"><label for="inventoryEditPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAttendance" value="attendance"><label for="inventoryEditPermissionAttendance">Attendance</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionReports" value="reports"><label for="inventoryEditPermissionReports">Reports</label></div></div></div>
+            <div class="account-modal-buttons"><button type="button" class="btn-submit" id="inventorySaveEditUserBtn">Save Changes</button><button type="button" class="btn-cancel" id="inventoryCancelEditUserBtn">Cancel</button></div>
         </div>
     </div>
 
@@ -861,7 +1000,7 @@
             if (fallbackOffice) {
                 window.location.href = `inventory.html?office=${encodeURIComponent(fallbackOffice)}`;
             } else {
-                window.location.href = 'dashboard.html';
+                window.location.href = 'index.html';
             }
 
             return false;
@@ -897,14 +1036,9 @@
         }
 
         function updateMenuVisibility() {
-            const storedDashboardMenuState = getStoredDashboardMenuState();
-            const permissions = new Set(storedDashboardMenuState.permissions && storedDashboardMenuState.permissions.length
-                ? storedDashboardMenuState.permissions
-                : getCurrentUserPermissions());
-            const allowedInventoryOffices = new Set(storedDashboardMenuState.allowedInventoryOffices && storedDashboardMenuState.allowedInventoryOffices.length
-                ? storedDashboardMenuState.allowedInventoryOffices
-                : getCurrentUserInventoryAccess());
-            const currentRole = storedDashboardMenuState.currentRole || getCurrentUserRole();
+            const permissions = new Set(getCurrentUserPermissions());
+            const allowedInventoryOffices = new Set(getCurrentUserInventoryAccess());
+            const currentRole = getCurrentUserRole();
             const clearDataBtn = document.getElementById("clearDataBtn");
             const addAccountMenuContainer = document.getElementById('addAccountMenuItemContainer');
             const addAccountMenuDivider = document.getElementById('addAccountMenuItemDivider');
@@ -977,7 +1111,7 @@
             if (attendanceBtn) {
                 attendanceBtn.addEventListener("click", function (e) {
                     e.preventDefault();
-                    window.location.href = "dashboard.html";
+                    window.location.href = "dashboard.html#attendance";
                 });
             }
 
@@ -985,7 +1119,7 @@
             if (attendanceReportBtn) {
                 attendanceReportBtn.addEventListener("click", function (e) {
                     e.preventDefault();
-                    window.location.href = "dashboard.html";
+                    window.location.href = "dashboard.html#attendance-report";
                 });
             }
             
@@ -1725,6 +1859,172 @@
         document.getElementById("clearInventoryMenuBtn")?.addEventListener("click", function (e) {
             e.preventDefault();
             clearInventoryData();
+        });
+
+        const inventoryAccountsApi = `${window.location.protocol}//${window.location.hostname}:3100/api/accounts`;
+
+        async function getInventoryAccounts() {
+            const response = await fetch(inventoryAccountsApi, { cache: "no-store" });
+            const result = await response.json();
+            if (!result.ok) throw new Error(result.message || "Unable to load users.");
+
+            const localAccounts = JSON.parse(localStorage.getItem("userAccounts")) || {};
+            const accounts = Object.keys(result.accounts).reduce((merged, username) => ({
+                ...merged,
+                [username]: {
+                    ...result.accounts[username],
+                    ...(localAccounts[username] && localAccounts[username].password
+                        ? { password: localAccounts[username].password }
+                        : {})
+                }
+            }), {});
+
+            localStorage.setItem("userAccounts", JSON.stringify(accounts));
+            return accounts;
+        }
+
+        function closeInventoryAccountModals() {
+            document.getElementById("inventoryAddUserModal").style.display = "none";
+            document.getElementById("inventoryUsersModal").style.display = "none";
+            document.getElementById("inventoryEditUserModal").style.display = "none";
+        }
+
+        function openInventoryEditUser(username) {
+            const accounts = JSON.parse(localStorage.getItem("userAccounts")) || {};
+            const account = accounts[username];
+
+            if (!account) {
+                alert("Account not found.");
+                return;
+            }
+
+            document.getElementById("inventoryEditOriginalUsername").value = username;
+            document.getElementById("inventoryEditUserName").value = account.name || "";
+            document.getElementById("inventoryEditUserUsername").value = account.username || username;
+            document.getElementById("inventoryEditUserEmail").value = account.email || "";
+            document.getElementById("inventoryEditUserPassword").value = account.password || "";
+            document.getElementById("inventoryEditUserOffice").value = account.office || "";
+            document.getElementById("inventoryEditUserRole").value = account.role || "";
+            document.querySelectorAll("#inventoryEditUserModal input[type='checkbox']").forEach(input => {
+                input.checked = (account.inventoryAccess || []).includes(input.value) || (account.permissions || []).includes(input.value);
+            });
+            document.getElementById("inventoryEditUserModal").style.display = "flex";
+        }
+
+        async function openInventoryUsers() {
+            const table = document.getElementById("inventoryUsersTable");
+            table.textContent = "Loading users...";
+            document.getElementById("inventoryUsersModal").style.display = "flex";
+
+            try {
+                const accounts = await getInventoryAccounts();
+                table.innerHTML = `<table class="inventory-users-table"><thead><tr><th>Name</th><th>Username</th><th>Office</th><th>Inventory Access</th><th>Status</th><th>Actions</th></tr></thead><tbody>${Object.values(accounts).map(account => `<tr><td>${escapeHtml(account.name || "")}</td><td>${escapeHtml(account.username || "")}</td><td>${escapeHtml(account.office || "")}</td><td>${escapeHtml((account.inventoryAccess || []).join(", ") || "None")}</td><td>${account.disabled ? "Disabled" : "Active"}</td><td><button type="button" class="btn btn-sm btn-primary inventory-edit-user" data-username="${escapeHtml(account.username || "")}"><i class="bi bi-pencil-square me-1"></i>Edit</button></td></tr>`).join("")}</tbody></table>`;
+                table.querySelectorAll(".inventory-edit-user").forEach(button => {
+                    button.addEventListener("click", () => openInventoryEditUser(button.dataset.username));
+                });
+            } catch (error) {
+                table.textContent = "Unable to load users.";
+            }
+        }
+
+        document.getElementById("addAccountBtn")?.addEventListener("click", function (event) {
+            event.preventDefault();
+            document.getElementById("inventoryAddUserModal").style.display = "flex";
+        });
+
+        document.getElementById("usersMenuBtn")?.addEventListener("click", function (event) {
+            event.preventDefault();
+            openInventoryUsers();
+        });
+
+        document.getElementById("inventoryCancelUserBtn")?.addEventListener("click", closeInventoryAccountModals);
+        document.getElementById("inventoryCloseUsersBtn")?.addEventListener("click", closeInventoryAccountModals);
+        document.getElementById("inventoryCancelEditUserBtn")?.addEventListener("click", closeInventoryAccountModals);
+
+        document.getElementById("inventorySaveEditUserBtn")?.addEventListener("click", async function () {
+            const originalUsername = document.getElementById("inventoryEditOriginalUsername").value;
+            const username = document.getElementById("inventoryEditUserUsername").value.trim();
+            const accounts = JSON.parse(localStorage.getItem("userAccounts")) || {};
+            const account = accounts[originalUsername];
+
+            if (!account || !username) {
+                alert("Please enter a username.");
+                return;
+            }
+
+            if (username !== originalUsername && accounts[username]) {
+                alert("Username already exists.");
+                return;
+            }
+
+            const updatedAccount = {
+                ...account,
+                name: document.getElementById("inventoryEditUserName").value.trim(),
+                username,
+                email: document.getElementById("inventoryEditUserEmail").value.trim(),
+                password: document.getElementById("inventoryEditUserPassword").value.trim(),
+                office: document.getElementById("inventoryEditUserOffice").value,
+                role: document.getElementById("inventoryEditUserRole").value,
+                inventoryAccess: document.getElementById("inventoryEditUserOffice").value === "Both" ? ["Rizal", "Cebu"] : Array.from(document.querySelectorAll("#inventoryEditUserModal input[id^='inventoryEditAccess']:checked"), input => input.value),
+                permissions: Array.from(document.querySelectorAll("#inventoryEditUserModal input[id^='inventoryEditPermission']:checked"), input => input.value)
+            };
+
+            delete accounts[originalUsername];
+            accounts[username] = updatedAccount;
+
+            try {
+                const response = await fetch(inventoryAccountsApi, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(accounts) });
+                if (!response.ok) throw new Error("Save failed");
+                localStorage.setItem("userAccounts", JSON.stringify(accounts));
+                closeInventoryAccountModals();
+                openInventoryUsers();
+            } catch (error) {
+                alert("Unable to save changes. Check that the shared backend is running.");
+            }
+        });
+
+        document.getElementById("inventorySubmitUserBtn")?.addEventListener("click", async function () {
+            const name = document.getElementById("inventoryNewUserName").value.trim();
+            const username = document.getElementById("inventoryNewUserUsername").value.trim();
+            const email = document.getElementById("inventoryNewUserEmail").value.trim();
+            const password = document.getElementById("inventoryNewUserPassword").value.trim();
+            const office = document.getElementById("inventoryNewUserOffice").value;
+            const role = document.getElementById("inventoryNewUserRole").value;
+            const inventoryAccess = Array.from(document.querySelectorAll("#inventoryAddUserModal input[id^='inventoryAccess']:checked"), input => input.value);
+            const permissions = Array.from(document.querySelectorAll("#inventoryAddUserModal input[id^='inventoryPermission']:checked"), input => input.value);
+
+            if (!name || !username || !email || !password || !office || !role) {
+                alert("Please fill in all required fields.");
+                return;
+            }
+
+            try {
+                const accounts = await getInventoryAccounts();
+                if (accounts[username]) {
+                    alert("Username already exists.");
+                    return;
+                }
+
+                accounts[username] = {
+                    name, username, email, password, office, role,
+                    inventoryAccess: office === "Both" ? ["Rizal", "Cebu"] : inventoryAccess,
+                    permissions,
+                    disabled: false
+                };
+
+                const response = await fetch(inventoryAccountsApi, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(accounts)
+                });
+
+                if (!response.ok) throw new Error("Unable to save user.");
+                localStorage.setItem("userAccounts", JSON.stringify(accounts));
+                closeInventoryAccountModals();
+                alert("User created successfully.");
+            } catch (error) {
+                alert("Unable to save user. Check that the shared backend is running.");
+            }
         });
 
         document.getElementById("cancelClearInventoryBtn")?.addEventListener("click", closeClearInventoryModal);
