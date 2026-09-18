@@ -167,11 +167,11 @@
             return Object.entries(records)
                 .filter(([key, record]) => key.startsWith(selectedDatePrefix) && (record.timeIn || record.timeOut))
                 .map(([key, record]) => {
-                    const employeeId = record.employeeId || key.slice(selectedDatePrefix.length);
+                    const employeeId = String(record.employeeId || key.slice(selectedDatePrefix.length)).replace(/^ACCOUNT-/, "");
                     const employee = employees.find(item => item.id === employeeId) || {};
                     return {
                         ...employee,
-                        name: record.employeeName || employee.name || employeeId,
+                        name: employee.name || record.employeeName || employeeId,
                         id: employeeId,
                         office: record.office || employee.office || "Unassigned",
                         ...record
