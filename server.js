@@ -32,7 +32,7 @@ const DEFAULT_ACCOUNTS = {
     email: 'admin@system.com',
     password: 'Admin123!',
     role: 'Developer',
-    permissions: ['dashboard', 'analytics', 'reports', 'inventory', 'attendance', 'attendanceReport', 'settings'],
+    permissions: ['inventory'],
     office: '',
     inventoryAccess: ['Rizal', 'Cebu'],
     disabled: false
@@ -43,7 +43,7 @@ const DEFAULT_ACCOUNTS = {
     email: 'testuser@system.com',
     password: 'Test123!',
     role: 'User',
-    permissions: ['dashboard'],
+    permissions: ['inventory'],
     office: 'Rizal',
     inventoryAccess: ['Rizal'],
     disabled: false
@@ -54,7 +54,7 @@ const DEFAULT_ACCOUNTS = {
     email: 'demo@system.com',
     password: 'Demo123!',
     role: 'User',
-    permissions: ['dashboard'],
+    permissions: ['inventory'],
     office: 'Cebu',
     inventoryAccess: ['Cebu'],
     disabled: false

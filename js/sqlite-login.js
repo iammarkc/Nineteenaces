@@ -7,7 +7,7 @@
             email: "admin@system.com",
             password: "Admin123!",
             role: "Developer",
-            permissions: ["dashboard", "analytics", "reports", "inventory", "attendance", "attendanceReport", "settings"],
+            permissions: ["inventory"],
             disabled: false
         },
         {
@@ -16,7 +16,7 @@
             email: "testuser@system.com",
             password: "Test123!",
             role: "User",
-            permissions: ["dashboard"],
+            permissions: ["inventory"],
             disabled: false
         },
         {
@@ -25,7 +25,7 @@
             email: "demo@system.com",
             password: "Demo123!",
             role: "User",
-            permissions: ["dashboard"],
+            permissions: ["inventory"],
             disabled: false
         }
     ];

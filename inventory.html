@@ -3,10 +3,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Inventory Management Dashboard">
+    <meta name="description" content="Inventory Management">
     <meta name="author" content="">
     <meta name="generator" content="">
-    <title>Inventory Dashboard</title>
+    <title>Inventory Management</title>
     <link rel="icon" type="image/x-icon" href="images/icon256.ico">
     <link rel="apple-touch-icon" href="images/icon256.ico">
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -37,7 +37,7 @@
         .nav-link:hover {
             color: #e0e7ff !important;
         }
-        .dashboard-container {
+        .inventory-container {
             margin-top: 40px;
             margin-bottom: 40px;
             padding: 0 20px;
@@ -398,10 +398,6 @@
                             <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Cebu" href="inventory.html?office=Cebu"><i class="bi bi-boxes me-2"></i>Inventory of Cebu</a></li>
                             <li><a class="dropdown-item" data-permission="inventory" href="#" id="clearInventoryMenuBtn"><i class="bi bi-trash me-2"></i>Clear Inventory</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" data-permission="attendance" href="#" id="attendanceBtn"><i class="bi bi-clock me-2"></i>Attendance</a></li>
-                            <li><a class="dropdown-item" data-permission="attendanceReport" href="#" id="attendanceReportBtn"><i class="bi bi-file-earmark-bar-graph me-2"></i>Attendance Report</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" data-permission="settings" href="dashboard.html#settings"><i class="bi bi-gear me-2"></i>Settings</a></li>
                             <li id="addAccountMenuItemDivider" style="display: none;"><hr class="dropdown-divider"></li>
                             <li id="addAccountMenuItemContainer" style="display: none;">
                                 <a class="dropdown-item" href="#add-user" id="addAccountBtn"><i class="bi bi-person-plus me-2"></i>Add User</a>
@@ -424,10 +420,10 @@
     </nav>
 
     <!-- Main Content -->
-    <div class="container-fluid dashboard-container">
+    <div class="container-fluid inventory-container">
         <!-- Welcome Section -->
         <div class="welcome-section">
-            <div class="welcome-title">Inventory Dashboard</div>
+            <div class="welcome-title">Inventory Management</div>
             <div class="welcome-subtitle">
                 <i class="bi bi-check-circle-fill" style="font-size: 14px; margin-right: 8px;"></i>Manage your stock, products, and inventory levels
             </div>
@@ -879,7 +875,7 @@
             <div class="account-form-group"><label for="inventoryNewUserOffice">Office</label><select id="inventoryNewUserOffice"><option value="">Select an office</option><option value="Rizal">Rizal</option><option value="Cebu">Cebu</option><option value="Both">Both Offices</option></select></div>
             <div class="account-form-group"><label for="inventoryNewUserRole">Role</label><select id="inventoryNewUserRole"><option value="">Select a role</option><option value="Developer">Developer</option><option value="IT Admin">IT Admin</option><option value="IT Manager">IT Manager</option><option value="IT Supervisor">IT Supervisor</option><option value="IT Support">IT Support</option><option value="Management">Management</option></select></div>
             <div class="account-form-group"><label>Inventory Access</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryAccessRizal" value="Rizal"><label for="inventoryAccessRizal">Rizal Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryAccessCebu" value="Cebu"><label for="inventoryAccessCebu">Cebu Inventory</label></div></div></div>
-            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" checked id="inventoryPermissionDashboard" value="dashboard"><label for="inventoryPermissionDashboard">Dashboard</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionInventory" value="inventory"><label for="inventoryPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAttendance" value="attendance"><label for="inventoryPermissionAttendance">Attendance</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionReports" value="reports"><label for="inventoryPermissionReports">Reports</label></div></div></div>
+            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" checked id="inventoryPermissionInventory" value="inventory"><label for="inventoryPermissionInventory">Inventory</label></div></div></div>
             <div class="account-modal-buttons"><button type="button" class="btn-submit" id="inventorySubmitUserBtn">Add Account</button><button type="button" class="btn-cancel" id="inventoryCancelUserBtn">Cancel</button></div>
         </div>
     </div>
@@ -901,7 +897,7 @@
             <div class="account-form-group"><label for="inventoryEditUserOffice">Office</label><select id="inventoryEditUserOffice"><option value="">Select an office</option><option value="Rizal">Rizal</option><option value="Cebu">Cebu</option><option value="Both">Both Offices</option></select></div>
             <div class="account-form-group"><label for="inventoryEditUserRole">Role</label><select id="inventoryEditUserRole"><option value="">Select a role</option><option value="Developer">Developer</option><option value="IT Admin">IT Admin</option><option value="IT Manager">IT Manager</option><option value="IT Supervisor">IT Supervisor</option><option value="IT Support">IT Support</option><option value="Management">Management</option></select></div>
             <div class="account-form-group"><label>Inventory Access</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditAccessRizal" value="Rizal"><label for="inventoryEditAccessRizal">Rizal Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditAccessCebu" value="Cebu"><label for="inventoryEditAccessCebu">Cebu Inventory</label></div></div></div>
-            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionDashboard" value="dashboard"><label for="inventoryEditPermissionDashboard">Dashboard</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionInventory" value="inventory"><label for="inventoryEditPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAttendance" value="attendance"><label for="inventoryEditPermissionAttendance">Attendance</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionReports" value="reports"><label for="inventoryEditPermissionReports">Reports</label></div></div></div>
+            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionInventory" value="inventory"><label for="inventoryEditPermissionInventory">Inventory</label></div></div></div>
             <div class="account-modal-buttons"><button type="button" class="btn-submit" id="inventorySaveEditUserBtn">Save Changes</button><button type="button" class="btn-cancel" id="inventoryCancelEditUserBtn">Cancel</button></div>
         </div>
     </div>
@@ -969,10 +965,12 @@
             const account = accounts[username];
 
             if (username === "User" || username === "admin") {
-                return ["dashboard", "analytics", "reports", "inventory", "attendance", "attendanceReport", "settings"];
+                return ["inventory"];
             }
 
-            return account && Array.isArray(account.permissions) ? account.permissions : ["dashboard"];
+            return account && Array.isArray(account.permissions)
+                ? account.permissions.filter(permission => permission !== "dashboard" && permission !== "analytics" && permission !== "reports" && permission !== "attendance" && permission !== "attendanceReport" && permission !== "settings")
+                : ["inventory"];
         }
 
         function validateRequestedOfficeAccess() {
@@ -1024,15 +1022,6 @@
             }
 
             return account.office ? [account.office] : [];
-        }
-
-        function getStoredDashboardMenuState() {
-            try {
-                const storedState = localStorage.getItem('dashboardMenuState');
-                return storedState ? JSON.parse(storedState) : {};
-            } catch (error) {
-                return {};
-            }
         }
 
         function updateMenuVisibility() {
@@ -1107,22 +1096,6 @@
             if (userDisplay) userDisplay.textContent = loggedIn.displayName;
             updateMenuVisibility();
 
-            const attendanceBtn = document.getElementById("attendanceBtn");
-            if (attendanceBtn) {
-                attendanceBtn.addEventListener("click", function (e) {
-                    e.preventDefault();
-                    window.location.href = "dashboard.html#attendance";
-                });
-            }
-
-            const attendanceReportBtn = document.getElementById("attendanceReportBtn");
-            if (attendanceReportBtn) {
-                attendanceReportBtn.addEventListener("click", function (e) {
-                    e.preventDefault();
-                    window.location.href = "dashboard.html#attendance-report";
-                });
-            }
-            
             // Load saved data from localStorage
             loadSavedData();
             setupInlineInventoryEditing();
@@ -1427,13 +1400,13 @@
             
             tbody.innerHTML = html;
             
-            // Save inventory data for dashboard
+            // Save inventory data for shared inventory views
             localStorage.setItem('posInventoryData', JSON.stringify({
                 models: models,
                 quantities: quantities
             }));
             
-            // Update dashboard metrics to correspond with POS Product Summary
+            // Update inventory metrics to correspond with POS Product Summary
             // Total POS = Total Quantity
             const totalProductsEl = document.getElementById("totalProducts");
             if (totalProductsEl) totalProductsEl.textContent = totalQty;
