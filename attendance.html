@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Employee attendance">
+    <title>Attendance | R2 Lucky9 Games</title>
+    <link rel="icon" type="image/x-icon" href="images/icon256.ico">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap-icons.css">
+    <style>
+        :root { --navy: #1e3a5f; --blue: #2d5a8c; --ink: #1f3145; --muted: #697c8f; --line: #e5ebf2; --bg: #f5f6fa; }
+        body { background: var(--bg); color: var(--ink); min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        .navbar { background: var(--navy) !important; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+        .navbar-brand { font-size: 18px; font-weight: 700; }
+        .nav-link { font-size: 14px; font-weight: 500; margin: 0 10px; }
+        .container-fluid { max-width: 1500px; }
+        .attendance-container { margin: 40px auto; padding: 0 20px; }
+        .hero { background: linear-gradient(135deg, var(--navy), var(--blue)); border-radius: 8px; color: white; padding: 32px 36px; margin-bottom: 28px; }
+        .hero h1 { font-size: 30px; margin: 0 0 8px; font-weight: 700; }
+        .hero p { margin: 0; opacity: .88; font-size: 15px; }
+        .card { background: white; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+        .stat-card { padding: 22px; min-height: 132px; }
+        .stat-label { color: var(--muted); text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: .4px; }
+        .stat-value { color: var(--navy); font-size: 32px; font-weight: 700; margin-top: 12px; }
+        .stat-icon { color: var(--navy); font-size: 23px; float: right; background: #edf3f9; border-radius: 6px; padding: 9px 11px; }
+        .card-header { background: linear-gradient(135deg, var(--navy), var(--blue)); color: white; border: 0; padding: 16px 20px; font-weight: 600; }
+        .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+        .toolbar input, .toolbar select { border: 1px solid #d8e1eb; border-radius: 6px; padding: 9px 12px; color: var(--ink); background: white; }
+        .toolbar input { flex: 1 1 220px; }
+        .toolbar select { min-width: 140px; }
+        .btn-primary { background: var(--navy); border: 0; }
+        .btn-primary:hover { background: #162d4a; }
+        .attendance-table { width: 100%; min-width: 760px; border-collapse: collapse; }
+        .attendance-table th { color: var(--navy); background: #f8fafc; text-transform: uppercase; font-size: 12px; letter-spacing: .3px; padding: 13px 16px; text-align: left; border-bottom: 1px solid var(--line); }
+        .attendance-table td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid #eef2f6; vertical-align: middle; }
+        .attendance-table tbody tr:hover { background: #f8fafc; }
+        .status { border-radius: 4px; padding: 4px 9px; font-size: 12px; font-weight: 700; }
+        .status-present { color: #17633a; background: #dff4e7; }
+        .status-late { color: #815b00; background: #fff0c2; }
+        .status-absent { color: #8b2830; background: #fbe1e3; }
+        .status-pending { color: #586b7d; background: #e9eef3; }
+        .action-btn { border: 1px solid #d8e1eb; background: white; color: var(--navy); border-radius: 5px; padding: 5px 8px; margin-right: 4px; }
+        .action-btn:hover { background: #edf3f9; }
+        .empty-state { color: var(--muted); text-align: center; padding: 38px 16px !important; }
+        @media (max-width: 575px) { .attendance-container { margin-top: 24px; padding: 0 12px; } .hero { padding: 26px 22px; } .hero h1 { font-size: 25px; } .toolbar { padding: 14px; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-lg-center">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-list me-1"></i>Menu</a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenu">
+                            <li><a class="dropdown-item" id="attendanceInventoryMenuItem" href="inventory.html"><i class="bi bi-boxes me-2"></i>Inventory</a></li>
+                            <li><a class="dropdown-item active" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><span class="nav-link" id="userDisplay">User</span></li>
+                    <li class="nav-item"><button class="btn btn-danger ms-lg-2" id="logoutBtn">Logout</button></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-fluid attendance-container">
+        <section class="hero">
+            <h1>Attendance</h1>
+            <p>Track daily attendance and working hours across both offices.</p>
+        </section>
+
+        <section class="row g-3 mb-4" aria-label="Attendance summary">
+            <div class="col-sm-6 col-xl-3"><div class="card stat-card"><i class="bi bi-people stat-icon"></i><div class="stat-label">Total staff</div><div class="stat-value" id="totalStaff">0</div></div></div>
+            <div class="col-sm-6 col-xl-3"><div class="card stat-card"><i class="bi bi-check2-circle stat-icon"></i><div class="stat-label">Present</div><div class="stat-value" id="presentCount">0</div></div></div>
+            <div class="col-sm-6 col-xl-3"><div class="card stat-card"><i class="bi bi-clock-history stat-icon"></i><div class="stat-label">Late</div><div class="stat-value" id="lateCount">0</div></div></div>
+            <div class="col-sm-6 col-xl-3"><div class="card stat-card"><i class="bi bi-person-dash stat-icon"></i><div class="stat-label">Absent</div><div class="stat-value" id="absentCount">0</div></div></div>
+        </section>
+
+        <section class="card">
+            <div class="card-header d-flex justify-content-between align-items-center gap-2"><span><i class="bi bi-calendar3 me-2"></i>Daily attendance</span><button class="btn btn-light btn-sm" id="markAllPresentBtn" type="button"><i class="bi bi-check-all me-1"></i>Mark all present</button></div>
+            <div class="toolbar">
+                <input id="attendanceSearch" type="search" placeholder="Search by name or employee ID" aria-label="Search attendance">
+                <input id="attendanceDate" type="date" aria-label="Attendance date">
+                <select id="attendanceOffice" aria-label="Filter by office"><option value="All">All offices</option><option value="Rizal">Rizal</option><option value="Cebu">Cebu</option></select>
+                <button class="btn btn-primary" id="exportAttendanceBtn" type="button" title="Export attendance as CSV"><i class="bi bi-download me-1"></i>Export</button>
+            </div>
+            <div class="table-responsive"><table class="attendance-table"><thead><tr><th>Employee</th><th>Employee ID</th><th>Office</th><th>Time in</th><th>Time out</th><th>Status</th><th>Actions</th></tr></thead><tbody id="attendanceTableBody"></tbody></table></div>
+        </section>
+    </main>
+
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script>
+        const employees = [
+            { name: "Manuel Federigan", id: "EMP-001", office: "Rizal" },
+            { name: "Bembem Dayadante", id: "EMP-002", office: "Rizal" },
+            { name: "Gary Villacarlos Jr.", id: "EMP-003", office: "Rizal" },
+            { name: "Maria Santos", id: "EMP-004", office: "Cebu" },
+            { name: "John Reyes", id: "EMP-005", office: "Cebu" }
+        ];
+        const storageKey = "attendanceRecords";
+        const dateInput = document.getElementById("attendanceDate");
+        const searchInput = document.getElementById("attendanceSearch");
+        const officeInput = document.getElementById("attendanceOffice");
+
+        function today() { return new Date().toISOString().slice(0, 10); }
+        function readRecords() { try { return JSON.parse(localStorage.getItem(storageKey) || "{}"); } catch (error) { return {}; } }
+        function writeRecords(records) { localStorage.setItem(storageKey, JSON.stringify(records)); }
+        function recordKey(employeeId) { return `${dateInput.value}:${employeeId}`; }
+        function getRows() {
+            const records = readRecords();
+            return employees.map(employee => ({ ...employee, ...(records[recordKey(employee.id)] || {}) }));
+        }
+        function statusClass(status) { return status === "Present" ? "status-present" : status === "Late" ? "status-late" : status === "Absent" ? "status-absent" : "status-pending"; }
+        function render() {
+            const rows = getRows();
+            const query = searchInput.value.trim().toLowerCase();
+            const office = officeInput.value;
+            const filtered = rows.filter(row => (!query || `${row.name} ${row.id}`.toLowerCase().includes(query)) && (office === "All" || row.office === office));
+            document.getElementById("totalStaff").textContent = rows.length;
+            document.getElementById("presentCount").textContent = rows.filter(row => row.status === "Present").length;
+            document.getElementById("lateCount").textContent = rows.filter(row => row.status === "Late").length;
+            document.getElementById("absentCount").textContent = rows.filter(row => row.status === "Absent").length;
+            const body = document.getElementById("attendanceTableBody");
+            body.innerHTML = filtered.length ? filtered.map(row => `<tr><td><strong>${escapeHtml(row.name)}</strong></td><td>${row.id}</td><td>${row.office}</td><td>${row.timeIn || "-"}</td><td>${row.timeOut || "-"}</td><td><span class="status ${statusClass(row.status)}">${row.status || "Pending"}</span></td><td><button class="action-btn" data-action="in" data-id="${row.id}" title="Clock in"><i class="bi bi-box-arrow-in-right"></i></button><button class="action-btn" data-action="out" data-id="${row.id}" title="Clock out"><i class="bi bi-box-arrow-right"></i></button><button class="action-btn" data-action="absent" data-id="${row.id}" title="Mark absent"><i class="bi bi-person-dash"></i></button></td></tr>`).join("") : `<tr><td class="empty-state" colspan="7">No employees match the selected filters.</td></tr>`;
+        }
+        function escapeHtml(value) { return String(value).replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[character])); }
+        function updateEmployee(employeeId, action) {
+            const records = readRecords();
+            const key = recordKey(employeeId);
+            const current = records[key] || {};
+            const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+            records[key] = { ...current, status: action === "absent" ? "Absent" : (action === "in" ? "Present" : current.status || "Present"), ...(action === "in" ? { timeIn: time } : {}), ...(action === "out" ? { timeOut: time } : {}) };
+            writeRecords(records); render();
+        }
+        document.addEventListener("click", event => { const button = event.target.closest("button[data-action]"); if (button) updateEmployee(button.dataset.id, button.dataset.action); });
+        [searchInput, dateInput, officeInput].forEach(input => input.addEventListener("input", render));
+        document.getElementById("markAllPresentBtn").addEventListener("click", () => { employees.forEach(employee => updateEmployee(employee.id, "in")); });
+        document.getElementById("exportAttendanceBtn").addEventListener("click", () => { const csv = ["Employee,Employee ID,Office,Time in,Time out,Status", ...getRows().map(row => [row.name, row.id, row.office, row.timeIn || "", row.timeOut || "", row.status || "Pending"].map(value => `"${String(value).replace(/"/g, '""')}"`).join(","))].join("\n"); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); link.download = `attendance-${dateInput.value}.csv`; link.click(); URL.revokeObjectURL(link.href); });
+        document.getElementById("logoutBtn").addEventListener("click", () => { localStorage.removeItem("loggedInUser"); sessionStorage.removeItem("loggedInUser"); window.location.href = "index.html"; });
+        const accountName = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser");
+        document.getElementById("userDisplay").textContent = accountName || "User";
+        const accounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
+        const currentAccount = accounts[accountName];
+        const hasInventoryAccess = currentAccount && Array.isArray(currentAccount.permissions) && currentAccount.permissions.includes("inventory") && (!Array.isArray(currentAccount.inventoryAccess) || currentAccount.inventoryAccess.length > 0);
+        if (!hasInventoryAccess) document.getElementById("attendanceInventoryMenuItem").closest("li").style.display = "none";
+        dateInput.value = today();
+        render();
+    </script>
+</body>
+</html>

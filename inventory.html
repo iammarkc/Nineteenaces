@@ -396,6 +396,7 @@
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenu">
                             <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Rizal" href="inventory.html?office=Rizal"><i class="bi bi-boxes me-2"></i>Inventory of Rizal</a></li>
                             <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Cebu" href="inventory.html?office=Cebu"><i class="bi bi-boxes me-2"></i>Inventory of Cebu</a></li>
+                            <li><a class="dropdown-item" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
                             <li><a class="dropdown-item" data-permission="inventory" href="#" id="clearInventoryMenuBtn"><i class="bi bi-trash me-2"></i>Clear Inventory</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li id="addAccountMenuItemDivider" style="display: none;"><hr class="dropdown-divider"></li>
@@ -875,7 +876,7 @@
             <div class="account-form-group"><label for="inventoryNewUserOffice">Office</label><select id="inventoryNewUserOffice"><option value="">Select an office</option><option value="Rizal">Rizal</option><option value="Cebu">Cebu</option><option value="Both">Both Offices</option></select></div>
             <div class="account-form-group"><label for="inventoryNewUserRole">Role</label><select id="inventoryNewUserRole"><option value="">Select a role</option><option value="Developer">Developer</option><option value="IT Admin">IT Admin</option><option value="IT Manager">IT Manager</option><option value="IT Supervisor">IT Supervisor</option><option value="IT Support">IT Support</option><option value="Management">Management</option></select></div>
             <div class="account-form-group"><label>Inventory Access</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryAccessRizal" value="Rizal"><label for="inventoryAccessRizal">Rizal Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryAccessCebu" value="Cebu"><label for="inventoryAccessCebu">Cebu Inventory</label></div></div></div>
-            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" checked id="inventoryPermissionInventory" value="inventory"><label for="inventoryPermissionInventory">Inventory</label></div></div></div>
+            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" checked id="inventoryPermissionInventory" value="inventory"><label for="inventoryPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAttendance" value="attendance"><label for="inventoryPermissionAttendance">Attendance</label></div></div></div>
             <div class="account-modal-buttons"><button type="button" class="btn-submit" id="inventorySubmitUserBtn">Add Account</button><button type="button" class="btn-cancel" id="inventoryCancelUserBtn">Cancel</button></div>
         </div>
     </div>
@@ -897,7 +898,7 @@
             <div class="account-form-group"><label for="inventoryEditUserOffice">Office</label><select id="inventoryEditUserOffice"><option value="">Select an office</option><option value="Rizal">Rizal</option><option value="Cebu">Cebu</option><option value="Both">Both Offices</option></select></div>
             <div class="account-form-group"><label for="inventoryEditUserRole">Role</label><select id="inventoryEditUserRole"><option value="">Select a role</option><option value="Developer">Developer</option><option value="IT Admin">IT Admin</option><option value="IT Manager">IT Manager</option><option value="IT Supervisor">IT Supervisor</option><option value="IT Support">IT Support</option><option value="Management">Management</option></select></div>
             <div class="account-form-group"><label>Inventory Access</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditAccessRizal" value="Rizal"><label for="inventoryEditAccessRizal">Rizal Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditAccessCebu" value="Cebu"><label for="inventoryEditAccessCebu">Cebu Inventory</label></div></div></div>
-            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionInventory" value="inventory"><label for="inventoryEditPermissionInventory">Inventory</label></div></div></div>
+            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionInventory" value="inventory"><label for="inventoryEditPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAttendance" value="attendance"><label for="inventoryEditPermissionAttendance">Attendance</label></div></div></div>
             <div class="account-modal-buttons"><button type="button" class="btn-submit" id="inventorySaveEditUserBtn">Save Changes</button><button type="button" class="btn-cancel" id="inventoryCancelEditUserBtn">Cancel</button></div>
         </div>
     </div>
@@ -1017,7 +1018,7 @@
                 return [];
             }
 
-            if (Array.isArray(account.inventoryAccess) && account.inventoryAccess.length > 0) {
+            if (Array.isArray(account.inventoryAccess)) {
                 return account.inventoryAccess.filter(value => value === "Rizal" || value === "Cebu");
             }
 
@@ -1836,21 +1837,53 @@
 
         const inventoryAccountsApi = `${window.location.protocol}//${window.location.hostname}:3100/api/accounts`;
 
-        async function getInventoryAccounts() {
-            const response = await fetch(inventoryAccountsApi, { cache: "no-store" });
-            const result = await response.json();
-            if (!result.ok) throw new Error(result.message || "Unable to load users.");
+        function isGitHubPages() {
+            const hostname = window.location.hostname || "";
+            return hostname === "github.io" || hostname.endsWith(".github.io");
+        }
 
+        async function saveInventoryAccounts(accounts) {
+            localStorage.setItem("userAccounts", JSON.stringify(accounts));
+
+            if (!window.location.hostname || isGitHubPages()) {
+                return;
+            }
+
+            try {
+                const response = await fetch(inventoryAccountsApi, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(accounts)
+                });
+                if (!response.ok) throw new Error("Account sync failed");
+            } catch (error) {
+                // Local storage remains the source of truth when the backend is unavailable.
+            }
+        }
+
+        async function getInventoryAccounts() {
             const localAccounts = JSON.parse(localStorage.getItem("userAccounts")) || {};
-            const accounts = Object.keys(result.accounts).reduce((merged, username) => ({
-                ...merged,
-                [username]: {
-                    ...result.accounts[username],
-                    ...(localAccounts[username] && localAccounts[username].password
-                        ? { password: localAccounts[username].password }
-                        : {})
+            let accounts = localAccounts;
+
+            if (!isGitHubPages() && window.location.hostname) {
+                try {
+                    const response = await fetch(inventoryAccountsApi, { cache: "no-store" });
+                    const result = await response.json();
+                    if (result.ok) {
+                        accounts = Object.keys(result.accounts).reduce((merged, username) => ({
+                            ...merged,
+                            [username]: {
+                                ...result.accounts[username],
+                                ...(localAccounts[username] && localAccounts[username].password
+                                    ? { password: localAccounts[username].password }
+                                    : {})
+                            }
+                        }), {});
+                    }
+                } catch (error) {
+                    // Use browser storage when the local backend is unavailable.
                 }
-            }), {});
+            }
 
             localStorage.setItem("userAccounts", JSON.stringify(accounts));
             return accounts;
@@ -1945,15 +1978,9 @@
             delete accounts[originalUsername];
             accounts[username] = updatedAccount;
 
-            try {
-                const response = await fetch(inventoryAccountsApi, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(accounts) });
-                if (!response.ok) throw new Error("Save failed");
-                localStorage.setItem("userAccounts", JSON.stringify(accounts));
-                closeInventoryAccountModals();
-                openInventoryUsers();
-            } catch (error) {
-                alert("Unable to save changes. Check that the shared backend is running.");
-            }
+            await saveInventoryAccounts(accounts);
+            closeInventoryAccountModals();
+            openInventoryUsers();
         });
 
         document.getElementById("inventorySubmitUserBtn")?.addEventListener("click", async function () {
@@ -1985,14 +2012,7 @@
                     disabled: false
                 };
 
-                const response = await fetch(inventoryAccountsApi, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(accounts)
-                });
-
-                if (!response.ok) throw new Error("Unable to save user.");
-                localStorage.setItem("userAccounts", JSON.stringify(accounts));
+                await saveInventoryAccounts(accounts);
                 closeInventoryAccountModals();
                 alert("User created successfully.");
             } catch (error) {

@@ -62,6 +62,18 @@ function writeStoredValue(key, value) {
 }
 
 function getInventoryRedirect(account) {
+    const permissions = Array.isArray(account && account.permissions)
+        ? account.permissions.map(permission => String(permission).trim().toLowerCase())
+        : [];
+
+    const hasInventoryAccess = Array.isArray(account && account.inventoryAccess)
+        ? account.inventoryAccess.length > 0
+        : Boolean(account && account.office);
+
+    if (permissions.includes("attendance") && (!permissions.includes("inventory") || !hasInventoryAccess)) {
+        return "attendance.html";
+    }
+
     const inventoryAccess = Array.isArray(account && account.inventoryAccess)
         ? account.inventoryAccess.map(value => String(value).trim().toLowerCase())
         : [];
