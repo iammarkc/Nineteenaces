@@ -900,7 +900,7 @@
             <div class="account-form-group"><label for="inventoryEditUserRole">Role</label><select id="inventoryEditUserRole"><option value="">Select a role</option><option value="Developer">Developer</option><option value="IT Admin">IT Admin</option><option value="IT Manager">IT Manager</option><option value="IT Supervisor">IT Supervisor</option><option value="IT Support">IT Support</option><option value="Management">Management</option></select></div>
             <div class="account-form-group"><label>Inventory Access</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditAccessRizal" value="Rizal"><label for="inventoryEditAccessRizal">Rizal Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditAccessCebu" value="Cebu"><label for="inventoryEditAccessCebu">Cebu Inventory</label></div></div></div>
             <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionInventory" value="inventory"><label for="inventoryEditPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAttendance" value="attendance"><label for="inventoryEditPermissionAttendance">Attendance</label></div></div></div>
-            <div class="account-modal-buttons"><button type="button" class="btn-submit" id="inventorySaveEditUserBtn">Save Changes</button><button type="button" class="btn-cancel" id="inventoryCancelEditUserBtn">Cancel</button></div>
+            <div class="account-modal-buttons"><button type="button" class="btn-submit" id="inventorySaveEditUserBtn">Save Changes</button><button type="button" class="btn btn-danger" id="inventoryDeleteUserBtn" style="display: none;">Delete Account</button><button type="button" class="btn-cancel" id="inventoryCancelEditUserBtn">Cancel</button></div>
         </div>
     </div>
 
@@ -914,7 +914,7 @@
     </div>
 
     <script src="js/bootstrap.bundle.min.js"></script>
-    <script src="js/firebase-shared.js?v=20260918-7"></script>
+    <script src="js/firebase-shared.js?v=20260918-8"></script>
     <script src="js/change-password.js?v=20260918-2"></script>
     <script>
         function getLoggedInDisplayName() {
@@ -1944,6 +1944,11 @@
             document.querySelectorAll("#inventoryEditUserModal input[type='checkbox']").forEach(input => {
                 input.checked = (account.inventoryAccess || []).includes(input.value) || (account.permissions || []).includes(input.value);
             });
+            const currentUsername = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser");
+            const currentAccounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
+            const currentAccount = currentAccounts[currentUsername];
+            const deleteButton = document.getElementById("inventoryDeleteUserBtn");
+            deleteButton.style.display = currentAccount && currentAccount.role === "Developer" && username !== currentUsername ? "block" : "none";
             document.getElementById("inventoryEditUserModal").style.display = "flex";
         }
 
@@ -1976,6 +1981,25 @@
         document.getElementById("inventoryCancelUserBtn")?.addEventListener("click", closeInventoryAccountModals);
         document.getElementById("inventoryCloseUsersBtn")?.addEventListener("click", closeInventoryAccountModals);
         document.getElementById("inventoryCancelEditUserBtn")?.addEventListener("click", closeInventoryAccountModals);
+
+        document.getElementById("inventoryDeleteUserBtn")?.addEventListener("click", async function () {
+            const username = document.getElementById("inventoryEditOriginalUsername").value;
+            const currentUsername = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser");
+            if (!username || username === currentUsername || !confirm(`Delete account ${username}? This cannot be undone.`)) return;
+
+            const accounts = JSON.parse(localStorage.getItem("userAccounts")) || {};
+            delete accounts[username];
+            localStorage.setItem("userAccounts", JSON.stringify(accounts));
+
+            try {
+                if (window.sharedAccounts) await window.sharedAccounts.delete(username);
+                closeInventoryAccountModals();
+                openInventoryUsers();
+                alert("Account deleted successfully.");
+            } catch (error) {
+                alert("The local account was removed, but the shared account could not be deleted. Check Firestore rules and try again.");
+            }
+        });
 
         document.getElementById("inventorySaveEditUserBtn")?.addEventListener("click", async function () {
             const originalUsername = document.getElementById("inventoryEditOriginalUsername").value;

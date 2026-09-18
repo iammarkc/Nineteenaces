@@ -55,6 +55,11 @@
         }));
     }
 
+    async function deleteAccountFromFirestore(username) {
+        const response = await fetch(`${firestoreRestBase}/accounts/${encodeURIComponent(username)}?key=${firebaseConfig.apiKey}`, { method: "DELETE" });
+        if (!response.ok) throw new Error(`Firestore account delete failed: ${response.status}`);
+    }
+
     async function loadAttendanceFromFirestore() {
         const response = await fetch(`${firestoreRestBase}/attendanceRecords?key=${firebaseConfig.apiKey}`, { cache: "no-store" });
         if (!response.ok) throw new Error(`Firestore attendance read failed: ${response.status}`);
@@ -118,12 +123,16 @@
         },
         async saveAccounts(accounts) {
             return saveAccountsToFirestore(accounts);
+        },
+        async deleteAccount(username) {
+            return deleteAccountFromFirestore(username);
         }
     };
 
     window.sharedAccounts = {
         ready: window.sharedAttendance.ready,
         load: () => window.sharedAttendance.loadAccounts(),
-        save: accounts => window.sharedAttendance.saveAccounts(accounts)
+        save: accounts => window.sharedAttendance.saveAccounts(accounts),
+        delete: username => window.sharedAttendance.deleteAccount(username)
     };
 })();
