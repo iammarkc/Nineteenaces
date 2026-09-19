@@ -854,11 +854,6 @@
                     <input type="text" id="formTransferTo" placeholder="Transfer destination (if any)" style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
                 </div>
 
-                <div>
-                    <label style="color: #1e3a5f; font-weight: 600; font-size: 14px; margin-bottom: 5px; display: block;">Column J</label>
-                    <input type="text" id="formColumnJ" placeholder="Additional column J information" style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
-                </div>
-                
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
                     <button type="submit" class="btn btn-primary" style="flex: 1;"><i class="bi bi-check-circle me-2"></i>Add Record</button>
                     <button type="button" id="closeAddRecordBtn" class="btn btn-secondary" style="flex: 1;"><i class="bi bi-x-circle me-2"></i>Cancel</button>
@@ -914,8 +909,10 @@
     </div>
 
     <script src="js/bootstrap.bundle.min.js"></script>
-    <script src="js/firebase-shared.js?v=20260918-8"></script>
-    <script src="js/change-password.js?v=20260918-2"></script>
+    <script src="js/firebase-shared.js?v=20260919-1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sql.js@1.11.0/dist/sql-wasm.js"></script>
+    <script src="js/sqlite-login.js?v=20260919-1"></script>
+    <script src="js/change-password.js?v=20260919-1"></script>
     <script>
         function getLoggedInDisplayName() {
             const username = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser") || "User";
@@ -952,6 +949,7 @@
             const suffix = office ? `_${office}` : "";
 
             return {
+                office,
                 summaryKey: `posSummaryData${suffix}`,
                 recordsKey: `posRecordsData${suffix}`,
                 stateKey: `inventoryState${suffix}`,
@@ -1109,8 +1107,12 @@
             if (userDisplay) userDisplay.textContent = loggedIn.displayName;
             updateMenuVisibility();
 
-            // Load saved data from localStorage
-            loadSavedData();
+            // Load saved data from localStorage and the shared office store.
+            loadSavedData().then(() => {
+                if (window.sharedInventory) {
+                    window.setInterval(refreshSharedInventory, 10000);
+                }
+            });
             setupInlineInventoryEditing();
             
             // Update last update time
@@ -1164,7 +1166,7 @@
             });
         }
 
-        function saveInventoryData(summaryData, recordsData) {
+        function saveInventoryData(summaryData, recordsData, syncShared = true) {
             const persistedSummary = summaryData || {};
             const persistedRecords = (recordsData || []).map((record) => ({
                 ...record,
@@ -1187,6 +1189,14 @@
                 return parseInt(value && value.quantity) || 0;
             });
             localStorage.setItem(storageKeys.inventoryKey, JSON.stringify({ models, quantities }));
+
+            if (syncShared && window.sharedInventory) {
+                window.sharedInventory.save(storageKeys.office, {
+                    summaryData: persistedSummary,
+                    recordsData: persistedRecords,
+                    updatedAt: new Date().toISOString()
+                }).catch(error => console.warn("Shared inventory save failed; local copy retained.", error));
+            }
         }
 
         function clearInventoryStorage(officeOverride = getCurrentUserOffice()) {
@@ -1212,7 +1222,7 @@
         }
 
         // Load saved data from localStorage
-        function loadSavedData() {
+        async function loadSavedData() {
             const storageKeys = getInventoryStorageKeys();
             const isCleared = localStorage.getItem(storageKeys.clearedKey) === "true";
             const savedState = JSON.parse(localStorage.getItem(storageKeys.stateKey) || "null");
@@ -1221,14 +1231,49 @@
 
             if (isCleared || (!savedSummary && !savedRecords)) {
                 renderEmptyInventoryState();
-                return;
+            } else {
+                if (savedSummary) {
+                    updateSummaryDisplay(savedSummary);
+                }
+                if (savedRecords) {
+                    populateInventoryTable(savedRecords);
+                }
             }
-            
-            if (savedSummary) {
-                updateSummaryDisplay(savedSummary);
+
+            if (!window.sharedInventory) return;
+
+            try {
+                const sharedInventory = await window.sharedInventory.load(storageKeys.office);
+                if (sharedInventory) {
+                    const sharedSummary = sharedInventory.summaryData || {};
+                    const sharedRecords = Array.isArray(sharedInventory.recordsData) ? sharedInventory.recordsData : [];
+                    saveInventoryData(sharedSummary, sharedRecords, false);
+                    updateSummaryDisplay(sharedSummary);
+                    populateInventoryTable(sharedRecords);
+                } else if (!isCleared && (savedSummary || savedRecords)) {
+                    saveInventoryData(savedSummary || {}, savedRecords || []);
+                }
+            } catch (error) {
+                console.warn("Shared inventory unavailable; using local copy.", error);
             }
-            if (savedRecords) {
-                populateInventoryTable(savedRecords);
+        }
+
+        async function refreshSharedInventory() {
+            if (!window.sharedInventory) return;
+
+            const storageKeys = getInventoryStorageKeys();
+
+            try {
+                const sharedInventory = await window.sharedInventory.load(storageKeys.office);
+                if (!sharedInventory) return;
+
+                const sharedSummary = sharedInventory.summaryData || {};
+                const sharedRecords = Array.isArray(sharedInventory.recordsData) ? sharedInventory.recordsData : [];
+                saveInventoryData(sharedSummary, sharedRecords, false);
+                updateSummaryDisplay(sharedSummary);
+                populateInventoryTable(sharedRecords);
+            } catch (error) {
+                console.warn("Shared inventory refresh failed; keeping the current copy.", error);
             }
         }
 
@@ -1414,7 +1459,7 @@
             tbody.innerHTML = html;
             
             // Save inventory data for shared inventory views
-            localStorage.setItem('posInventoryData', JSON.stringify({
+            localStorage.setItem(getInventoryStorageKeys().inventoryKey, JSON.stringify({
                 models: models,
                 quantities: quantities
             }));
@@ -1754,6 +1799,12 @@
                 }
 
                 clearInventoryStorage(normalizedOffice);
+                if (window.sharedInventory) {
+                    window.sharedInventory.clear(normalizedOffice).catch(error => {
+                        console.warn("Shared inventory clear failed.", error);
+                        alert("Inventory was cleared locally, but the shared inventory could not be cleared.");
+                    });
+                }
                 const csvFileInput = document.getElementById("csvFileInput");
                 if (csvFileInput) csvFileInput.value = "";
                 renderEmptyInventoryState();
@@ -1820,6 +1871,14 @@
             }));
             localStorage.setItem(storageKeys.summaryKey, JSON.stringify({}));
             localStorage.setItem(storageKeys.inventoryKey, JSON.stringify({ models: [], quantities: [] }));
+
+            if (window.sharedInventory) {
+                window.sharedInventory.save(normalizedOffice, {
+                    summaryData: {},
+                    recordsData: finalRecords,
+                    updatedAt: new Date().toISOString()
+                }).catch(error => console.warn("Shared inventory clear failed; local copy retained.", error));
+            }
 
             const csvFileInput = document.getElementById("csvFileInput");
             if (csvFileInput) csvFileInput.value = "";
@@ -1993,11 +2052,21 @@
 
             try {
                 if (window.sharedAccounts) await window.sharedAccounts.delete(username);
+
+                if (!isGitHubPages() && window.location.hostname) {
+                    const response = await fetch(inventoryAccountsApi, {
+                        method: "DELETE",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ username })
+                    });
+                    if (!response.ok) throw new Error("Account delete sync failed");
+                }
+
                 closeInventoryAccountModals();
                 openInventoryUsers();
                 alert("Account deleted successfully.");
             } catch (error) {
-                alert("The local account was removed, but the shared account could not be deleted. Check Firestore rules and try again.");
+                alert("The account was removed locally, but could not be deleted from all shared stores. Check Firestore rules and the server, then try again.");
             }
         });
 

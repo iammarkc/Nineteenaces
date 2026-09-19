@@ -7,5 +7,8 @@ service cloud.firestore {
     match /accounts/{username} {
       allow read, write: if true;
     }
+    match /inventoryData/{office} {
+      allow read, write: if true;
+    }
   }
 }

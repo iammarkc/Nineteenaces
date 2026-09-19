@@ -224,4 +224,16 @@
             return { status: "fallback" };
         }
     };
+
+    window.updateSqlitePassword = async function (username, newPassword) {
+        const database = await ensureLoginDatabase();
+        const matchedAccount = getAccountsFromDatabase(database).find(account => account.username === username);
+
+        if (!matchedAccount) {
+            throw new Error("SQLite account not found.");
+        }
+
+        database.run("UPDATE users SET password = ? WHERE username = ?", [newPassword, username]);
+        savePersistedDatabase(database);
+    };
 })();

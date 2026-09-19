@@ -100,6 +100,28 @@
         }));
     }
 
+    async function loadInventoryFromFirestore(office) {
+        const response = await fetch(`${firestoreRestBase}/inventoryData/${encodeURIComponent(office)}?key=${firebaseConfig.apiKey}`, { cache: "no-store" });
+        if (response.status === 404) return null;
+        if (!response.ok) throw new Error(`Firestore inventory read failed: ${response.status}`);
+        const document = await response.json();
+        return Object.keys(document.fields || {}).reduce((inventory, key) => ({ ...inventory, [key]: fromFirestoreValue(document.fields[key]) }), {});
+    }
+
+    async function saveInventoryToFirestore(office, inventory) {
+        const response = await fetch(`${firestoreRestBase}/inventoryData/${encodeURIComponent(office)}?key=${firebaseConfig.apiKey}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fields: Object.keys(inventory).reduce((fields, key) => ({ ...fields, [key]: toFirestoreValue(inventory[key]) }), {}) })
+        });
+        if (!response.ok) throw new Error(`Firestore inventory write failed: ${response.status}`);
+    }
+
+    async function clearInventoryFromFirestore(office) {
+        const response = await fetch(`${firestoreRestBase}/inventoryData/${encodeURIComponent(office)}?key=${firebaseConfig.apiKey}`, { method: "DELETE" });
+        if (!response.ok && response.status !== 404) throw new Error(`Firestore inventory delete failed: ${response.status}`);
+    }
+
     window.sharedAttendance = {
         ready: Promise.resolve(),
         async load() {
@@ -127,6 +149,13 @@
         async deleteAccount(username) {
             return deleteAccountFromFirestore(username);
         }
+    };
+
+    window.sharedInventory = {
+        ready: Promise.resolve(),
+        load: office => loadInventoryFromFirestore(office),
+        save: (office, inventory) => saveInventoryToFirestore(office, inventory),
+        clear: office => clearInventoryFromFirestore(office)
     };
 
     window.sharedAccounts = {

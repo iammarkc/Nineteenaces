@@ -198,6 +198,34 @@ async function handleApiAccounts(request, response) {
     return;
   }
 
+  if (request.method === 'DELETE') {
+    let body = '';
+    request.on('data', chunk => {
+      body += chunk;
+    });
+
+    request.on('end', async () => {
+      try {
+        const payload = body ? JSON.parse(body) : {};
+        const username = String(payload.username || '').trim();
+        const accounts = await loadAccounts();
+
+        if (!username || !accounts[username]) {
+          sendJson(response, 404, { ok: false, message: 'Account not found.' });
+          return;
+        }
+
+        delete accounts[username];
+        await saveAccounts(accounts);
+        sendJson(response, 200, { ok: true, message: 'Account deleted successfully.' });
+      } catch (error) {
+        console.error('Account delete error:', error);
+        sendJson(response, 500, { ok: false, message: 'Unable to delete account.' });
+      }
+    });
+    return;
+  }
+
   if (request.method === 'POST') {
     let body = '';
     request.on('data', chunk => {

@@ -60,16 +60,28 @@
         accounts[username] = { ...account, password: newPassword };
         localStorage.setItem("userAccounts", JSON.stringify(accounts));
 
-        if (!isGitHubPages() && window.location.hostname) {
-            try {
-                await fetch(`${window.location.protocol}//${window.location.hostname}:3100/api/change-password`, {
+        try {
+            if (window.updateSqlitePassword) {
+                await window.updateSqlitePassword(username, newPassword);
+            }
+
+            if (window.sharedAccounts) {
+                await window.sharedAccounts.save({ [username]: accounts[username] });
+            }
+
+            if (!isGitHubPages() && window.location.hostname) {
+                const response = await fetch(`${window.location.protocol}//${window.location.hostname}:3100/api/change-password`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ username, newPassword })
                 });
-            } catch (error) {
-                // Local storage already contains the updated password.
+                if (!response.ok) {
+                    throw new Error(`Password save failed: ${response.status}`);
+                }
             }
+        } catch (error) {
+            alert("The password could not be saved. Please try again.");
+            return;
         }
 
         closeModal();
