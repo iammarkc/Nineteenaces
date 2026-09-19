@@ -476,6 +476,16 @@
                     <div class="stat-label-subtitle">Released units (PCS)</div>
                 </div>
             </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card stat-card">
+                    <div class="icon-box">
+                        <i class="bi bi-question-circle"></i>
+                    </div>
+                    <div class="stat-label">Lost POS</div>
+                    <div class="stat-value" id="lostItems">0</div>
+                    <div class="stat-label-subtitle">Tagged as lost</div>
+                </div>
+            </div>
         </div>
 
         <!-- CSV Upload Section -->
@@ -1114,6 +1124,7 @@
                 }
             });
             setupInlineInventoryEditing();
+            setupSummaryInlineEditing();
             
             // Update last update time
             const now = new Date();
@@ -1159,7 +1170,8 @@
                 ["totalProducts", "0"],
                 ["itemsInStock", "0"],
                 ["lowStockItems", "0"],
-                ["inventoryValue", "0"]
+                ["inventoryValue", "0"],
+                ["lostItems", "0"]
             ].forEach(([id, value]) => {
                 const element = document.getElementById(id);
                 if (element) element.textContent = value;
@@ -1433,8 +1445,8 @@
                 quantities.push(qty);
                 
                 html += `
-                    <tr>
-                        <td>${model}</td>
+                    <tr data-summary-model="${escapeHtml(model)}">
+                        <td>${escapeHtml(model)}</td>
                         <td>${qty}</td>
                         <td>${dmg > 0 ? dmg : "-"}</td>
                         <td>${rel > 0 ? rel : "-"}</td>
@@ -1522,6 +1534,8 @@
             });
             
             tbody.innerHTML = html;
+            updateLostItemsMetric(recordsData);
+            applyInventorySearch();
             
             // Update record count badge
             const recordCount = recordsData.length;
@@ -1532,6 +1546,89 @@
                 btn.addEventListener("click", function() {
                     const index = this.getAttribute("data-index");
                     showDetailView(recordsData[index]);
+                });
+            });
+        }
+
+        function updateLostItemsMetric(recordsData) {
+            const lostCount = (recordsData || []).filter(record => String(record.status || "").trim().toUpperCase() === "LOST").length;
+            const lostItemsElement = document.getElementById("lostItems");
+            if (lostItemsElement) lostItemsElement.textContent = lostCount;
+        }
+
+        function setupSummaryInlineEditing() {
+            const tbody = document.getElementById("posSummaryTableBody");
+            if (!tbody) return;
+
+            tbody.addEventListener("dblclick", function (event) {
+                const cell = event.target.closest("td");
+                const row = cell && cell.closest("tr[data-summary-model]");
+                if (!cell || !row || cell.querySelector("input")) return;
+
+                const fieldNames = ["model", "quantity", "damage", "released", "remaining", "charger"];
+                const fieldName = fieldNames[cell.cellIndex];
+                if (!fieldName) return;
+
+                const originalValue = cell.textContent.trim();
+                const input = document.createElement("input");
+                input.type = fieldName === "model" ? "text" : "number";
+                input.min = fieldName === "model" ? "" : "0";
+                input.value = originalValue === "-" ? "" : originalValue;
+                input.style.cssText = "width: 100%; min-width: 70px; padding: 6px 8px; border: 1px solid #1e3a5f; border-radius: 4px; font: inherit; color: #1e3a5f;";
+                cell.textContent = "";
+                cell.appendChild(input);
+                input.focus();
+                input.select();
+
+                let editFinished = false;
+                const finishEdit = function (save) {
+                    if (editFinished || input !== cell.querySelector("input")) return;
+                    editFinished = true;
+
+                    if (!save) {
+                        cell.textContent = originalValue;
+                        return;
+                    }
+
+                    const oldModel = row.dataset.summaryModel;
+                    const newValue = input.value.trim();
+                    const storageKeys = getInventoryStorageKeys();
+                    const summaryData = JSON.parse(localStorage.getItem(storageKeys.summaryKey) || "{}");
+                    const currentData = summaryData[oldModel];
+
+                    if (!currentData || (fieldName === "model" && !newValue)) {
+                        cell.textContent = originalValue;
+                        return;
+                    }
+
+                    if (fieldName === "model") {
+                        if (newValue !== oldModel && summaryData[newValue]) {
+                            alert("A summary record with that model already exists.");
+                            cell.textContent = originalValue;
+                            return;
+                        }
+                        delete summaryData[oldModel];
+                        summaryData[newValue] = currentData;
+                    } else {
+                        currentData[fieldName] = parseInt(newValue, 10) || 0;
+                    }
+
+                    const recordsData = JSON.parse(localStorage.getItem(storageKeys.recordsKey) || "[]");
+                    saveInventoryData(summaryData, recordsData);
+                    updateSummaryDisplay(summaryData);
+                };
+
+                input.addEventListener("keydown", function (keyEvent) {
+                    if (keyEvent.key === "Enter") {
+                        keyEvent.preventDefault();
+                        finishEdit(true);
+                    } else if (keyEvent.key === "Escape") {
+                        keyEvent.preventDefault();
+                        finishEdit(false);
+                    }
+                });
+                input.addEventListener("blur", function () {
+                    finishEdit(true);
                 });
             });
         }
@@ -1610,6 +1707,7 @@
                     } else {
                         cell.textContent = value;
                     }
+                    applyInventorySearch();
                 };
 
                 input.addEventListener("keydown", function (keyEvent) {
@@ -1639,6 +1737,7 @@
             recordsData[recordIndex][fieldName] = value;
             const summaryData = JSON.parse(localStorage.getItem(storageKeys.summaryKey) || "{}");
             saveInventoryData(summaryData, recordsData);
+            updateLostItemsMetric(recordsData);
         }
 
         // Get appropriate badge class based on status
@@ -2376,6 +2475,7 @@
             
             const currentSummary = JSON.parse(localStorage.getItem(storageKeys.summaryKey) || "{}");
             saveInventoryData(currentSummary, recordsData);
+            updateLostItemsMetric(recordsData);
             
             // Add row to table
             addRecordToTable(newRecord);
@@ -2415,12 +2515,14 @@
             // Update record count
             const recordCount = document.querySelectorAll("#inventoryTableBody tr").length;
             document.getElementById("recordCountBadge").textContent = recordCount + " record" + (recordCount !== 1 ? "s" : "");
+            applyInventorySearch();
             
         }
 
         // Search functionality - searches across all CSV fields
-        document.getElementById("searchInventory").addEventListener("keyup", function (e) {
-            const searchTerm = e.target.value.toLowerCase();
+        function applyInventorySearch() {
+            const searchInput = document.getElementById("searchInventory");
+            const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : "";
             const rows = document.querySelectorAll("#inventoryTableBody tr");
             let visibleCount = 0;
             
@@ -2460,7 +2562,9 @@
             if (searchTerm) {
                 console.log("Search results: " + visibleCount + " of " + totalCount + " records");
             }
-        });
+        }
+
+        document.getElementById("searchInventory").addEventListener("input", applyInventorySearch);
 
         function openFullInventoryModal() {
             const storageKeys = getInventoryStorageKeys();
