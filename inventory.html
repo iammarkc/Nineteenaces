@@ -2165,6 +2165,8 @@
                     localStorage.setItem("userAccounts", JSON.stringify(accounts));
                     throw new Error("Shared account save failed. Check Firebase rules and deployment.");
                 }
+            } else {
+                throw new Error("Shared account service is unavailable.");
             }
 
             if (!window.location.hostname || isGitHubPages()) {
@@ -2179,7 +2181,7 @@
                 });
                 if (!response.ok) throw new Error("Account sync failed");
             } catch (error) {
-                // Local storage remains the source of truth when the backend is unavailable.
+                throw new Error("Local server account save failed.");
             }
         }
 
@@ -2289,11 +2291,13 @@
             if (!username || username === currentUsername || !confirm(`Delete account ${username}? This cannot be undone.`)) return;
 
             const accounts = JSON.parse(localStorage.getItem("userAccounts")) || {};
-            delete accounts[username];
-            localStorage.setItem("userAccounts", JSON.stringify(accounts));
 
             try {
-                if (window.sharedAccounts) await window.sharedAccounts.delete(username);
+                if (window.sharedAccounts) {
+                    await window.sharedAccounts.delete(username);
+                } else {
+                    throw new Error("Shared account service is unavailable.");
+                }
 
                 if (!isGitHubPages() && window.location.hostname) {
                     const response = await fetch(inventoryAccountsApi, {
@@ -2304,6 +2308,8 @@
                     if (!response.ok) throw new Error("Account delete sync failed");
                 }
 
+                delete accounts[username];
+                localStorage.setItem("userAccounts", JSON.stringify(accounts));
                 closeInventoryAccountModals();
                 openInventoryUsers();
                 alert("Account deleted successfully.");
@@ -2340,11 +2346,31 @@
                 permissions: Array.from(document.querySelectorAll("#inventoryEditUserModal input[id^='inventoryEditPermission']:checked"), input => input.value)
             };
 
-            delete accounts[originalUsername];
-            accounts[username] = updatedAccount;
-
             try {
+                const passwordInput = document.getElementById("inventoryEditUserPassword").value.trim();
+                if (passwordInput !== account.password) {
+                    if (!window.passwordSecurity) throw new Error("Secure password hashing is unavailable.");
+                    updatedAccount.password = await window.passwordSecurity.hash(passwordInput);
+                } else {
+                    updatedAccount.password = account.password;
+                }
+
+                accounts[username] = updatedAccount;
                 await saveInventoryAccounts(accounts);
+
+                if (username !== originalUsername) {
+                    if (window.sharedAccounts) await window.sharedAccounts.delete(originalUsername);
+                    if (!isGitHubPages() && window.location.hostname) {
+                        const deleteResponse = await fetch(inventoryAccountsApi, {
+                            method: "DELETE",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ username: originalUsername })
+                        });
+                        if (!deleteResponse.ok && deleteResponse.status !== 404) throw new Error("Old account delete failed");
+                    }
+                    delete accounts[originalUsername];
+                    localStorage.setItem("userAccounts", JSON.stringify(accounts));
+                }
                 closeInventoryAccountModals();
                 openInventoryUsers();
                 alert("Account changes saved successfully.");
