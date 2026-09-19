@@ -483,6 +483,7 @@
                             <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Cebu" href="inventory.html?office=Cebu"><i class="bi bi-boxes me-2"></i>Inventory of Cebu</a></li>
                             <li><a class="dropdown-item" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
                             <li><button class="dropdown-item" id="changePasswordMenuBtn" type="button"><i class="bi bi-key me-2"></i>Change Password</button></li>
+                            <li id="administratorMenuItem" style="display: none;"><a class="dropdown-item" href="administrator.html"><i class="bi bi-shield-lock me-2"></i>Administrator</a></li>
                             <li><a class="dropdown-item" data-permission="inventory" href="#" id="clearInventoryMenuBtn"><i class="bi bi-trash me-2"></i>Clear Inventory</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li id="addAccountMenuItemDivider" style="display: none;"><hr class="dropdown-divider"></li>
@@ -1104,6 +1105,10 @@
             return getCurrentUserOffice() === "Cebu" ? ["CEB1", "CEB2", "CEB3"] : ["R1", "R2", "R3"];
         }
 
+        function getLokalsOptions() {
+            return ["Angono", "Baras", "Binangonan", "Boso-Boso", "Cainta", "Cardona", "Cogeo", "Isla Binangonan", "Isla Cardona", "Jala-Jala 1", "Jala-Jala 2", "Kasiglahan", "Montalban", "Morong", "Pililla", "Sampaloc", "San Mateo", "Tanay", "TayTay", "Teresa", "Upper Antipolo"];
+        }
+
         function updateSystemOptions() {
             const systems = getSystemOptions();
             systems.forEach((system, index) => {
@@ -1221,17 +1226,20 @@
             const addAccountMenuDivider = document.getElementById('addAccountMenuItemDivider');
             const usersMenuContainer = document.getElementById('usersMenuItemContainer');
             const usersMenuDivider = document.getElementById('usersMenuItemDivider');
+            const administratorMenuItem = document.getElementById('administratorMenuItem');
 
             if (clearDataBtn) {
                 clearDataBtn.style.display = currentRole === "Developer" ? '' : 'none';
             }
 
             if (currentRole === 'Developer') {
+                if (administratorMenuItem) administratorMenuItem.style.display = '';
                 if (addAccountMenuContainer) addAccountMenuContainer.style.display = 'block';
                 if (addAccountMenuDivider) addAccountMenuDivider.style.display = 'block';
                 if (usersMenuContainer) usersMenuContainer.style.display = 'block';
                 if (usersMenuDivider) usersMenuDivider.style.display = 'block';
             } else {
+                if (administratorMenuItem) administratorMenuItem.style.display = 'none';
                 if (addAccountMenuContainer) addAccountMenuContainer.style.display = 'none';
                 if (addAccountMenuDivider) addAccountMenuDivider.style.display = 'none';
                 if (usersMenuContainer) usersMenuContainer.style.display = 'none';
@@ -1283,6 +1291,9 @@
             if (welcomeTitle && currentOffice) welcomeTitle.textContent = `${currentOffice} Inventory Management`;
             updateSystemOptions();
             updateMenuVisibility();
+            if (window.location.hash === "#users" && getCurrentUserRole() === "Developer") {
+                openInventoryUsers();
+            }
 
             // Load saved data from localStorage and the shared office store.
             loadSavedData().then(() => {
@@ -1887,6 +1898,41 @@
             if (!tbody) return;
 
             tbody.addEventListener("click", function (event) {
+                const clickedCell = event.target.closest("td");
+                const clickedRow = clickedCell && clickedCell.closest("tr[data-record-index]");
+                if (clickedCell && clickedRow && clickedCell.cellIndex === 7 && getCurrentUserOffice() === "Rizal" && !clickedCell.querySelector("select")) {
+                    const select = document.createElement("select");
+                    const originalValue = clickedCell.textContent.trim();
+                    ["", ...getLokalsOptions()].forEach(optionValue => {
+                        const option = document.createElement("option");
+                        option.value = optionValue;
+                        option.textContent = optionValue || "-- Select Lokals --";
+                        option.selected = optionValue === (originalValue === "-" ? "" : originalValue);
+                        select.appendChild(option);
+                    });
+                    select.style.cssText = "width: 100%; min-width: 130px; padding: 4px 6px; border: 1px solid #1e3a5f; border-radius: 4px; font: inherit; color: #1e3a5f; background: white;";
+                    clickedCell.textContent = "";
+                    clickedCell.appendChild(select);
+                    select.focus();
+
+                    let finished = false;
+                    const finish = function (save) {
+                        if (finished || select !== clickedCell.querySelector("select")) return;
+                        finished = true;
+                        const value = save ? select.value || "-" : originalValue;
+                        if (save) persistInventoryField(clickedRow, "lokals", value);
+                        clickedCell.textContent = value;
+                        applyInventorySearch();
+                    };
+                    select.addEventListener("change", () => finish(true));
+                    select.addEventListener("keydown", event => {
+                        if (event.key === "Enter") finish(true);
+                        if (event.key === "Escape") finish(false);
+                    });
+                    select.addEventListener("blur", () => finish(select.value !== (originalValue === "-" ? "" : originalValue)));
+                    return;
+                }
+
                 const badge = event.target.closest(".status-badge");
                 const cell = badge && badge.closest("td");
                 const row = cell && cell.closest("tr[data-record-index]");
@@ -3044,7 +3090,9 @@
                                         ${statusOptions.map(status => `<option value="${status}" ${String(record.status || "").toUpperCase() === status ? "selected" : ""}>${status}</option>`).join("")}
                                     </select>
                                 </td>
-                                <td style="padding: 12px 10px; vertical-align: top;"><input name="lokals" value="${escapeDetailHtml(record.lokals || "")}" style="width: 100%; min-width: 120px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; color: #1e3a5f;" /></td>
+                                <td style="padding: 12px 10px; vertical-align: top;">${getCurrentUserOffice() === "Rizal"
+                                    ? `<select name="lokals" style="width: 100%; min-width: 130px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; color: #1e3a5f; background: white;"><option value="">-- Select Lokals --</option>${getLokalsOptions().map(lokal => `<option value="${lokal}" ${String(record.lokals || "").toUpperCase() === lokal.toUpperCase() ? "selected" : ""}>${lokal}</option>`).join("")}</select>`
+                                    : `<input name="lokals" value="${escapeDetailHtml(record.lokals || "")}" style="width: 100%; min-width: 120px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; color: #1e3a5f;" />`}</td>
                                 <td style="padding: 12px 10px; vertical-align: top;"><textarea name="noteIssue" style="width: 100%; min-width: 160px; min-height: 70px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; resize: vertical; color: #1e3a5f;">${escapeDetailHtml(record.noteIssue || "")}</textarea></td>
                                 <td style="padding: 12px 10px; vertical-align: top;"><input name="transferTo" value="${escapeDetailHtml(record.transferTo || "")}" style="width: 100%; min-width: 120px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; color: #1e3a5f;" /></td>
                                 <td style="padding: 12px 10px; vertical-align: top;"><textarea name="columnJ" style="width: 100%; min-width: 160px; min-height: 70px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; resize: vertical; color: #1e3a5f;">${escapeDetailHtml(record.columnJ || "")}</textarea></td>

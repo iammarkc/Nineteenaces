@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Administrator</title>
+    <link rel="icon" type="image/x-icon" href="images/icon256.ico">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap-icons.css">
+    <style>
+        :root { --navy: #082f49; --cyan: #0e7490; --ink: #18344a; }
+        body { min-height: 100vh; margin: 0; color: var(--ink); background: radial-gradient(circle at 8% 10%, rgba(34,211,238,.12), transparent 24%), #eef4f8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        .navbar { background: linear-gradient(110deg, var(--navy), var(--cyan)) !important; box-shadow: 0 5px 24px rgba(8,47,73,.2); }
+        .admin-shell { max-width: 1180px; margin: 42px auto; padding: 0 20px; }
+        .hero { padding: 38px 40px; margin-bottom: 24px; color: white; border-radius: 16px; background: linear-gradient(110deg, var(--navy), var(--cyan)); box-shadow: 0 14px 34px rgba(8,47,73,.18); }
+        .hero h1 { margin: 0 0 8px; font-size: 32px; font-weight: 700; }
+        .hero p { margin: 0; opacity: .86; }
+        .placeholder { display: grid; place-items: center; min-height: 420px; padding: 40px; border: 1px solid #dce9ef; border-radius: 16px; background: white; box-shadow: 0 8px 24px rgba(15,54,76,.07); text-align: center; }
+        .placeholder h2 { margin: 0; color: #111827; font-size: clamp(72px, 14vw, 150px); line-height: .9; font-weight: 800; letter-spacing: .04em; }
+        .placeholder p { margin: 20px 0 0; color: #374151; font-size: clamp(22px, 4vw, 42px); line-height: 1.15; }
+        .placeholder-art { position: relative; width: 180px; height: 115px; margin-top: 34px; border: 5px solid #111827; border-radius: 18px 18px 28px 28px; background: #f8fafc; transform: rotate(-3deg); }
+        .placeholder-art::before, .placeholder-art::after { position: absolute; top: 35px; width: 18px; height: 18px; border: 4px solid #111827; border-radius: 50%; background: #f8fafc; content: ""; }
+        .placeholder-art::before { left: 30px; }
+        .placeholder-art::after { right: 30px; }
+        .placeholder-note { margin-top: 18px; color: #64748b; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark"><div class="container-fluid"><a class="navbar-brand fw-bold" href="administrator.html"><i class="bi bi-shield-lock me-2"></i>Administrator</a><button class="btn btn-outline-light btn-sm" id="logoutBtn" type="button">Logout</button></div></nav>
+    <main class="admin-shell">
+        <section class="placeholder" aria-label="Administrator placeholder image"><div><h2>404</h2><p>oops...<br>page not found</p><div class="placeholder-art" aria-hidden="true"></div><div class="placeholder-note">Administrator tools are being prepared.</div></div></section>
+    </main>
+    <script>
+        const username = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser");
+        const accounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
+        const account = accounts[username];
+        if (!account || (account.role !== "Developer" && username !== "admin")) window.location.href = "index.html";
+        document.getElementById("logoutBtn").addEventListener("click", () => {
+            localStorage.removeItem("loggedInUser");
+            sessionStorage.removeItem("loggedInUser");
+            window.location.href = "index.html";
+        });
+    </script>
+</body>
+</html>

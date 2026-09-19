@@ -77,6 +77,7 @@
                             <li><a class="dropdown-item active" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
                             <li><button class="dropdown-item" id="openClockModalMenuBtn" type="button"><i class="bi bi-clock me-2"></i>Clock in / out</button></li>
                             <li><button class="dropdown-item" id="changePasswordMenuBtn" type="button"><i class="bi bi-key me-2"></i>Change Password</button></li>
+                            <li id="administratorMenuItem" style="display: none;"><a class="dropdown-item" href="administrator.html"><i class="bi bi-shield-lock me-2"></i>Administrator</a></li>
                         </ul>
                     </li>
                     <li class="nav-item"><span class="nav-link user-display" id="userDisplay"><span class="user-display-name">User</span><small class="user-display-username">@User</small></span></li>
@@ -310,9 +311,29 @@
         userDisplay.querySelector(".user-display-name").textContent = displayName;
         userDisplay.querySelector(".user-display-username").textContent = `@${displayUsername}`;
         const canEditAttendance = currentAccount && ["Developer", "IT Admin"].includes(currentAccount.role);
+        const administratorMenuItem = document.getElementById("administratorMenuItem");
+        if (administratorMenuItem && currentAccount && (currentAccount.role === "Developer" || accountName === "admin")) administratorMenuItem.style.display = "";
         if (!canEditAttendance) document.getElementById("clearAttendanceBtn").style.display = "none";
-        const hasInventoryAccess = currentAccount && Array.isArray(currentAccount.permissions) && currentAccount.permissions.includes("inventory") && (!Array.isArray(currentAccount.inventoryAccess) || currentAccount.inventoryAccess.length > 0);
-        if (!hasInventoryAccess) document.getElementById("attendanceInventoryMenuItem").closest("li").style.display = "none";
+        const inventoryMenuItem = document.getElementById("attendanceInventoryMenuItem");
+        const hasInventoryPermission = currentAccount && (
+            currentAccount.username === "admin" ||
+            currentAccount.role === "Developer" ||
+            (Array.isArray(currentAccount.permissions) && currentAccount.permissions.includes("inventory"))
+        );
+        const allowedInventoryOffices = currentAccount && Array.isArray(currentAccount.inventoryAccess)
+            ? currentAccount.inventoryAccess.filter(office => office === "Rizal" || office === "Cebu")
+            : currentAccount && ["Rizal", "Cebu"].includes(currentAccount.office)
+                ? [currentAccount.office]
+                : ["Rizal", "Cebu"];
+        const landingOffice = allowedInventoryOffices.includes(currentAccount && currentAccount.office)
+            ? currentAccount.office
+            : allowedInventoryOffices[0];
+
+        if (!hasInventoryPermission || !landingOffice) {
+            inventoryMenuItem.closest("li").style.display = "none";
+        } else {
+            inventoryMenuItem.href = `inventory.html?office=${encodeURIComponent(landingOffice)}`;
+        }
         dateInput.value = today();
         clockDateInput.value = dateInput.value;
         const loggedInEmployee = currentAccount && currentAccount.name
