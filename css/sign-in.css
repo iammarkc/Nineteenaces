@@ -37,8 +37,29 @@ body::before {
   position: relative;
   z-index: 1;
   max-width: 330px;
-  padding: 1rem;
+  padding: 2.25rem 2rem 2rem;
+  border: 1px solid rgba(186, 230, 253, 0.2);
+  border-radius: 20px;
+  background: rgba(4, 17, 31, 0.58);
+  box-shadow: 0 24px 70px rgba(1, 8, 18, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
   animation: formRise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.form-signin h5 {
+  margin-bottom: 0.75rem !important;
+  color: #b9f3ff;
+  font-size: 1rem;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+}
+
+.form-signin h1 {
+  margin-bottom: 1.5rem !important;
+  color: #f4fbff;
+  font-size: 2rem;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
 }
 
 .form-signin .form-floating:focus-within {
@@ -46,14 +67,32 @@ body::before {
 }
 
 .form-signin .form-control {
+  border-color: rgba(148, 163, 184, 0.35);
+  background-color: rgba(15, 23, 42, 0.72);
+  color: #f4fbff;
   transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.form-signin .form-control::placeholder {
+  color: rgba(226, 232, 240, 0.6);
+}
+
+.form-signin .form-floating > label {
+  color: rgba(226, 232, 240, 0.72);
 }
 
 .form-signin .form-control:focus {
   transform: translateY(-1px);
+  border-color: #67e8f9;
+  background-color: rgba(15, 32, 54, 0.9);
+  box-shadow: 0 0 0 0.2rem rgba(34, 211, 238, 0.14), 0 8px 20px rgba(2, 132, 199, 0.12);
 }
 
 .form-signin .btn-primary {
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #06b6d4, #2563eb);
+  font-weight: 600;
   transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
 }
 

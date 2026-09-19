@@ -9,32 +9,39 @@
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/bootstrap-icons.css">
     <style>
-        :root { --navy: #1e3a5f; --blue: #2d5a8c; --ink: #1f3145; --muted: #697c8f; --line: #e5ebf2; --bg: #f5f6fa; }
-        body { background: var(--bg); color: var(--ink); min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-        .navbar { background: var(--navy) !important; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+        :root { --navy: #082f49; --blue: #0e7490; --cyan: #0891b2; --ink: #18344a; --muted: #607789; --line: #dce9ef; --bg: #eef4f8; }
+        body { background: radial-gradient(circle at 8% 10%, rgba(34, 211, 238, .1), transparent 24%), radial-gradient(circle at 92% 35%, rgba(59, 130, 246, .08), transparent 28%), var(--bg); color: var(--ink); min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        .navbar { background: linear-gradient(110deg, #082f49, #0e7490 58%, #155e75) !important; box-shadow: 0 5px 24px rgba(8,47,73,.2); }
         .navbar-brand { font-size: 18px; font-weight: 700; }
         .nav-link { font-size: 14px; font-weight: 500; margin: 0 10px; }
+        .user-display { display: flex; flex-direction: column; justify-content: center; line-height: 1.15; }
+        .user-display-name { white-space: nowrap; }
+        .user-display-username { color: rgba(226, 233, 255, .72); font-size: 11px; font-weight: 400; margin-top: 3px; }
         .container-fluid { max-width: 1500px; }
-        .attendance-container { margin: 40px auto; padding: 0 20px; }
-        .hero { background: linear-gradient(135deg, var(--navy), var(--blue)); border-radius: 8px; color: white; padding: 32px 36px; margin-bottom: 28px; }
+        .attendance-container { max-width: 1680px; margin: 32px auto 40px; padding: 0 20px; }
+        .hero { position: relative; overflow: hidden; background: linear-gradient(110deg, var(--navy), var(--blue) 58%, #155e75); border-radius: 16px; color: white; padding: 38px 40px; margin-bottom: 28px; box-shadow: 0 14px 34px rgba(8,47,73,.18); }
+        .hero::after { position: absolute; width: 260px; height: 260px; right: -70px; top: -120px; border: 1px solid rgba(186,230,253,.24); border-radius: 50%; box-shadow: 0 0 0 24px rgba(186,230,253,.05), 0 0 0 48px rgba(186,230,253,.035); content: ""; }
         .hero h1 { font-size: 30px; margin: 0 0 8px; font-weight: 700; }
         .hero p { margin: 0; opacity: .88; font-size: 15px; }
-        .card { background: white; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
-        .stat-card { padding: 22px; min-height: 132px; }
+        .card { background: rgba(255,255,255,.9); border: 1px solid rgba(186,211,224,.72); border-radius: 12px; box-shadow: 0 8px 24px rgba(15,54,76,.07); transition: transform .22s ease, box-shadow .22s ease; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(15,54,76,.12); }
+        .stat-card { padding: 24px; min-height: 146px; }
         .stat-label { color: var(--muted); text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: .4px; }
-        .stat-value { color: var(--navy); font-size: 32px; font-weight: 700; margin-top: 12px; }
-        .stat-icon { color: var(--navy); font-size: 23px; float: right; background: #edf3f9; border-radius: 6px; padding: 9px 11px; }
-        .card-header { background: linear-gradient(135deg, var(--navy), var(--blue)); color: white; border: 0; padding: 16px 20px; font-weight: 600; }
+        .stat-value { color: #0c4a6e; font-size: 38px; font-weight: 700; margin-top: 14px; }
+        .stat-icon { color: var(--blue); font-size: 23px; float: right; background: linear-gradient(145deg, #cffafe, #dbeafe); border-radius: 12px; padding: 10px 12px; }
+        .card-header { background: linear-gradient(110deg, var(--navy), var(--blue)); color: white; border: 0; border-radius: 12px 12px 0 0; padding: 17px 20px; font-weight: 600; }
         .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--line); }
-        .toolbar input, .toolbar select { border: 1px solid #d8e1eb; border-radius: 6px; padding: 9px 12px; color: var(--ink); background: white; }
+        .toolbar input, .toolbar select { border: 1px solid #c8dce6; border-radius: 10px; padding: 10px 12px; color: var(--ink); background: rgba(255,255,255,.86); transition: border-color .18s ease, box-shadow .18s ease; }
+        .toolbar input:focus, .toolbar select:focus { border-color: #22b8cf; box-shadow: 0 0 0 .2rem rgba(34,184,207,.13); outline: none; }
         .toolbar input { flex: 1 1 220px; }
         .toolbar select { min-width: 140px; }
-        .btn-primary { background: var(--navy); border: 0; }
-        .btn-primary:hover { background: #162d4a; }
+        .btn-primary { background: linear-gradient(135deg, #0891b2, #2563eb); border: 0; border-radius: 8px; font-weight: 600; }
+        .btn-primary:hover { background: linear-gradient(135deg, #0e7490, #1d4ed8); }
         .attendance-table { width: 100%; min-width: 760px; border-collapse: collapse; }
-        .attendance-table th { color: var(--navy); background: #f8fafc; text-transform: uppercase; font-size: 12px; letter-spacing: .3px; padding: 13px 16px; text-align: left; border-bottom: 1px solid var(--line); }
+        .attendance-table th { color: var(--navy); background: #eff8fb; text-transform: uppercase; font-size: 12px; letter-spacing: .3px; padding: 13px 16px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
         .attendance-table td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid #eef2f6; vertical-align: middle; }
-        .attendance-table tbody tr:hover { background: #f8fafc; }
+        .attendance-table tbody tr { transition: background .18s ease; }
+        .attendance-table tbody tr:hover { background: #ecfeff; }
         .status { border-radius: 4px; padding: 4px 9px; font-size: 12px; font-weight: 700; }
         .status-present { color: #17633a; background: #dff4e7; }
         .status-late { color: #815b00; background: #fff0c2; }
@@ -45,8 +52,8 @@
         .status-editor { border: 1px solid #d8e1eb; border-radius: 5px; color: var(--ink); padding: 5px 8px; font-size: 12px; margin-right: 4px; }
         .clock-modal { position: fixed; inset: 0; z-index: 2300; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(10, 17, 29, .72); }
         .clock-modal.active { display: flex; }
-        .clock-modal-content { width: min(680px, 100%); max-height: 90vh; overflow-y: auto; background: white; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,.28); }
-        .clock-modal-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 22px; color: white; background: linear-gradient(135deg, var(--navy), var(--blue)); }
+        .clock-modal-content { width: min(680px, 100%); max-height: 90vh; overflow-y: auto; background: white; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.28); }
+        .clock-modal-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 22px; color: white; background: linear-gradient(110deg, var(--navy), var(--blue)); }
         .clock-modal-body { padding: 22px; }
         .clock-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
         .clock-field label { color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; }
@@ -72,7 +79,7 @@
                             <li><button class="dropdown-item" id="changePasswordMenuBtn" type="button"><i class="bi bi-key me-2"></i>Change Password</button></li>
                         </ul>
                     </li>
-                    <li class="nav-item"><span class="nav-link" id="userDisplay">User</span></li>
+                    <li class="nav-item"><span class="nav-link user-display" id="userDisplay"><span class="user-display-name">User</span><small class="user-display-username">@User</small></span></li>
                     <li class="nav-item"><button class="btn btn-danger ms-lg-2" id="logoutBtn">Logout</button></li>
                 </ul>
             </div>
@@ -297,7 +304,11 @@
         const accountName = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser");
         const accounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
         const currentAccount = accounts[accountName];
-        document.getElementById("userDisplay").textContent = (currentAccount && currentAccount.name) || accountName || "User";
+        const userDisplay = document.getElementById("userDisplay");
+        const displayName = (currentAccount && currentAccount.name) || accountName || "User";
+        const displayUsername = (currentAccount && currentAccount.username) || accountName || "User";
+        userDisplay.querySelector(".user-display-name").textContent = displayName;
+        userDisplay.querySelector(".user-display-username").textContent = `@${displayUsername}`;
         const canEditAttendance = currentAccount && ["Developer", "IT Admin"].includes(currentAccount.role);
         if (!canEditAttendance) document.getElementById("clearAttendanceBtn").style.display = "none";
         const hasInventoryAccess = currentAccount && Array.isArray(currentAccount.permissions) && currentAccount.permissions.includes("inventory") && (!Array.isArray(currentAccount.inventoryAccess) || currentAccount.inventoryAccess.length > 0);

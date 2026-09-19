@@ -14,19 +14,26 @@
     <link href="css/login.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f5f6fa;
+            background:
+                radial-gradient(circle at 8% 12%, rgba(34, 211, 238, 0.11), transparent 24%),
+                radial-gradient(circle at 92% 38%, rgba(59, 130, 246, 0.09), transparent 28%),
+                #eef4f8;
             min-height: 100vh;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: #18344a;
         }
         .navbar {
-            background-color: #1e3a5f !important;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            background: linear-gradient(110deg, #082f49 0%, #0e7490 52%, #155e75 100%) !important;
+            box-shadow: 0 5px 24px rgba(8, 47, 73, 0.2);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         .navbar-brand {
             font-size: 18px;
             font-weight: 700;
-            letter-spacing: -0.5px;
+            letter-spacing: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
         .nav-link {
             font-weight: 500;
@@ -53,42 +60,46 @@
             margin-top: 3px;
         }
         .inventory-container {
-            margin-top: 40px;
+            margin-top: 32px;
             margin-bottom: 40px;
             padding: 0 20px;
+            max-width: 1680px;
+            margin-left: auto;
+            margin-right: auto;
         }
         .card {
             border: none;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            background: white;
-            border: 1px solid #e8eef7;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(15, 54, 76, 0.07);
+            transition: transform 0.22s ease, box-shadow 0.22s ease;
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(186, 211, 224, 0.72);
         }
         .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 14px 30px rgba(15, 54, 76, 0.12);
         }
         .card-header {
-            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%);
+            background: linear-gradient(110deg, #0c4a6e 0%, #0e7490 100%);
             color: white;
             border: none;
-            border-radius: 8px 8px 0 0;
+            border-radius: 12px 12px 0 0;
             font-weight: 600;
             font-size: 15px;
             padding: 18px 20px;
         }
         .stat-card {
             text-align: center;
-            padding: 30px 20px;
+            padding: 24px 18px;
+            min-height: 220px;
         }
         .stat-card:hover {
-            background-color: #fafbfc;
+            background: rgba(255, 255, 255, 0.98);
         }
         .stat-value {
-            font-size: 36px;
+            font-size: 40px;
             font-weight: 700;
-            color: #1e3a5f;
+            color: #0c4a6e;
             margin: 15px 0;
             letter-spacing: -1px;
         }
@@ -105,15 +116,15 @@
             margin-top: 8px;
         }
         .btn-primary {
-            background: #1e3a5f;
+            background: linear-gradient(135deg, #0891b2, #2563eb);
             border: none;
             font-weight: 600;
-            border-radius: 6px;
+            border-radius: 8px;
             padding: 8px 20px;
             font-size: 14px;
         }
         .btn-primary:hover {
-            background: #162d4a;
+            background: linear-gradient(135deg, #0e7490, #1d4ed8);
             color: white;
         }
         .btn-secondary {
@@ -128,13 +139,50 @@
             background: #555c6b;
             color: white;
         }
+        .inventory-container input[type="text"],
+        .inventory-container input[type="number"],
+        .inventory-container input[type="file"],
+        .inventory-container select,
+        .inventory-container textarea {
+            border-color: #c8dce6 !important;
+            background-color: rgba(255, 255, 255, 0.86);
+            transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+        }
+        .inventory-container input:focus,
+        .inventory-container select:focus,
+        .inventory-container textarea:focus {
+            border-color: #22b8cf !important;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 0.2rem rgba(34, 184, 207, 0.13);
+            outline: none;
+        }
+        #searchInventory {
+            border-radius: 10px !important;
+            padding-left: 16px !important;
+        }
+        #searchInventory::placeholder {
+            color: #8aa0ad;
+        }
         .welcome-section {
-            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%);
-            border-radius: 8px;
-            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(110deg, #082f49 0%, #0e7490 58%, #155e75 100%);
+            border-radius: 16px;
+            padding: 38px 40px;
             margin-bottom: 30px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 14px 34px rgba(8, 47, 73, 0.18);
             color: white;
+        }
+        .welcome-section::after {
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            right: -70px;
+            top: -120px;
+            border: 1px solid rgba(186, 230, 253, 0.24);
+            border-radius: 50%;
+            box-shadow: 0 0 0 24px rgba(186, 230, 253, 0.05), 0 0 0 48px rgba(186, 230, 253, 0.035);
+            content: "";
         }
         .welcome-title {
             color: white;
@@ -149,13 +197,14 @@
             font-weight: 400;
         }
         .icon-box {
-            font-size: 40px;
-            color: #1e3a5f;
+            font-size: 34px;
+            color: #0e7490;
             margin-bottom: 15px;
             display: inline-block;
-            background: #ecf0f7;
-            padding: 15px;
-            border-radius: 8px;
+            background: linear-gradient(145deg, #cffafe, #dbeafe);
+            padding: 14px;
+            border-radius: 12px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
         }
         .metric-icon {
             font-size: 24px;
@@ -185,17 +234,20 @@
             margin-bottom: 12px;
         }
         .section-title {
-            color: #1e3a5f;
+            color: #0c4a6e;
             font-size: 18px;
             font-weight: 700;
             margin-bottom: 20px;
             margin-top: 10px;
             display: flex;
             align-items: center;
+            gap: 10px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(148, 187, 204, 0.45);
         }
         .section-title i {
-            margin-right: 10px;
             font-size: 20px;
+            color: #0891b2;
         }
         .dropdown-menu {
             background-color: #ffffff;
@@ -228,7 +280,7 @@
             margin-top: 20px;
         }
         .inventory-table thead {
-            background-color: #f9fafb;
+            background-color: #eff8fb;
             border-top: 1px solid #e8eef7;
             border-bottom: 1px solid #e8eef7;
         }
@@ -240,18 +292,20 @@
             color: #1e3a5f;
             text-transform: uppercase;
             letter-spacing: 0.3px;
+            white-space: nowrap;
         }
         .inventory-table tbody tr {
             border-bottom: 1px solid #ecf0f7;
             transition: background-color 0.2s ease;
         }
         .inventory-table tbody tr:hover {
-            background-color: #f9fafb;
+            background-color: #ecfeff;
         }
         .inventory-table td {
             padding: 12px;
             color: #1e3a5f;
             font-size: 14px;
+            vertical-align: middle;
         }
         .detailed-records-scroll {
             max-height: 520px;
