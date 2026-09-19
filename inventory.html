@@ -425,7 +425,7 @@
     <div class="container-fluid inventory-container">
         <!-- Welcome Section -->
         <div class="welcome-section">
-            <div class="welcome-title">Inventory Management</div>
+            <div class="welcome-title" id="inventoryWelcomeTitle">Inventory Management</div>
             <div class="welcome-subtitle">
                 <i class="bi bi-check-circle-fill" style="font-size: 14px; margin-right: 8px;"></i>Manage your stock, products, and inventory levels
             </div>
@@ -489,25 +489,25 @@
             <div class="col-md-3 col-sm-6 mb-3">
                 <div class="card stat-card">
                     <div class="icon-box"><i class="bi bi-1-circle"></i></div>
-                    <div class="stat-label">R1 POS</div>
+                    <div class="stat-label" id="systemLabel1">R1 POS</div>
                     <div class="stat-value" id="rackR1Items">0</div>
-                    <div class="stat-label-subtitle">Released to R1</div>
+                    <div class="stat-label-subtitle" id="systemSubtitle1">Released to R1</div>
                 </div>
             </div>
             <div class="col-md-3 col-sm-6 mb-3">
                 <div class="card stat-card">
                     <div class="icon-box"><i class="bi bi-2-circle"></i></div>
-                    <div class="stat-label">R2 POS</div>
+                    <div class="stat-label" id="systemLabel2">R2 POS</div>
                     <div class="stat-value" id="rackR2Items">0</div>
-                    <div class="stat-label-subtitle">Released to R2</div>
+                    <div class="stat-label-subtitle" id="systemSubtitle2">Released to R2</div>
                 </div>
             </div>
             <div class="col-md-3 col-sm-6 mb-3">
                 <div class="card stat-card">
                     <div class="icon-box"><i class="bi bi-3-circle"></i></div>
-                    <div class="stat-label">R3 POS</div>
+                    <div class="stat-label" id="systemLabel3">R3 POS</div>
                     <div class="stat-value" id="rackR3Items">0</div>
-                    <div class="stat-label-subtitle">Released to R3</div>
+                    <div class="stat-label-subtitle" id="systemSubtitle3">Released to R3</div>
                 </div>
             </div>
         </div>
@@ -841,9 +841,9 @@
             
             <form id="addRecordForm" style="display: flex; flex-direction: column; gap: 15px;">
                 <div>
-                    <label style="color: #1e3a5f; font-weight: 600; font-size: 14px; margin-bottom: 5px; display: block;">RACK</label>
+                    <label id="systemSelectLabel" style="color: #1e3a5f; font-weight: 600; font-size: 14px; margin-bottom: 5px; display: block;">SYSTEM</label>
                     <select id="formRack" style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
-                        <option value="">-- Select Rack --</option>
+                        <option value="">-- Select System --</option>
                         <option value="R1">R1</option>
                         <option value="R2">R2</option>
                         <option value="R3">R3</option>
@@ -993,6 +993,27 @@
             const account = accounts[username];
 
             return account && account.office ? account.office.trim() : "";
+        }
+
+        function getSystemOptions() {
+            return getCurrentUserOffice() === "Cebu" ? ["CEB1", "CEB2", "CEB3"] : ["R1", "R2", "R3"];
+        }
+
+        function updateSystemOptions() {
+            const systems = getSystemOptions();
+            systems.forEach((system, index) => {
+                const label = document.getElementById(`systemLabel${index + 1}`);
+                const subtitle = document.getElementById(`systemSubtitle${index + 1}`);
+                if (label) label.textContent = `${system} POS`;
+                if (subtitle) subtitle.textContent = `Released to ${system}`;
+            });
+
+            const rackSelect = document.getElementById("formRack");
+            if (rackSelect) {
+                const selectedValue = rackSelect.value;
+                rackSelect.innerHTML = `<option value="">-- Select System --</option>${systems.map(system => `<option value="${system}">${system}</option>`).join("")}`;
+                rackSelect.value = systems.includes(selectedValue) ? selectedValue : "";
+            }
         }
 
         function getInventoryStorageKeys(officeOverride = getCurrentUserOffice()) {
@@ -1156,6 +1177,10 @@
 
             if (usernameDisplay) usernameDisplay.textContent = loggedIn.displayName;
             if (userDisplay) userDisplay.textContent = loggedIn.displayName;
+            const welcomeTitle = document.getElementById("inventoryWelcomeTitle");
+            const currentOffice = getCurrentUserOffice();
+            if (welcomeTitle && currentOffice) welcomeTitle.textContent = `${currentOffice} Inventory Management`;
+            updateSystemOptions();
             updateMenuVisibility();
 
             // Load saved data from localStorage and the shared office store.
@@ -1672,9 +1697,9 @@
         }
 
         function updateRackMetrics(recordsData) {
-            ["R1", "R2", "R3"].forEach(rack => {
+            getSystemOptions().forEach((rack, index) => {
                 const count = (recordsData || []).filter(record => String(record.rack || "").trim().toUpperCase() === rack).length;
-                const element = document.getElementById(`rack${rack}Items`);
+                const element = document.getElementById(`rack${["R1", "R2", "R3"][index]}Items`);
                 if (element) element.textContent = count;
             });
         }
@@ -1813,10 +1838,10 @@
                 const originalValue = cell.textContent.trim();
                 const input = fieldName === "rack" ? document.createElement("select") : document.createElement("input");
                 if (fieldName === "rack") {
-                    ["", "R1", "R2", "R3"].forEach(optionValue => {
+                    ["", ...getSystemOptions()].forEach(optionValue => {
                         const option = document.createElement("option");
                         option.value = optionValue;
-                        option.textContent = optionValue || "-- Select Rack --";
+                        option.textContent = optionValue || "-- Select System --";
                         option.selected = optionValue === (originalValue === "-" ? "" : originalValue);
                         input.appendChild(option);
                     });
@@ -2899,8 +2924,8 @@
                         <tbody>
                             <tr>
                                 <td style="padding: 12px 10px; vertical-align: top;"><select name="rack" style="width: 100%; min-width: 100px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; color: #1e3a5f; background: white;">
-                                    <option value="">-- Select Rack --</option>
-                                    ${["R1", "R2", "R3"].map(rack => `<option value="${rack}" ${String(record.rack || "").toUpperCase() === rack ? "selected" : ""}>${rack}</option>`).join("")}
+                                    <option value="">-- Select System --</option>
+                                    ${getSystemOptions().map(rack => `<option value="${rack}" ${String(record.rack || "").toUpperCase() === rack ? "selected" : ""}>${rack}</option>`).join("")}
                                 </select></td>
                                 <td style="padding: 12px 10px; vertical-align: top;"><input name="posNo" value="${escapeDetailHtml(record.posNo || "")}" style="width: 100%; min-width: 120px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; font-weight: 700; color: #1e3a5f;" /></td>
                                 <td style="padding: 12px 10px; vertical-align: top;"><input name="serialNumber" value="${escapeDetailHtml(record.serialNumber || "")}" style="width: 100%; min-width: 180px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; font-family: 'Courier New', monospace; color: #2d5a8c;" /></td>
