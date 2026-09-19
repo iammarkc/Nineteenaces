@@ -37,6 +37,21 @@
         .nav-link:hover {
             color: #e0e7ff !important;
         }
+        .user-display {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            line-height: 1.15;
+        }
+        .user-display-name {
+            white-space: nowrap;
+        }
+        .user-display-username {
+            color: rgba(226, 233, 255, 0.7);
+            font-size: 11px;
+            font-weight: 400;
+            margin-top: 3px;
+        }
         .inventory-container {
             margin-top: 40px;
             margin-bottom: 40px;
@@ -238,6 +253,22 @@
             color: #1e3a5f;
             font-size: 14px;
         }
+        .detailed-records-scroll {
+            max-height: 520px;
+            overflow: auto;
+            border: 1px solid #e8eef7;
+            border-radius: 6px;
+        }
+        .detailed-records-scroll .inventory-table {
+            margin-top: 0;
+            min-width: 1100px;
+        }
+        .detailed-records-scroll thead th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: #f9fafb;
+        }
         .status-badge {
             display: inline-block;
             padding: 4px 8px;
@@ -411,7 +442,10 @@
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <span class="nav-link" id="userDisplay" style="cursor: default;">User</span>
+                        <span class="nav-link user-display" id="userDisplay" style="cursor: default;">
+                            <span class="user-display-name">User</span>
+                            <small class="user-display-username">@User</small>
+                        </span>
                     </li>
                     <li class="nav-item">
                         <button class="btn btn-danger ms-2" id="logoutBtn">Logout</button>
@@ -622,6 +656,7 @@
                             <input type="text" id="searchInventory" placeholder="Search by POS NO., Serial #, Name, User ID, Address, Status, LOKALS, Lokals, or Issues..." style="flex: 1; padding: 8px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
                             <button class="btn btn-primary" id="addProductBtn"><i class="bi bi-plus-circle me-2"></i>Add Record</button>
                         </div>
+                        <div class="detailed-records-scroll">
                         <table class="inventory-table">
                             <thead>
                                 <tr>
@@ -676,6 +711,7 @@
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -982,6 +1018,21 @@
             return { username, displayName };
         }
 
+        function updateUserDisplay() {
+            const loggedIn = getLoggedInDisplayName();
+            if (!loggedIn) return;
+
+            const usernameDisplay = document.getElementById("usernameDisplay");
+            const userDisplay = document.getElementById("userDisplay");
+            if (usernameDisplay) usernameDisplay.textContent = loggedIn.displayName;
+            if (userDisplay) {
+                const nameElement = userDisplay.querySelector(".user-display-name");
+                const usernameElement = userDisplay.querySelector(".user-display-username");
+                if (nameElement) nameElement.textContent = loggedIn.displayName;
+                if (usernameElement) usernameElement.textContent = `@${loggedIn.username}`;
+            }
+        }
+
         function getCurrentUserOffice() {
             const urlOffice = new URLSearchParams(window.location.search).get("office");
             if (urlOffice && ["Rizal", "Cebu"].includes(urlOffice.trim())) {
@@ -1172,11 +1223,7 @@
                 return;
             }
 
-            const usernameDisplay = document.getElementById("usernameDisplay");
-            const userDisplay = document.getElementById("userDisplay");
-
-            if (usernameDisplay) usernameDisplay.textContent = loggedIn.displayName;
-            if (userDisplay) userDisplay.textContent = loggedIn.displayName;
+            updateUserDisplay();
             const welcomeTitle = document.getElementById("inventoryWelcomeTitle");
             const currentOffice = getCurrentUserOffice();
             if (welcomeTitle && currentOffice) welcomeTitle.textContent = `${currentOffice} Inventory Management`;
@@ -1822,7 +1869,7 @@
                     if (keyEvent.key === "Escape") finishStatusEdit(false);
                 });
                 select.addEventListener("blur", function () {
-                    finishStatusEdit(false);
+                    finishStatusEdit(select.value !== originalValue);
                 });
             });
 
@@ -2396,6 +2443,12 @@
                     delete accounts[originalUsername];
                     localStorage.setItem("userAccounts", JSON.stringify(accounts));
                 }
+                const loggedInUsername = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser");
+                if (loggedInUsername === originalUsername) {
+                    localStorage.setItem("loggedInUser", username);
+                    sessionStorage.setItem("loggedInUser", username);
+                }
+                updateUserDisplay();
                 closeInventoryAccountModals();
                 openInventoryUsers();
                 alert("Account changes saved successfully.");
