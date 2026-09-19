@@ -289,9 +289,10 @@ async function login() {
     let matchedUsername = null;
     let storedAccount = null;
 
-    if (accounts[inputValue]) {
-        matchedUsername = inputValue;
-        storedAccount = accounts[matchedUsername];
+    const usernameMatch = Object.keys(accounts).find(usernameKey => usernameKey.toLowerCase() === normalizedInput);
+    if (usernameMatch) {
+        matchedUsername = usernameMatch;
+        storedAccount = accounts[usernameMatch];
     } else {
         const emailMatch = Object.keys(accounts).find(usernameKey => {
             const account = accounts[usernameKey];
@@ -328,11 +329,12 @@ async function login() {
         return;
     }
 
-    if (TEST_CREDENTIALS[inputValue] && TEST_CREDENTIALS[inputValue] === password) {
+    const testUsername = Object.keys(TEST_CREDENTIALS).find(username => username.toLowerCase() === normalizedInput);
+    if (testUsername && TEST_CREDENTIALS[testUsername] === password) {
         messageDiv.textContent = "✓ Test login successful! (Dev Mode)";
         messageDiv.style.color = "green";
 
-        const accountName = inputValue.toLowerCase() === "admin" ? "admin" : inputValue;
+        const accountName = testUsername.toLowerCase() === "admin" ? "admin" : testUsername;
         writeStoredValue("loggedInUser", accountName);
 
         if (inputValue.toLowerCase() === "admin") {
