@@ -489,11 +489,11 @@
                             <li><hr class="dropdown-divider"></li>
                             <li id="addAccountMenuItemDivider" style="display: none;"><hr class="dropdown-divider"></li>
                             <li id="addAccountMenuItemContainer" style="display: none;">
-                                <a class="dropdown-item" href="#add-user" id="addAccountBtn"><i class="bi bi-person-plus me-2"></i>Add User</a>
+                                <a class="dropdown-item" data-permission="addAccount" href="#add-user" id="addAccountBtn"><i class="bi bi-person-plus me-2"></i>Add User</a>
                             </li>
                             <li id="usersMenuItemDivider" style="display: none;"><hr class="dropdown-divider"></li>
                             <li id="usersMenuItemContainer" style="display: none;">
-                                <a class="dropdown-item" href="#users" id="usersMenuBtn"><i class="bi bi-people me-2"></i>Users</a>
+                                <a class="dropdown-item" data-permission="users" href="#users" id="usersMenuBtn"><i class="bi bi-people me-2"></i>Users</a>
                             </li>
                         </ul>
                     </li>
@@ -1014,7 +1014,7 @@
             <div class="account-form-group"><label for="inventoryNewUserOffice">Office</label><select id="inventoryNewUserOffice"><option value="">Select an office</option><option value="Rizal">Rizal</option><option value="Cebu">Cebu</option><option value="Both">Both Offices</option></select></div>
             <div class="account-form-group"><label for="inventoryNewUserRole">Role</label><select id="inventoryNewUserRole"><option value="">Select a role</option><option value="Developer">Developer</option><option value="IT Admin">IT Admin</option><option value="IT Manager">IT Manager</option><option value="IT Supervisor">IT Supervisor</option><option value="IT Support">IT Support</option><option value="Management">Management</option></select></div>
             <div class="account-form-group"><label>Inventory Access</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryAccessRizal" value="Rizal"><label for="inventoryAccessRizal">Rizal Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryAccessCebu" value="Cebu"><label for="inventoryAccessCebu">Cebu Inventory</label></div></div></div>
-            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" checked id="inventoryPermissionInventory" value="inventory"><label for="inventoryPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAttendance" value="attendance"><label for="inventoryPermissionAttendance">Attendance</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionLocalPosReport" value="localPosReport"><label for="inventoryPermissionLocalPosReport">Local POS Report</label></div></div></div>
+            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" checked id="inventoryPermissionInventory" value="inventory"><label for="inventoryPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAttendance" value="attendance"><label for="inventoryPermissionAttendance">Attendance</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionLocalPosReport" value="localPosReport"><label for="inventoryPermissionLocalPosReport">Local POS Report</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAddAccount" value="addAccount"><label for="inventoryPermissionAddAccount">Add Account</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionUsers" value="users"><label for="inventoryPermissionUsers">Manage Users</label></div></div></div>
             <div class="account-modal-buttons"><button type="button" class="btn-submit" id="inventorySubmitUserBtn">Add Account</button><button type="button" class="btn-cancel" id="inventoryCancelUserBtn">Cancel</button></div>
         </div>
     </div>
@@ -1036,7 +1036,7 @@
             <div class="account-form-group"><label for="inventoryEditUserOffice">Office</label><select id="inventoryEditUserOffice"><option value="">Select an office</option><option value="Rizal">Rizal</option><option value="Cebu">Cebu</option><option value="Both">Both Offices</option></select></div>
             <div class="account-form-group"><label for="inventoryEditUserRole">Role</label><select id="inventoryEditUserRole"><option value="">Select a role</option><option value="Developer">Developer</option><option value="IT Admin">IT Admin</option><option value="IT Manager">IT Manager</option><option value="IT Supervisor">IT Supervisor</option><option value="IT Support">IT Support</option><option value="Management">Management</option></select></div>
             <div class="account-form-group"><label>Inventory Access</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditAccessRizal" value="Rizal"><label for="inventoryEditAccessRizal">Rizal Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditAccessCebu" value="Cebu"><label for="inventoryEditAccessCebu">Cebu Inventory</label></div></div></div>
-            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionInventory" value="inventory"><label for="inventoryEditPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAttendance" value="attendance"><label for="inventoryEditPermissionAttendance">Attendance</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionLocalPosReport" value="localPosReport"><label for="inventoryEditPermissionLocalPosReport">Local POS Report</label></div></div></div>
+            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionInventory" value="inventory"><label for="inventoryEditPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAttendance" value="attendance"><label for="inventoryEditPermissionAttendance">Attendance</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionLocalPosReport" value="localPosReport"><label for="inventoryEditPermissionLocalPosReport">Local POS Report</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAddAccount" value="addAccount"><label for="inventoryEditPermissionAddAccount">Add Account</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionUsers" value="users"><label for="inventoryEditPermissionUsers">Manage Users</label></div></div></div>
             <div class="account-modal-buttons"><button type="button" class="btn-submit" id="inventorySaveEditUserBtn">Save Changes</button><button type="button" class="btn btn-danger" id="inventoryDeleteUserBtn" style="display: none;">Delete Account</button><button type="button" class="btn-cancel" id="inventoryCancelEditUserBtn">Cancel</button></div>
         </div>
     </div>
@@ -1233,19 +1233,18 @@
                 clearDataBtn.style.display = currentRole === "Developer" ? '' : 'none';
             }
 
+            const canAddAccount = currentRole === 'Developer' || permissions.has('addAccount');
+            const canManageUsers = currentRole === 'Developer' || permissions.has('users');
+
             if (currentRole === 'Developer') {
                 if (administratorMenuItem) administratorMenuItem.style.display = '';
-                if (addAccountMenuContainer) addAccountMenuContainer.style.display = 'block';
-                if (addAccountMenuDivider) addAccountMenuDivider.style.display = 'block';
-                if (usersMenuContainer) usersMenuContainer.style.display = 'block';
-                if (usersMenuDivider) usersMenuDivider.style.display = 'block';
             } else {
                 if (administratorMenuItem) administratorMenuItem.style.display = 'none';
-                if (addAccountMenuContainer) addAccountMenuContainer.style.display = 'none';
-                if (addAccountMenuDivider) addAccountMenuDivider.style.display = 'none';
-                if (usersMenuContainer) usersMenuContainer.style.display = 'none';
-                if (usersMenuDivider) usersMenuDivider.style.display = 'none';
             }
+            if (addAccountMenuContainer) addAccountMenuContainer.style.display = canAddAccount ? 'block' : 'none';
+            if (addAccountMenuDivider) addAccountMenuDivider.style.display = canAddAccount ? 'block' : 'none';
+            if (usersMenuContainer) usersMenuContainer.style.display = canManageUsers ? 'block' : 'none';
+            if (usersMenuDivider) usersMenuDivider.style.display = canManageUsers ? 'block' : 'none';
 
             document.querySelectorAll('#adminMenu + .dropdown-menu [data-permission]').forEach(item => {
                 const menuEntry = item.closest('li');
@@ -1256,7 +1255,7 @@
                     return;
                 }
 
-                if (item.dataset.permission === 'localPosReport' && currentRole === 'Developer') {
+                if (["localPosReport", "addAccount", "users"].includes(item.dataset.permission) && currentRole === 'Developer') {
                     menuEntry.style.display = '';
                     return;
                 }
@@ -1297,7 +1296,7 @@
             if (welcomeTitle && currentOffice) welcomeTitle.textContent = `${currentOffice} Inventory Management`;
             updateSystemOptions();
             updateMenuVisibility();
-            if (window.location.hash === "#users" && getCurrentUserRole() === "Developer") {
+            if (window.location.hash === "#users" && (getCurrentUserRole() === "Developer" || getCurrentUserPermissions().includes("users"))) {
                 openInventoryUsers();
             }
 
@@ -2420,12 +2419,28 @@
             document.getElementById("inventoryEditUserModal").style.display = "none";
         }
 
+        function getAccountRoleLevel(account, username = "") {
+            if (username === "admin" || (account && account.role === "Developer")) return 100;
+            return { "IT Admin": 80, "IT Manager": 60, "IT Supervisor": 40, "IT Support": 20, "Management": 10 }[account && account.role] || 0;
+        }
+
+        function canEditAccount(username, accounts) {
+            const currentUsername = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser");
+            if (!currentUsername || currentUsername === username) return currentUsername === username;
+            return getAccountRoleLevel(accounts[currentUsername], currentUsername) >= getAccountRoleLevel(accounts[username], username);
+        }
+
         function openInventoryEditUser(username) {
             const accounts = JSON.parse(localStorage.getItem("userAccounts")) || {};
             const account = accounts[username];
 
             if (!account) {
                 alert("Account not found.");
+                return;
+            }
+
+            if (!canEditAccount(username, accounts)) {
+                alert("You cannot edit an account with a higher role.");
                 return;
             }
 
@@ -2454,7 +2469,7 @@
 
             try {
                 const accounts = await getInventoryAccounts();
-                table.innerHTML = `<table class="inventory-users-table"><thead><tr><th>Name</th><th>Username</th><th>Office</th><th>Inventory Access</th><th>Status</th><th>Actions</th></tr></thead><tbody>${Object.values(accounts).map(account => `<tr><td>${escapeHtml(account.name || "")}</td><td>${escapeHtml(account.username || "")}</td><td>${escapeHtml(account.office || "")}</td><td>${escapeHtml((account.inventoryAccess || []).join(", ") || "None")}</td><td>${account.disabled ? "Disabled" : "Active"}</td><td><button type="button" class="btn btn-sm btn-primary inventory-edit-user" data-username="${escapeHtml(account.username || "")}"><i class="bi bi-pencil-square me-1"></i>Edit</button></td></tr>`).join("")}</tbody></table>`;
+                table.innerHTML = `<table class="inventory-users-table"><thead><tr><th>Name</th><th>Username</th><th>Office</th><th>Inventory Access</th><th>Status</th><th>Actions</th></tr></thead><tbody>${Object.values(accounts).map(account => { const username = account.username || ""; const editButton = canEditAccount(username, accounts) ? `<button type="button" class="btn btn-sm btn-primary inventory-edit-user" data-username="${escapeHtml(username)}"><i class="bi bi-pencil-square me-1"></i>Edit</button>` : `<span style="color: #697c8f; font-size: 12px;">Higher role</span>`; return `<tr><td>${escapeHtml(account.name || "")}</td><td>${escapeHtml(username)}</td><td>${escapeHtml(account.office || "")}</td><td>${escapeHtml((account.inventoryAccess || []).join(", ") || "None")}</td><td>${account.disabled ? "Disabled" : "Active"}</td><td>${editButton}</td></tr>`; }).join("")}</tbody></table>`;
                 table.querySelectorAll(".inventory-edit-user").forEach(button => {
                     button.addEventListener("click", () => openInventoryEditUser(button.dataset.username));
                 });
@@ -2518,6 +2533,11 @@
 
             if (!account || !username) {
                 alert("Please enter a username.");
+                return;
+            }
+
+            if (!canEditAccount(originalUsername, accounts)) {
+                alert("You cannot edit an account with a higher role.");
                 return;
             }
 
