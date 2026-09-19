@@ -1582,14 +1582,6 @@
             const totalProductsEl = document.getElementById("totalProducts");
             if (totalProductsEl) totalProductsEl.textContent = totalQty;
             
-            // Active POS = Remaining POS (active/working units)
-            const itemsInStockEl = document.getElementById("itemsInStock");
-            if (itemsInStockEl) itemsInStockEl.textContent = totalRemaining;
-            
-            // Damage POS = Total Damage
-            const lowStockItemsEl = document.getElementById("lowStockItems");
-            if (lowStockItemsEl) lowStockItemsEl.textContent = totalDamage;
-            
             // Released POS = Total Released
             const inventoryValueEl = document.getElementById("inventoryValue");
             if (inventoryValueEl) inventoryValueEl.textContent = totalReleased;
@@ -1605,6 +1597,10 @@
             if (summaryTotalRemainingEl) summaryTotalRemainingEl.textContent = totalRemaining;
             const summaryTotalChargerEl = document.getElementById("summaryTotalCharger");
             if (summaryTotalChargerEl) summaryTotalChargerEl.textContent = totalCharger;
+
+            const storageKeys = getInventoryStorageKeys();
+            const recordsData = JSON.parse(localStorage.getItem(storageKeys.recordsKey) || "[]");
+            updateActiveItemsMetric(recordsData);
         }
 
         // Populate inventory table with POS records
@@ -1637,6 +1633,8 @@
             });
             
             tbody.innerHTML = html;
+            updateActiveItemsMetric(recordsData);
+            updateDamageItemsMetric(recordsData);
             updateLostItemsMetric(recordsData);
             updateRackMetrics(recordsData);
             applyInventorySearch();
@@ -1658,6 +1656,18 @@
             const lostCount = (recordsData || []).filter(record => String(record.status || "").trim().toUpperCase() === "LOST").length;
             const lostItemsElement = document.getElementById("lostItems");
             if (lostItemsElement) lostItemsElement.textContent = lostCount;
+        }
+
+        function updateActiveItemsMetric(recordsData) {
+            const activeCount = (recordsData || []).filter(record => String(record.status || "").trim().toUpperCase() === "ACTIVE").length;
+            const activeItemsElement = document.getElementById("itemsInStock");
+            if (activeItemsElement) activeItemsElement.textContent = activeCount;
+        }
+
+        function updateDamageItemsMetric(recordsData) {
+            const damageCount = (recordsData || []).filter(record => String(record.status || "").trim().toUpperCase() === "DAMAGE").length;
+            const damageItemsElement = document.getElementById("lowStockItems");
+            if (damageItemsElement) damageItemsElement.textContent = damageCount;
         }
 
         function updateRackMetrics(recordsData) {
@@ -1864,6 +1874,9 @@
             recordsData[recordIndex][fieldName] = value;
             const summaryData = JSON.parse(localStorage.getItem(storageKeys.summaryKey) || "{}");
             saveInventoryData(summaryData, recordsData);
+            updateSummaryDisplay(summaryData);
+            updateActiveItemsMetric(recordsData);
+            updateDamageItemsMetric(recordsData);
             updateLostItemsMetric(recordsData);
             updateRackMetrics(recordsData);
         }
@@ -2605,10 +2618,13 @@
             
             const currentSummary = JSON.parse(localStorage.getItem(storageKeys.summaryKey) || "{}");
             saveInventoryData(currentSummary, recordsData);
+            updateSummaryDisplay(currentSummary);
+            updateDamageItemsMetric(recordsData);
             updateLostItemsMetric(recordsData);
             
             // Add row to table
             addRecordToTable(newRecord);
+            updateActiveItemsMetric(recordsData);
             updateRackMetrics(recordsData);
             
             // Close modal and reset form
@@ -2821,6 +2837,7 @@
 
             const summaryData = JSON.parse(localStorage.getItem(storageKeys.summaryKey) || "{}");
             saveInventoryData(summaryData, recordsData);
+            updateSummaryDisplay(summaryData);
             populateInventoryTable(recordsData);
 
             document.getElementById("detailViewModal").style.display = "none";
