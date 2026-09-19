@@ -486,6 +486,30 @@
                     <div class="stat-label-subtitle">Tagged as lost</div>
                 </div>
             </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card stat-card">
+                    <div class="icon-box"><i class="bi bi-1-circle"></i></div>
+                    <div class="stat-label">R1 POS</div>
+                    <div class="stat-value" id="rackR1Items">0</div>
+                    <div class="stat-label-subtitle">Released to R1</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card stat-card">
+                    <div class="icon-box"><i class="bi bi-2-circle"></i></div>
+                    <div class="stat-label">R2 POS</div>
+                    <div class="stat-value" id="rackR2Items">0</div>
+                    <div class="stat-label-subtitle">Released to R2</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card stat-card">
+                    <div class="icon-box"><i class="bi bi-3-circle"></i></div>
+                    <div class="stat-label">R3 POS</div>
+                    <div class="stat-value" id="rackR3Items">0</div>
+                    <div class="stat-label-subtitle">Released to R3</div>
+                </div>
+            </div>
         </div>
 
         <!-- CSV Upload Section -->
@@ -600,6 +624,7 @@
                         <table class="inventory-table">
                             <thead>
                                 <tr>
+                                    <th>System</th>
                                     <th>POS NO.</th>
                                     <th>Serial Number</th>
                                     <th>Full Name</th>
@@ -613,6 +638,7 @@
                             </thead>
                             <tbody id="inventoryTableBody">
                                 <tr>
+                                    <td>-</td>
                                     <td>P1</td>
                                     <td>V222232H21189</td>
                                     <td>Manuel Federigan</td>
@@ -624,6 +650,7 @@
                                     <td>-</td>
                                 </tr>
                                 <tr>
+                                    <td>-</td>
                                     <td>P10</td>
                                     <td>V222232H20753</td>
                                     <td>Bembem Dayadante</td>
@@ -635,6 +662,7 @@
                                     <td>-</td>
                                 </tr>
                                 <tr>
+                                    <td>-</td>
                                     <td>P11</td>
                                     <td>V222232H21171</td>
                                     <td>Gary Villacarlos Jr.</td>
@@ -684,6 +712,7 @@
                 <table class="inventory-table" style="margin-top: 0; min-width: 1500px;">
                     <thead>
                         <tr>
+                            <th>System</th>
                             <th>POS NO.</th>
                             <th>Serial Number</th>
                             <th>Full Name</th>
@@ -810,6 +839,16 @@
             </h2>
             
             <form id="addRecordForm" style="display: flex; flex-direction: column; gap: 15px;">
+                <div>
+                    <label style="color: #1e3a5f; font-weight: 600; font-size: 14px; margin-bottom: 5px; display: block;">RACK</label>
+                    <select id="formRack" style="width: 100%; padding: 10px 12px; border: 1px solid #e8eef7; border-radius: 6px; font-size: 14px;">
+                        <option value="">-- Select Rack --</option>
+                        <option value="R1">R1</option>
+                        <option value="R2">R2</option>
+                        <option value="R3">R3</option>
+                    </select>
+                </div>
+
                 <div>
                     <label style="color: #1e3a5f; font-weight: 600; font-size: 14px; margin-bottom: 5px; display: block;">POS NO. *</label>
 
@@ -1132,6 +1171,7 @@
         });
 
         const INVENTORY_STORAGE_KEYS = ["posSummaryData", "posRecordsData", "inventoryState", "posInventoryData", "inventoryCleared"];
+        let sharedInventorySaveQueue = Promise.resolve();
 
         function escapeHtml(value) {
             return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
@@ -1171,12 +1211,55 @@
                 ["itemsInStock", "0"],
                 ["lowStockItems", "0"],
                 ["inventoryValue", "0"],
-                ["lostItems", "0"]
+                ["lostItems", "0"],
+                ["rackR1Items", "0"],
+                ["rackR2Items", "0"],
+                ["rackR3Items", "0"]
             ].forEach(([id, value]) => {
                 const element = document.getElementById(id);
                 if (element) element.textContent = value;
             });
         }
+
+        function queueSharedInventorySave(office, inventory) {
+            if (!window.sharedInventory || !office) return sharedInventorySaveQueue;
+
+            const pendingKey = `inventoryPendingSync_${office}`;
+            localStorage.setItem(pendingKey, JSON.stringify(inventory));
+            sharedInventorySaveQueue = sharedInventorySaveQueue.then(async () => {
+                const pendingInventory = JSON.parse(localStorage.getItem(pendingKey) || "null");
+                if (!pendingInventory) return;
+
+                for (let attempt = 0; attempt < 3; attempt += 1) {
+                    try {
+                        await window.sharedInventory.save(office, pendingInventory);
+                        localStorage.removeItem(pendingKey);
+                        return;
+                    } catch (error) {
+                        if (attempt === 2) {
+                            console.warn("Shared inventory save pending; it will retry when connectivity returns.", error);
+                            return;
+                        }
+                        await new Promise(resolve => window.setTimeout(resolve, 1000 * (attempt + 1)));
+                    }
+                }
+            }).catch(error => console.warn("Inventory save queue failed; local copy retained.", error));
+
+            return sharedInventorySaveQueue;
+        }
+
+        async function flushPendingSharedInventory() {
+            const office = getInventoryStorageKeys().office;
+            const pendingKey = `inventoryPendingSync_${office}`;
+            if (localStorage.getItem(pendingKey)) {
+                await queueSharedInventorySave(office, JSON.parse(localStorage.getItem(pendingKey)));
+                await sharedInventorySaveQueue;
+            }
+        }
+
+        window.addEventListener("online", function () {
+            flushPendingSharedInventory().catch(error => console.warn("Pending inventory sync retry failed.", error));
+        });
 
         function saveInventoryData(summaryData, recordsData, syncShared = true) {
             const persistedSummary = summaryData || {};
@@ -1203,16 +1286,17 @@
             localStorage.setItem(storageKeys.inventoryKey, JSON.stringify({ models, quantities }));
 
             if (syncShared && window.sharedInventory) {
-                window.sharedInventory.save(storageKeys.office, {
+                queueSharedInventorySave(storageKeys.office, {
                     summaryData: persistedSummary,
                     recordsData: persistedRecords,
                     updatedAt: new Date().toISOString()
-                }).catch(error => console.warn("Shared inventory save failed; local copy retained.", error));
+                });
             }
         }
 
         function clearInventoryStorage(officeOverride = getCurrentUserOffice()) {
             const storageKeys = getInventoryStorageKeys(officeOverride);
+            localStorage.removeItem(`inventoryPendingSync_${storageKeys.office}`);
 
             INVENTORY_STORAGE_KEYS.forEach(key => {
                 localStorage.removeItem(key);
@@ -1236,6 +1320,7 @@
         // Load saved data from localStorage
         async function loadSavedData() {
             const storageKeys = getInventoryStorageKeys();
+            await flushPendingSharedInventory();
             const isCleared = localStorage.getItem(storageKeys.clearedKey) === "true";
             const savedState = JSON.parse(localStorage.getItem(storageKeys.stateKey) || "null");
             const savedSummary = savedState ? savedState.summaryData : JSON.parse(localStorage.getItem(storageKeys.summaryKey) || "null");
@@ -1329,6 +1414,7 @@
             let recordsData = [];
             let inDetailsSection = false;
             let headerIndex = -1;
+            let detailsHaveRack = false;
             
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
@@ -1344,9 +1430,10 @@
                 const fields = parseCSVLine(line);
                 
                 // Check if this is the details header row
-                if (fields[0] && fields[0].toUpperCase() === "POS NO.") {
+                if (fields[0] && (fields[0].toUpperCase() === "POS NO." || fields[1]?.toUpperCase() === "POS NO.")) {
                     inDetailsSection = true;
                     headerIndex = i;
+                    detailsHaveRack = fields[0].toUpperCase() === "RACK";
                     continue;
                 }
                 
@@ -1366,17 +1453,19 @@
                     }
                 } else {
                     // Details section (POS records)
-                    if (fields[0] && fields[0] !== "POS NO." && headerIndex >= 0) {
+                    const recordStartIndex = detailsHaveRack ? 1 : 0;
+                    if (fields[recordStartIndex] && fields[recordStartIndex] !== "POS NO." && headerIndex >= 0) {
                         const record = {
-                            posNo: fields[0] || "-",
-                            serialNumber: fields[1] || "-",
-                            fullName: fields[2] || "-",
-                            userId: fields[3] || "-",
-                            address: fields[4] || "-",
-                            status: fields[5] || "-",
-                            lokals: fields[6] || "-",
-                            noteIssue: fields[7] || "-",
-                            transferTo: fields[8] || "-",
+                            rack: detailsHaveRack ? (fields[0] || "") : "",
+                            posNo: fields[recordStartIndex] || "-",
+                            serialNumber: fields[recordStartIndex + 1] || "-",
+                            fullName: fields[recordStartIndex + 2] || "-",
+                            userId: fields[recordStartIndex + 3] || "-",
+                            address: fields[recordStartIndex + 4] || "-",
+                            status: fields[recordStartIndex + 5] || "-",
+                            lokals: fields[recordStartIndex + 6] || "-",
+                            noteIssue: fields[recordStartIndex + 7] || "-",
+                            transferTo: fields[recordStartIndex + 8] || "-",
                         };
                         
                         if (record.posNo && record.posNo.toUpperCase() !== "COLUMN 3") {
@@ -1513,6 +1602,7 @@
             
             recordsData.forEach((record, index) => {
                 const statusClass = getStatusBadgeClass(record.status);
+                const displayRack = record.rack || "-";
                 const displayName = record.fullName && record.fullName.trim() ? record.fullName : "N/A";
                 const displayNote = record.noteIssue && record.noteIssue !== "-" ? record.noteIssue : "-";
                 const displayLokals = record.lokals && record.lokals !== "-" ? record.lokals : "-";
@@ -1520,7 +1610,8 @@
                 
                 html += `
                     <tr data-record-index="${index}">
-                        <td>${record.posNo}</td>
+                        <td>${escapeHtml(displayRack)}</td>
+                        <td>${escapeHtml(record.posNo)}</td>
                         <td>${record.serialNumber}</td>
                         <td>${displayName}</td>
                         <td>${record.userId || "-"}</td>
@@ -1535,6 +1626,7 @@
             
             tbody.innerHTML = html;
             updateLostItemsMetric(recordsData);
+            updateRackMetrics(recordsData);
             applyInventorySearch();
             
             // Update record count badge
@@ -1554,6 +1646,14 @@
             const lostCount = (recordsData || []).filter(record => String(record.status || "").trim().toUpperCase() === "LOST").length;
             const lostItemsElement = document.getElementById("lostItems");
             if (lostItemsElement) lostItemsElement.textContent = lostCount;
+        }
+
+        function updateRackMetrics(recordsData) {
+            ["R1", "R2", "R3"].forEach(rack => {
+                const count = (recordsData || []).filter(record => String(record.rack || "").trim().toUpperCase() === rack).length;
+                const element = document.getElementById(`rack${rack}Items`);
+                if (element) element.textContent = count;
+            });
         }
 
         function setupSummaryInlineEditing() {
@@ -1683,19 +1783,29 @@
                 const row = cell && cell.closest("tr[data-record-index]");
                 if (!cell || !row || cell.querySelector("input, select")) return;
 
-                const fieldNames = ["posNo", "serialNumber", "fullName", "userId", "address", "status", "lokals", "noteIssue", "transferTo"];
+                const fieldNames = ["rack", "posNo", "serialNumber", "fullName", "userId", "address", "status", "lokals", "noteIssue", "transferTo"];
                 const fieldName = fieldNames[cell.cellIndex];
                 if (!fieldName) return;
 
                 const originalValue = cell.textContent.trim();
-                const input = document.createElement("input");
-                input.type = "text";
+                const input = fieldName === "rack" ? document.createElement("select") : document.createElement("input");
+                if (fieldName === "rack") {
+                    ["", "R1", "R2", "R3"].forEach(optionValue => {
+                        const option = document.createElement("option");
+                        option.value = optionValue;
+                        option.textContent = optionValue || "-- Select Rack --";
+                        option.selected = optionValue === (originalValue === "-" ? "" : originalValue);
+                        input.appendChild(option);
+                    });
+                } else {
+                    input.type = "text";
+                }
                 input.value = originalValue === "-" || originalValue === "N/A" ? "" : originalValue;
                 input.style.cssText = "width: 100%; min-width: 80px; padding: 6px 8px; border: 1px solid #1e3a5f; border-radius: 4px; font: inherit; color: #1e3a5f;";
                 cell.textContent = "";
                 cell.appendChild(input);
                 input.focus();
-                input.select();
+                if (typeof input.select === "function") input.select();
 
                 const finishEdit = function (save) {
                     if (input !== cell.querySelector("input")) return;
@@ -1738,6 +1848,7 @@
             const summaryData = JSON.parse(localStorage.getItem(storageKeys.summaryKey) || "{}");
             saveInventoryData(summaryData, recordsData);
             updateLostItemsMetric(recordsData);
+            updateRackMetrics(recordsData);
         }
 
         // Get appropriate badge class based on status
@@ -1804,10 +1915,11 @@
             csvContent += ",,,,,,,,,\n";
             
             // Add records section header
-            csvContent += "POS NO.,SERIAL NUMBER,FULL NAME,USER ID,ADDRESS,STATUS,LOKALS,NOTE OF DAMAGE OR ISSUE,TRANSFER TO,COLUMN J\n";
+            csvContent += "RACK,POS NO.,SERIAL NUMBER,FULL NAME,USER ID,ADDRESS,STATUS,LOKALS,NOTE OF DAMAGE OR ISSUE,TRANSFER TO,COLUMN J\n";
             
             // Add record data
             recordsData.forEach(record => {
+                const rack = record.rack || "";
                 const posNo = record.posNo.includes(",") ? `"${record.posNo}"` : record.posNo;
                 const serialNumber = record.serialNumber.includes(",") ? `"${record.serialNumber}"` : record.serialNumber;
                 const fullName = record.fullName.includes(",") ? `"${record.fullName}"` : record.fullName;
@@ -1819,7 +1931,7 @@
                 const transferTo = record.transferTo || "";
                 const columnJ = record.columnJ ? (record.columnJ.includes(",") ? `"${record.columnJ}"` : record.columnJ) : "";
                 
-                csvContent += `${posNo},${serialNumber},${fullName},${userId},${address},${status},${lokals},${noteIssue},${transferTo},${columnJ}\n`;
+                csvContent += `${rack},${posNo},${serialNumber},${fullName},${userId},${address},${status},${lokals},${noteIssue},${transferTo},${columnJ}\n`;
             });
             
             // Create blob and download
@@ -1972,11 +2084,11 @@
             localStorage.setItem(storageKeys.inventoryKey, JSON.stringify({ models: [], quantities: [] }));
 
             if (window.sharedInventory) {
-                window.sharedInventory.save(normalizedOffice, {
+                queueSharedInventorySave(normalizedOffice, {
                     summaryData: {},
                     recordsData: finalRecords,
                     updatedAt: new Date().toISOString()
-                }).catch(error => console.warn("Shared inventory clear failed; local copy retained.", error));
+                });
             }
 
             const csvFileInput = document.getElementById("csvFileInput");
@@ -2455,6 +2567,7 @@
             e.preventDefault();
             
             const newRecord = {
+                rack: document.getElementById("formRack")?.value || "",
                 posNo: document.getElementById("formPosNo")?.value || "",
                 serialNumber: document.getElementById("formSerialNumber")?.value || "",
                 fullName: document.getElementById("formFullName")?.value || "",
@@ -2479,6 +2592,7 @@
             
             // Add row to table
             addRecordToTable(newRecord);
+            updateRackMetrics(recordsData);
             
             // Close modal and reset form
             document.getElementById("addRecordModal").style.display = "none";
@@ -2494,13 +2608,15 @@
             const displayNote = record.noteIssue && record.noteIssue !== "-" ? record.noteIssue : "-";
             const displayLokals = record.lokals && record.lokals !== "-" ? record.lokals : "-";
             const displayTransferTo = record.transferTo && record.transferTo !== "-" ? record.transferTo : "-";
+            const displayRack = record.rack || "-";
             const displayColumnJ = record.columnJ && record.columnJ !== "-" ? record.columnJ : "-";
             const recordIndex = document.querySelectorAll("#inventoryTableBody tr").length;
             
             const row = tbody.insertRow(0);
             row.dataset.recordIndex = String(recordIndex);
             row.innerHTML = `
-                <td>${record.posNo}</td>
+                <td>${escapeHtml(displayRack)}</td>
+                <td>${escapeHtml(record.posNo)}</td>
                 <td>${record.serialNumber}</td>
                 <td>${record.fullName || "-"}</td>
                 <td>${record.userId || "-"}</td>
@@ -2527,18 +2643,20 @@
             let visibleCount = 0;
             
             rows.forEach(row => {
-                const posNo = row.cells[0] ? row.cells[0].textContent.toLowerCase() : "";
-                const serialNumber = row.cells[1] ? row.cells[1].textContent.toLowerCase() : "";
-                const fullName = row.cells[2] ? row.cells[2].textContent.toLowerCase() : "";
-                const userId = row.cells[3] ? row.cells[3].textContent.toLowerCase() : "";
-                const address = row.cells[4] ? row.cells[4].textContent.toLowerCase() : "";
-                const status = row.cells[5] ? row.cells[5].textContent.toLowerCase() : "";
-                const lokals = row.cells[6] ? row.cells[6].textContent.toLowerCase() : "";
-                const noteIssue = row.cells[7] ? row.cells[7].textContent.toLowerCase() : "";
-                const transferTo = row.cells[8] ? row.cells[8].textContent.toLowerCase() : "";
-                const columnJ = row.cells[9] ? row.cells[9].textContent.toLowerCase() : "";
+                const rack = row.cells[0] ? row.cells[0].textContent.toLowerCase() : "";
+                const posNo = row.cells[1] ? row.cells[1].textContent.toLowerCase() : "";
+                const serialNumber = row.cells[2] ? row.cells[2].textContent.toLowerCase() : "";
+                const fullName = row.cells[3] ? row.cells[3].textContent.toLowerCase() : "";
+                const userId = row.cells[4] ? row.cells[4].textContent.toLowerCase() : "";
+                const address = row.cells[5] ? row.cells[5].textContent.toLowerCase() : "";
+                const status = row.cells[6] ? row.cells[6].textContent.toLowerCase() : "";
+                const lokals = row.cells[7] ? row.cells[7].textContent.toLowerCase() : "";
+                const noteIssue = row.cells[8] ? row.cells[8].textContent.toLowerCase() : "";
+                const transferTo = row.cells[9] ? row.cells[9].textContent.toLowerCase() : "";
+                const columnJ = row.cells[10] ? row.cells[10].textContent.toLowerCase() : "";
                 
                 const isMatch = !searchTerm || 
+                    rack.includes(searchTerm) ||
                     posNo.includes(searchTerm) || 
                     serialNumber.includes(searchTerm) || 
                     fullName.includes(searchTerm) || 
@@ -2582,8 +2700,10 @@
                     const displayLokals = record.lokals && record.lokals !== "-" ? record.lokals : "-";
                     const displayTransferTo = record.transferTo && record.transferTo !== "-" ? record.transferTo : "-";
                     const displayColumnJ = record.columnJ && record.columnJ !== "-" ? record.columnJ : "-";
+                    const displayRack = record.rack || "-";
                     return `
                         <tr>
+                            <td>${escapeHtml(displayRack)}</td>
                             <td>${record.posNo || "-"}</td>
                             <td>${record.serialNumber || "-"}</td>
                             <td>${displayName}</td>
@@ -2655,6 +2775,7 @@
             if (!form) return;
 
             const updatedRecord = {
+                rack: form.querySelector("[name='rack']").value || "",
                 posNo: form.querySelector("[name='posNo']").value.trim() || originalRecord.posNo || "-",
                 serialNumber: form.querySelector("[name='serialNumber']").value.trim() || originalRecord.serialNumber || "-",
                 fullName: form.querySelector("[name='fullName']").value.trim() || "-",
@@ -2701,6 +2822,7 @@
                     <table class="inventory-table" style="margin-top: 0; width: 100%; min-width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr>
+                                <th style="padding: 12px 10px; text-align: left;">RACK</th>
                                 <th style="padding: 12px 10px; text-align: left;">POS NO.</th>
                                 <th style="padding: 12px 10px; text-align: left;">Serial Number</th>
                                 <th style="padding: 12px 10px; text-align: left;">Full Name</th>
@@ -2715,6 +2837,10 @@
                         </thead>
                         <tbody>
                             <tr>
+                                <td style="padding: 12px 10px; vertical-align: top;"><select name="rack" style="width: 100%; min-width: 100px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; color: #1e3a5f; background: white;">
+                                    <option value="">-- Select Rack --</option>
+                                    ${["R1", "R2", "R3"].map(rack => `<option value="${rack}" ${String(record.rack || "").toUpperCase() === rack ? "selected" : ""}>${rack}</option>`).join("")}
+                                </select></td>
                                 <td style="padding: 12px 10px; vertical-align: top;"><input name="posNo" value="${escapeDetailHtml(record.posNo || "")}" style="width: 100%; min-width: 120px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; font-weight: 700; color: #1e3a5f;" /></td>
                                 <td style="padding: 12px 10px; vertical-align: top;"><input name="serialNumber" value="${escapeDetailHtml(record.serialNumber || "")}" style="width: 100%; min-width: 180px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; font-family: 'Courier New', monospace; color: #2d5a8c;" /></td>
                                 <td style="padding: 12px 10px; vertical-align: top;"><input name="fullName" value="${escapeDetailHtml(record.fullName || "")}" style="width: 100%; min-width: 160px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; color: #1e3a5f;" /></td>
