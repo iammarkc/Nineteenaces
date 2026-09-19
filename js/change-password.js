@@ -16,9 +16,9 @@
         }
     }
 
-    function isGitHubPages() {
+    function isLocalBackendHost() {
         const hostname = window.location.hostname || "";
-        return hostname === "github.io" || hostname.endsWith(".github.io");
+        return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
     }
 
     function closeModal() {
@@ -67,7 +67,7 @@
                 }
             }
 
-            if (!storedPassword && !isGitHubPages() && window.location.hostname) {
+            if (!storedPassword && isLocalBackendHost()) {
                 const hashResponse = await fetch(`${window.location.protocol}//${window.location.hostname}:3100/api/hash-password`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -98,7 +98,7 @@
                 }
             }
 
-            if (!isGitHubPages() && window.location.hostname) {
+            if (isLocalBackendHost()) {
                 const response = await fetch(`${window.location.protocol}//${window.location.hostname}:3100/api/change-password`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },

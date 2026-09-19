@@ -33,11 +33,26 @@
         return null;
     }
 
+    async function loadFirestoreCollection(collectionPath) {
+        const documents = [];
+        let pageToken = "";
+
+        do {
+            const params = new URLSearchParams({ key: firebaseConfig.apiKey, pageSize: "300" });
+            if (pageToken) params.set("pageToken", pageToken);
+            const response = await fetch(`${firestoreRestBase}/${collectionPath}?${params.toString()}`, { cache: "no-store" });
+            if (!response.ok) throw new Error(`Firestore collection read failed: ${response.status}`);
+            const result = await response.json();
+            documents.push(...(result.documents || []));
+            pageToken = result.nextPageToken || "";
+        } while (pageToken);
+
+        return documents;
+    }
+
     async function loadAccountsFromFirestore() {
-        const response = await fetch(`${firestoreRestBase}/accounts?key=${firebaseConfig.apiKey}`, { cache: "no-store" });
-        if (!response.ok) throw new Error(`Firestore account read failed: ${response.status}`);
-        const result = await response.json();
-        return (result.documents || []).reduce((accounts, document) => {
+        const documents = await loadFirestoreCollection("accounts");
+        return documents.reduce((accounts, document) => {
             const username = document.name.split("/").pop();
             accounts[username] = Object.keys(document.fields || {}).reduce((account, key) => ({ ...account, [key]: fromFirestoreValue(document.fields[key]) }), {});
             return accounts;
@@ -61,10 +76,8 @@
     }
 
     async function loadAttendanceFromFirestore() {
-        const response = await fetch(`${firestoreRestBase}/attendanceRecords?key=${firebaseConfig.apiKey}`, { cache: "no-store" });
-        if (!response.ok) throw new Error(`Firestore attendance read failed: ${response.status}`);
-        const result = await response.json();
-        return (result.documents || []).reduce((records, document) => {
+        const documents = await loadFirestoreCollection("attendanceRecords");
+        return documents.reduce((records, document) => {
             const recordId = document.name.split("/").pop();
             records[recordId] = Object.keys(document.fields || {}).reduce((record, key) => ({ ...record, [key]: fromFirestoreValue(document.fields[key]) }), {});
             return records;

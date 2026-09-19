@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="auto">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Local POS Report</title>
+    <link rel="icon" type="image/x-icon" href="images/icon256.ico">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap-icons.css">
+    <style>
+        :root { --navy: #082f49; --blue: #0e7490; --ink: #18344a; --muted: #607789; --line: #dce9ef; --paper: #eff8fb; }
+        body { min-height: 100vh; margin: 0; color: var(--ink); background: radial-gradient(circle at 8% 10%, rgba(34, 211, 238, .1), transparent 24%), radial-gradient(circle at 92% 35%, rgba(59, 130, 246, .08), transparent 28%), #eef4f8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        .navbar { background: linear-gradient(110deg, #082f49, #0e7490 58%, #155e75) !important; box-shadow: 0 5px 24px rgba(8,47,73,.2); }
+        .navbar-brand { font-size: 18px; font-weight: 700; }
+        .nav-link { font-size: 14px; font-weight: 500; margin: 0 10px; }
+        .user-display { display: flex; flex-direction: column; justify-content: center; line-height: 1.15; }
+        .user-display-name { white-space: nowrap; }
+        .user-display-username { color: rgba(226, 233, 255, .72); font-size: 11px; font-weight: 400; margin-top: 3px; }
+        .report-container { max-width: 1680px; margin: 32px auto 40px; padding: 0 20px; }
+        .report-hero { position: relative; overflow: hidden; background: linear-gradient(110deg, var(--navy), var(--blue) 58%, #155e75); border-radius: 16px; color: white; padding: 38px 40px; margin-bottom: 28px; box-shadow: 0 14px 34px rgba(8,47,73,.18); }
+        .report-hero::after { position: absolute; width: 260px; height: 260px; right: -70px; top: -120px; border: 1px solid rgba(186,230,253,.24); border-radius: 50%; box-shadow: 0 0 0 24px rgba(186,230,253,.05), 0 0 0 48px rgba(186,230,253,.035); content: ""; }
+        .report-hero h1 { font-size: 30px; margin: 0 0 8px; font-weight: 700; }
+        .report-hero p { max-width: 620px; margin: 0; opacity: .88; font-size: 15px; }
+        .summary { display: flex; align-items: center; justify-content: space-between; min-height: 146px; padding: 24px; border: 1px solid rgba(186,211,224,.72); border-radius: 12px; background: rgba(255,255,255,.9); box-shadow: 0 8px 24px rgba(15,54,76,.07); }
+        .summary-label { color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; }
+        .summary-value { color: #0c4a6e; font-size: 38px; font-weight: 700; line-height: 1.1; }
+        .report-card { overflow: hidden; border: 1px solid rgba(186,211,224,.72); border-radius: 12px; background: rgba(255,255,255,.9); box-shadow: 0 8px 24px rgba(15,54,76,.07); }
+        .report-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 17px 20px; border: 0; border-radius: 12px 12px 0 0; background: linear-gradient(110deg, var(--navy), var(--blue)); color: #fff; }
+        .report-toolbar h2 { margin: 0; font-size: 18px; }
+        .toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .report-table { width: 100%; margin: 0; border-collapse: collapse; }
+        .report-table th, .report-table td { padding: 13px 22px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+        .report-table th { color: var(--navy); background: var(--paper); font-size: 12px; letter-spacing: .3px; text-transform: uppercase; }
+        .report-table th:last-child, .report-table td:last-child { width: 220px; text-align: right; }
+        .report-table tbody tr:hover { background: #ecfeff; }
+        .location-number { display: inline-flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; }
+        .counter-input { width: 130px; padding: 8px 10px; border: 1px solid #c9d6e0; border-radius: 6px; color: var(--ink); font: inherit; text-align: right; }
+        .counter-input:focus { border-color: var(--blue); outline: 3px solid rgba(47, 111, 159, .15); }
+        .report-table tfoot td { border-bottom: 0; color: var(--navy); font-weight: 800; background: var(--paper); }
+        .status-note { margin: 14px 22px 18px; color: var(--muted); font-size: 13px; }
+        @media (max-width: 640px) { .report-container { margin-top: 24px; padding: 0 12px; } .report-hero { padding: 26px 22px; } .report-hero h1 { font-size: 25px; } .summary { min-height: 110px; } .report-toolbar { align-items: flex-start; flex-direction: column; } .report-table th, .report-table td { padding: 12px 14px; } .report-table th:last-child, .report-table td:last-child { width: 145px; } .counter-input { width: 105px; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="local-pos-report.html"><i class="bi bi-bar-chart-line me-2"></i>Local POS Report</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-lg-center">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-list me-1"></i>Menu</a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenu">
+                            <li><a class="dropdown-item" href="inventory.html"><i class="bi bi-boxes me-2"></i>Inventory</a></li>
+                            <li><a class="dropdown-item" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
+                            <li><a class="dropdown-item active" href="local-pos-report.html"><i class="bi bi-bar-chart-line me-2"></i>Local POS Report</a></li>
+                            <li><button class="dropdown-item" id="changePasswordMenuBtn" type="button"><i class="bi bi-key me-2"></i>Change Password</button></li>
+                            <li id="administratorMenuItem" style="display: none;"><a class="dropdown-item" href="administrator.html"><i class="bi bi-shield-lock me-2"></i>Administrator</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><span class="nav-link user-display" id="userDisplay"><span class="user-display-name">User</span><small class="user-display-username">@User</small></span></li>
+                    <li class="nav-item"><button class="btn btn-danger ms-lg-2" id="logoutBtn" type="button">Logout</button></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report-container">
+        <header class="report-hero">
+            <div>
+                <h1>Local POS Report</h1>
+                <p>Record the current POS counter for every Lokal across the Rizal area.</p>
+            </div>
+        </header>
+
+        <section class="row g-3 mb-4" aria-label="Local POS summary">
+            <div class="col-sm-6 col-xl-3"><div class="summary" aria-live="polite"><span class="summary-label">Total counters</span><span class="summary-value" id="totalCounters">0</span></div></div>
+        </section>
+
+        <section class="report-card" aria-labelledby="lokalsTitle">
+            <div class="report-toolbar">
+                <h2 id="lokalsTitle"><i class="bi bi-geo-alt me-2"></i>Lokals</h2>
+                <div class="toolbar-actions">
+                    <button class="btn btn-light btn-sm" id="exportReportBtn" type="button"><i class="bi bi-download me-1"></i>Export CSV</button>
+                    <button class="btn btn-outline-light btn-sm" id="resetReportBtn" type="button"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="report-table">
+                    <thead><tr><th scope="col">#</th><th scope="col">Lokal</th><th scope="col">Counter</th></tr></thead>
+                    <tbody id="lokalsTableBody"></tbody>
+                    <tfoot><tr><td colspan="2">Total</td><td id="tableTotal">0</td></tr></tfoot>
+                </table>
+            </div>
+            <p class="status-note" id="saveStatus">Changes are saved on this device.</p>
+        </section>
+    </main>
+
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/firebase-shared.js?v=20260919-3"></script>
+    <script src="js/password-security.js?v=20260919-1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sql.js@1.11.0/dist/sql-wasm.js"></script>
+    <script src="js/sqlite-login.js?v=20260919-2"></script>
+    <script src="js/change-password.js?v=20260919-4"></script>
+    <script>
+        const accountName = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser");
+        const accounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
+        const currentAccount = accounts[accountName];
+        const hasLocalPosReportPermission = currentAccount && (currentAccount.username === "admin" || currentAccount.role === "Developer" || (Array.isArray(currentAccount.permissions) && currentAccount.permissions.includes("localPosReport")));
+        if (!hasLocalPosReportPermission) window.location.href = "index.html";
+
+        const lokals = ["Angono", "Baras", "Binangonan", "Boso-Boso", "Cainta", "Cardona", "Cogeo", "Isla Binangonan", "Isla Cardona", "Jala-Jala 1", "Jala-Jala 2", "Kasiglahan", "Montalban", "Morong", "Pililla", "Sampaloc", "San Mateo", "Tanay", "TayTay", "Teresa", "Upper Antipolo"];
+        const reportStorageKey = "localPosCounters";
+        const tableBody = document.getElementById("lokalsTableBody");
+        const totalCounters = document.getElementById("totalCounters");
+        const tableTotal = document.getElementById("tableTotal");
+        const saveStatus = document.getElementById("saveStatus");
+
+        function readCounters() {
+            try { return JSON.parse(localStorage.getItem(reportStorageKey) || "{}"); } catch (error) { return {}; }
+        }
+
+        function saveCounters(counters) {
+            localStorage.setItem(reportStorageKey, JSON.stringify(counters));
+            const timestamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+            saveStatus.textContent = `Saved on this device at ${timestamp}.`;
+        }
+
+        function renderReport() {
+            const counters = readCounters();
+            let total = 0;
+            tableBody.innerHTML = lokals.map((lokal, index) => {
+                const value = Number.isFinite(Number(counters[lokal])) && Number(counters[lokal]) >= 0 ? Number(counters[lokal]) : 0;
+                total += value;
+                return `<tr><td><span class="location-number">${String(index + 1).padStart(2, "0")}</span></td><td><strong>${lokal}</strong></td><td><input class="counter-input" type="number" min="0" step="1" value="${value}" data-lokal="${lokal}" aria-label="Counter for ${lokal}"></td></tr>`;
+            }).join("");
+            totalCounters.textContent = total;
+            tableTotal.textContent = total;
+        }
+
+        tableBody.addEventListener("input", event => {
+            const input = event.target.closest(".counter-input");
+            if (!input) return;
+            const counters = readCounters();
+            const value = Math.max(0, Math.floor(Number(input.value) || 0));
+            input.value = value;
+            counters[input.dataset.lokal] = value;
+            saveCounters(counters);
+            renderReport();
+        });
+
+        document.getElementById("resetReportBtn").addEventListener("click", () => {
+            if (!confirm("Reset all Lokal counters to zero?")) return;
+            localStorage.removeItem(reportStorageKey);
+            saveStatus.textContent = "All counters were reset.";
+            renderReport();
+        });
+
+        document.getElementById("exportReportBtn").addEventListener("click", () => {
+            const counters = readCounters();
+            const csv = ["Lokal,Counter", ...lokals.map(lokal => `"${lokal.replace(/"/g, '""')}",${Number(counters[lokal]) || 0}`)].join("\n");
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+            link.download = "local-pos-report.csv";
+            link.click();
+            URL.revokeObjectURL(link.href);
+        });
+
+        document.getElementById("logoutBtn").addEventListener("click", () => { localStorage.removeItem("loggedInUser"); sessionStorage.removeItem("loggedInUser"); window.location.href = "index.html"; });
+        const userDisplay = document.getElementById("userDisplay");
+        const displayName = (currentAccount && currentAccount.name) || accountName || "User";
+        const displayUsername = (currentAccount && currentAccount.username) || accountName || "User";
+        userDisplay.querySelector(".user-display-name").textContent = displayName;
+        userDisplay.querySelector(".user-display-username").textContent = `@${displayUsername}`;
+        const administratorMenuItem = document.getElementById("administratorMenuItem");
+        if (administratorMenuItem && currentAccount && (currentAccount.role === "Developer" || accountName === "admin")) administratorMenuItem.style.display = "";
+        renderReport();
+    </script>
+</body>
+</html>

@@ -143,14 +143,14 @@ const TEST_CREDENTIALS = {
 };
 
 function isLocalBackendHost() {
-    return Boolean(window.location.hostname);
+    const hostname = window.location.hostname || "";
+    return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
 }
 
 function getBackendApiUrl(pathname = '/api/login') {
     const hostname = window.location.hostname || '';
-    const isGitHubPages = hostname === 'github.io' || hostname.endsWith('.github.io');
 
-    if (!isLocalBackendHost() || isGitHubPages) {
+    if (!isLocalBackendHost()) {
         return null;
     }
 

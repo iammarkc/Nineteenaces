@@ -482,6 +482,7 @@
                             <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Rizal" href="inventory.html?office=Rizal"><i class="bi bi-boxes me-2"></i>Inventory of Rizal</a></li>
                             <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Cebu" href="inventory.html?office=Cebu"><i class="bi bi-boxes me-2"></i>Inventory of Cebu</a></li>
                             <li><a class="dropdown-item" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
+                            <li><a class="dropdown-item" data-permission="localPosReport" href="local-pos-report.html"><i class="bi bi-bar-chart-line me-2"></i>Local POS Report</a></li>
                             <li><button class="dropdown-item" id="changePasswordMenuBtn" type="button"><i class="bi bi-key me-2"></i>Change Password</button></li>
                             <li id="administratorMenuItem" style="display: none;"><a class="dropdown-item" href="administrator.html"><i class="bi bi-shield-lock me-2"></i>Administrator</a></li>
                             <li><a class="dropdown-item" data-permission="inventory" href="#" id="clearInventoryMenuBtn"><i class="bi bi-trash me-2"></i>Clear Inventory</a></li>
@@ -1013,7 +1014,7 @@
             <div class="account-form-group"><label for="inventoryNewUserOffice">Office</label><select id="inventoryNewUserOffice"><option value="">Select an office</option><option value="Rizal">Rizal</option><option value="Cebu">Cebu</option><option value="Both">Both Offices</option></select></div>
             <div class="account-form-group"><label for="inventoryNewUserRole">Role</label><select id="inventoryNewUserRole"><option value="">Select a role</option><option value="Developer">Developer</option><option value="IT Admin">IT Admin</option><option value="IT Manager">IT Manager</option><option value="IT Supervisor">IT Supervisor</option><option value="IT Support">IT Support</option><option value="Management">Management</option></select></div>
             <div class="account-form-group"><label>Inventory Access</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryAccessRizal" value="Rizal"><label for="inventoryAccessRizal">Rizal Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryAccessCebu" value="Cebu"><label for="inventoryAccessCebu">Cebu Inventory</label></div></div></div>
-            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" checked id="inventoryPermissionInventory" value="inventory"><label for="inventoryPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAttendance" value="attendance"><label for="inventoryPermissionAttendance">Attendance</label></div></div></div>
+            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" checked id="inventoryPermissionInventory" value="inventory"><label for="inventoryPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAttendance" value="attendance"><label for="inventoryPermissionAttendance">Attendance</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionLocalPosReport" value="localPosReport"><label for="inventoryPermissionLocalPosReport">Local POS Report</label></div></div></div>
             <div class="account-modal-buttons"><button type="button" class="btn-submit" id="inventorySubmitUserBtn">Add Account</button><button type="button" class="btn-cancel" id="inventoryCancelUserBtn">Cancel</button></div>
         </div>
     </div>
@@ -1035,7 +1036,7 @@
             <div class="account-form-group"><label for="inventoryEditUserOffice">Office</label><select id="inventoryEditUserOffice"><option value="">Select an office</option><option value="Rizal">Rizal</option><option value="Cebu">Cebu</option><option value="Both">Both Offices</option></select></div>
             <div class="account-form-group"><label for="inventoryEditUserRole">Role</label><select id="inventoryEditUserRole"><option value="">Select a role</option><option value="Developer">Developer</option><option value="IT Admin">IT Admin</option><option value="IT Manager">IT Manager</option><option value="IT Supervisor">IT Supervisor</option><option value="IT Support">IT Support</option><option value="Management">Management</option></select></div>
             <div class="account-form-group"><label>Inventory Access</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditAccessRizal" value="Rizal"><label for="inventoryEditAccessRizal">Rizal Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditAccessCebu" value="Cebu"><label for="inventoryEditAccessCebu">Cebu Inventory</label></div></div></div>
-            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionInventory" value="inventory"><label for="inventoryEditPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAttendance" value="attendance"><label for="inventoryEditPermissionAttendance">Attendance</label></div></div></div>
+            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionInventory" value="inventory"><label for="inventoryEditPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAttendance" value="attendance"><label for="inventoryEditPermissionAttendance">Attendance</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionLocalPosReport" value="localPosReport"><label for="inventoryEditPermissionLocalPosReport">Local POS Report</label></div></div></div>
             <div class="account-modal-buttons"><button type="button" class="btn-submit" id="inventorySaveEditUserBtn">Save Changes</button><button type="button" class="btn btn-danger" id="inventoryDeleteUserBtn" style="display: none;">Delete Account</button><button type="button" class="btn-cancel" id="inventoryCancelEditUserBtn">Cancel</button></div>
         </div>
     </div>
@@ -1252,6 +1253,11 @@
 
                 if (item.id === 'clearInventoryMenuBtn') {
                     menuEntry.style.display = currentRole === 'Developer' ? '' : 'none';
+                    return;
+                }
+
+                if (item.dataset.permission === 'localPosReport' && currentRole === 'Developer') {
+                    menuEntry.style.display = '';
                     return;
                 }
 
@@ -2322,26 +2328,31 @@
 
         const inventoryAccountsApi = `${window.location.protocol}//${window.location.hostname}:3100/api/accounts`;
 
-        function isGitHubPages() {
+        function isLocalBackendHost() {
             const hostname = window.location.hostname || "";
-            return hostname === "github.io" || hostname.endsWith(".github.io");
+            return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
         }
 
         async function saveInventoryAccounts(accounts) {
-            localStorage.setItem("userAccounts", JSON.stringify(accounts));
-
-            if (window.sharedAccounts) {
-                try {
-                    await window.sharedAccounts.save(accounts);
-                } catch (error) {
-                    localStorage.setItem("userAccounts", JSON.stringify(accounts));
-                    throw new Error("Shared account save failed. Check Firebase rules and deployment.");
-                }
-            } else {
+            if (!window.sharedAccounts) {
                 throw new Error("Shared account service is unavailable.");
             }
 
-            if (!window.location.hostname || isGitHubPages()) {
+            try {
+                await window.sharedAccounts.save(accounts);
+                const savedAccounts = await window.sharedAccounts.load();
+                const fieldsToVerify = ["username", "name", "email", "password", "office", "role", "inventoryAccess", "permissions", "disabled"];
+                const unsavedUsername = Object.keys(accounts).find(username => {
+                    const savedAccount = savedAccounts[username];
+                    return !savedAccount || fieldsToVerify.some(field => JSON.stringify(savedAccount[field] ?? null) !== JSON.stringify(accounts[username][field] ?? null));
+                });
+                if (unsavedUsername) throw new Error(`Firebase did not return account ${unsavedUsername} after saving.`);
+            } catch (error) {
+                throw new Error("Shared account save failed. Check Firebase rules and deployment.");
+            }
+
+            if (!isLocalBackendHost()) {
+                localStorage.setItem("userAccounts", JSON.stringify(accounts));
                 return;
             }
 
@@ -2352,6 +2363,7 @@
                     body: JSON.stringify(accounts)
                 });
                 if (!response.ok) throw new Error("Account sync failed");
+                localStorage.setItem("userAccounts", JSON.stringify(accounts));
             } catch (error) {
                 throw new Error("Local server account save failed.");
             }
@@ -2370,7 +2382,7 @@
                 }
             }
 
-            if (!isGitHubPages() && window.location.hostname) {
+            if (isLocalBackendHost()) {
                 try {
                     const response = await fetch(inventoryAccountsApi, { cache: "no-store" });
                     const result = await response.json();
@@ -2471,7 +2483,7 @@
                     throw new Error("Shared account service is unavailable.");
                 }
 
-                if (!isGitHubPages() && window.location.hostname) {
+                if (isLocalBackendHost()) {
                     const response = await fetch(inventoryAccountsApi, {
                         method: "DELETE",
                         headers: { "Content-Type": "application/json" },
@@ -2532,7 +2544,7 @@
 
                 if (username !== originalUsername) {
                     if (window.sharedAccounts) await window.sharedAccounts.delete(originalUsername);
-                    if (!isGitHubPages() && window.location.hostname) {
+                    if (isLocalBackendHost()) {
                         const deleteResponse = await fetch(inventoryAccountsApi, {
                             method: "DELETE",
                             headers: { "Content-Type": "application/json" },
@@ -2553,7 +2565,8 @@
                 openInventoryUsers();
                 alert("Account changes saved successfully.");
             } catch (error) {
-                alert("Unable to save account changes in this browser.");
+                console.error("Account changes could not be saved to Firebase.", error);
+                alert("Unable to save account changes to Firebase. Check your connection and Firestore rules, then try again.");
             }
         });
 
