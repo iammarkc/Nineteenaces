@@ -214,7 +214,10 @@
                 return { status: "disabled", account: matchedAccount };
             }
 
-            if (matchedAccount.password !== password) {
+            const passwordMatches = window.passwordSecurity
+                ? await window.passwordSecurity.verify(password, matchedAccount.password)
+                : matchedAccount.password === password;
+            if (!passwordMatches) {
                 return { status: "invalid" };
             }
 
@@ -230,10 +233,11 @@
         const matchedAccount = getAccountsFromDatabase(database).find(account => account.username === username);
 
         if (!matchedAccount) {
-            throw new Error("SQLite account not found.");
+            return false;
         }
 
         database.run("UPDATE users SET password = ? WHERE username = ?", [newPassword, username]);
         savePersistedDatabase(database);
+        return true;
     };
 })();

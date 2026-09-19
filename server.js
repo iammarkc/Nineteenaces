@@ -1,4 +1,5 @@
 const http = require('http');
+const crypto = require('crypto');
 const fs = require('fs/promises');
 const os = require('os');
 const path = require('path');
@@ -115,6 +116,24 @@ function sendJson(response, statusCode, payload) {
   response.end(JSON.stringify(payload));
 }
 
+function verifyPassword(password, storedPassword) {
+  if (!String(storedPassword || '').startsWith('pbkdf2$')) {
+    return storedPassword === password;
+  }
+
+  const [, iterationText, saltText, hashText] = storedPassword.split('$');
+  const derived = crypto.pbkdf2Sync(password, Buffer.from(saltText, 'base64url'), Number(iterationText), 32, 'sha256');
+  const expected = Buffer.from(hashText, 'base64url');
+  return derived.length === expected.length && crypto.timingSafeEqual(derived, expected);
+}
+
+function hashPassword(password) {
+  const iterations = 120000;
+  const salt = crypto.randomBytes(16);
+  const derived = crypto.pbkdf2Sync(password, salt, iterations, 32, 'sha256');
+  return `pbkdf2$${iterations}$${salt.toString('base64url')}$${derived.toString('base64url')}`;
+}
+
 async function handleApiLogin(request, response) {
   if (request.method !== 'POST') {
     sendJson(response, 405, { ok: false, message: 'Method not allowed.' });
@@ -159,7 +178,7 @@ async function handleApiLogin(request, response) {
         return;
       }
 
-      if (account.password !== password) {
+      if (!verifyPassword(password, account.password)) {
         sendJson(response, 401, { ok: false, message: 'Invalid credentials.' });
         return;
       }
@@ -277,6 +296,7 @@ async function handleApiChangePassword(request, response) {
       const payload = body ? JSON.parse(body) : {};
       const username = String(payload.username || '').trim();
       const newPassword = String(payload.newPassword || '');
+      const passwordHash = String(payload.passwordHash || '');
       const accounts = await loadAccounts();
       const account = accounts[username];
 
@@ -290,7 +310,7 @@ async function handleApiChangePassword(request, response) {
         return;
       }
 
-      accounts[username] = { ...account, password: newPassword };
+      accounts[username] = { ...account, password: passwordHash || newPassword };
       await saveAccounts(accounts);
       sendJson(response, 200, { ok: true, account: sanitizeAccount(accounts[username]) });
     } catch (error) {
@@ -344,6 +364,29 @@ async function main() {
 
     if (pathname === '/api/change-password') {
       await handleApiChangePassword(request, response);
+      return;
+    }
+
+    if (pathname === '/api/hash-password') {
+      if (request.method !== 'POST') {
+        sendJson(response, 405, { ok: false, message: 'Method not allowed.' });
+        return;
+      }
+
+      let body = '';
+      request.on('data', chunk => { body += chunk; });
+      request.on('end', () => {
+        try {
+          const password = String((body ? JSON.parse(body) : {}).password || '');
+          if (password.length < 6) {
+            sendJson(response, 400, { ok: false, message: 'Password must be at least 6 characters.' });
+            return;
+          }
+          sendJson(response, 200, { ok: true, passwordHash: hashPassword(password) });
+        } catch (error) {
+          sendJson(response, 400, { ok: false, message: 'Invalid password request.' });
+        }
+      });
       return;
     }
 

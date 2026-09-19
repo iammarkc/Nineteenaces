@@ -57,12 +57,27 @@
             return;
         }
 
-        accounts[username] = { ...account, password: newPassword };
-        localStorage.setItem("userAccounts", JSON.stringify(accounts));
-
         try {
+            let storedPassword;
+            if (window.passwordSecurity) {
+                storedPassword = await window.passwordSecurity.hash(newPassword);
+            } else if (!isGitHubPages() && window.location.hostname) {
+                const hashResponse = await fetch(`${window.location.protocol}//${window.location.hostname}:3100/api/hash-password`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ password: newPassword })
+                });
+                if (!hashResponse.ok) throw new Error(`Password hash failed: ${hashResponse.status}`);
+                storedPassword = (await hashResponse.json()).passwordHash;
+            } else {
+                throw new Error("Secure password hashing is unavailable.");
+            }
+
+            accounts[username] = { ...account, password: storedPassword };
+            localStorage.setItem("userAccounts", JSON.stringify(accounts));
+
             if (window.updateSqlitePassword) {
-                await window.updateSqlitePassword(username, newPassword);
+                await window.updateSqlitePassword(username, storedPassword);
             }
 
             if (window.sharedAccounts) {
@@ -73,7 +88,7 @@
                 const response = await fetch(`${window.location.protocol}//${window.location.hostname}:3100/api/change-password`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ username, newPassword })
+                    body: JSON.stringify({ username, newPassword, passwordHash: storedPassword })
                 });
                 if (!response.ok) {
                     throw new Error(`Password save failed: ${response.status}`);

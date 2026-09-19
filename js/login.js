@@ -310,7 +310,11 @@ async function login() {
         return;
     }
 
-    if (storedAccount && storedAccount.password === password) {
+    const storedPasswordMatches = storedAccount && window.passwordSecurity
+        ? await window.passwordSecurity.verify(password, storedAccount.password)
+        : storedAccount && storedAccount.password === password;
+
+    if (storedAccount && storedPasswordMatches) {
         messageDiv.textContent = "✓ Login successful!";
         messageDiv.style.color = "green";
 
