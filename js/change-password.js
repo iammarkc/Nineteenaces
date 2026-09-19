@@ -60,8 +60,14 @@
         try {
             let storedPassword;
             if (window.passwordSecurity) {
-                storedPassword = await window.passwordSecurity.hash(newPassword);
-            } else if (!isGitHubPages() && window.location.hostname) {
+                try {
+                    storedPassword = await window.passwordSecurity.hash(newPassword);
+                } catch (hashError) {
+                    console.warn("Browser password hashing unavailable; using the local secure hash endpoint.", hashError);
+                }
+            }
+
+            if (!storedPassword && !isGitHubPages() && window.location.hostname) {
                 const hashResponse = await fetch(`${window.location.protocol}//${window.location.hostname}:3100/api/hash-password`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -69,19 +75,27 @@
                 });
                 if (!hashResponse.ok) throw new Error(`Password hash failed: ${hashResponse.status}`);
                 storedPassword = (await hashResponse.json()).passwordHash;
-            } else {
+            }
+
+            if (!storedPassword) {
                 throw new Error("Secure password hashing is unavailable.");
             }
 
             accounts[username] = { ...account, password: storedPassword };
             localStorage.setItem("userAccounts", JSON.stringify(accounts));
 
-            if (window.updateSqlitePassword) {
-                await window.updateSqlitePassword(username, storedPassword);
-            }
-
             if (window.sharedAccounts) {
                 await window.sharedAccounts.save({ [username]: accounts[username] });
+            } else {
+                throw new Error("Firestore account service is unavailable.");
+            }
+
+            if (window.updateSqlitePassword) {
+                try {
+                    await window.updateSqlitePassword(username, storedPassword);
+                } catch (sqliteError) {
+                    console.warn("Optional SQLite password sync failed after Firestore saved the password.", sqliteError);
+                }
             }
 
             if (!isGitHubPages() && window.location.hostname) {
@@ -95,7 +109,8 @@
                 }
             }
         } catch (error) {
-            alert("The password could not be saved. Please try again.");
+            console.error("Password change failed.", error);
+            alert(`The password could not be saved. ${error.message || "Please try again."}`);
             return;
         }
 
