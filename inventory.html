@@ -526,6 +526,7 @@
                             <button class="btn btn-success" id="exportCsvBtn"><i class="bi bi-download me-2"></i>Export CSV</button>
                             <button class="btn btn-secondary" id="clearDataBtn"><i class="bi bi-trash me-2"></i>Clear Data</button>
                         </div>
+                        <small id="inventorySyncStatus" style="color: #697c8f; margin-top: 10px; display: block;">Cloud save ready</small>
                         <small style="color: #697c8f; margin-top: 10px; display: block;">Upload a CSV file with columns: POS, QUANTITY, DAMAGE, POS RELEASED, REMAINING POS | Export current data to update and re-upload</small>
                     </div>
                 </div>
@@ -958,7 +959,7 @@
     </div>
 
     <script src="js/bootstrap.bundle.min.js"></script>
-    <script src="js/firebase-shared.js?v=20260919-1"></script>
+    <script src="js/firebase-shared.js?v=20260919-2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sql.js@1.11.0/dist/sql-wasm.js"></script>
     <script src="js/sqlite-login.js?v=20260919-1"></script>
     <script src="js/change-password.js?v=20260919-1"></script>
@@ -1226,6 +1227,7 @@
 
             const pendingKey = `inventoryPendingSync_${office}`;
             localStorage.setItem(pendingKey, JSON.stringify(inventory));
+            setInventorySyncStatus("Saving to cloud...", "#697c8f");
             sharedInventorySaveQueue = sharedInventorySaveQueue.then(async () => {
                 const pendingInventory = JSON.parse(localStorage.getItem(pendingKey) || "null");
                 if (!pendingInventory) return;
@@ -1234,9 +1236,11 @@
                     try {
                         await window.sharedInventory.save(office, pendingInventory);
                         localStorage.removeItem(pendingKey);
+                        setInventorySyncStatus("Saved to cloud", "#198754");
                         return;
                     } catch (error) {
                         if (attempt === 2) {
+                            setInventorySyncStatus("Cloud save pending; will retry automatically", "#b26a00");
                             console.warn("Shared inventory save pending; it will retry when connectivity returns.", error);
                             return;
                         }
@@ -1246,6 +1250,14 @@
             }).catch(error => console.warn("Inventory save queue failed; local copy retained.", error));
 
             return sharedInventorySaveQueue;
+        }
+
+        function setInventorySyncStatus(message, color) {
+            const status = document.getElementById("inventorySyncStatus");
+            if (status) {
+                status.textContent = message;
+                status.style.color = color;
+            }
         }
 
         async function flushPendingSharedInventory() {
@@ -1808,7 +1820,7 @@
                 if (typeof input.select === "function") input.select();
 
                 const finishEdit = function (save) {
-                    if (input !== cell.querySelector("input")) return;
+                    if (input !== cell.querySelector("input, select")) return;
                     const value = save ? input.value.trim() || "-" : originalValue;
                     if (save) persistInventoryField(row, fieldName, value);
 
@@ -1829,6 +1841,11 @@
                         finishEdit(false);
                     }
                 });
+                if (fieldName === "rack") {
+                    input.addEventListener("change", function () {
+                        finishEdit(true);
+                    });
+                }
                 input.addEventListener("blur", function () {
                     finishEdit(true);
                 });
