@@ -1433,6 +1433,14 @@
                 recordsData: persistedRecords,
                 updatedAt: new Date().toISOString()
             }));
+            if (storageKeys.office === "Rizal") {
+                const lokals = getLokalsOptions();
+                const localPosCounters = lokals.reduce((result, lokal) => {
+                    result[lokal] = persistedRecords.filter(record => String(record.lokals || "").trim().toLowerCase() === lokal.toLowerCase()).length;
+                    return result;
+                }, {});
+                localStorage.setItem("localPosCounters", JSON.stringify(localPosCounters));
+            }
 
             const models = Object.keys(persistedSummary).filter(key => key !== 'TOTAL');
             const quantities = models.map(model => {

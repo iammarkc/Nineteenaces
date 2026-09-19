@@ -92,7 +92,7 @@
                     <tfoot><tr><td colspan="2">Total</td><td id="tableTotal">0</td></tr></tfoot>
                 </table>
             </div>
-            <p class="status-note" id="saveStatus">Changes are saved on this device.</p>
+            <p class="status-note" id="saveStatus">Counts are synced from Rizal inventory.</p>
         </section>
     </main>
 
@@ -123,7 +123,7 @@
         function saveCounters(counters) {
             localStorage.setItem(reportStorageKey, JSON.stringify(counters));
             const timestamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-            saveStatus.textContent = `Saved on this device at ${timestamp}.`;
+            saveStatus.textContent = `Synced from Rizal inventory at ${timestamp}.`;
         }
 
         function renderReport() {
@@ -132,28 +132,40 @@
             tableBody.innerHTML = lokals.map((lokal, index) => {
                 const value = Number.isFinite(Number(counters[lokal])) && Number(counters[lokal]) >= 0 ? Number(counters[lokal]) : 0;
                 total += value;
-                return `<tr><td><span class="location-number">${String(index + 1).padStart(2, "0")}</span></td><td><strong>${lokal}</strong></td><td><input class="counter-input" type="number" min="0" step="1" value="${value}" data-lokal="${lokal}" aria-label="Counter for ${lokal}"></td></tr>`;
+                return `<tr><td><span class="location-number">${String(index + 1).padStart(2, "0")}</span></td><td><strong>${lokal}</strong></td><td><input class="counter-input" type="number" min="0" step="1" value="${value}" data-lokal="${lokal}" aria-label="Counter for ${lokal}" readonly></td></tr>`;
             }).join("");
             totalCounters.textContent = total;
             tableTotal.textContent = total;
         }
 
-        tableBody.addEventListener("input", event => {
-            const input = event.target.closest(".counter-input");
-            if (!input) return;
-            const counters = readCounters();
-            const value = Math.max(0, Math.floor(Number(input.value) || 0));
-            input.value = value;
-            counters[input.dataset.lokal] = value;
-            saveCounters(counters);
-            renderReport();
+        window.addEventListener("storage", event => {
+            if (event.key === reportStorageKey) renderReport();
         });
+
+        async function refreshCountersFromInventory() {
+            if (!window.sharedInventory) return;
+
+            try {
+                const inventory = await window.sharedInventory.load("Rizal");
+                const records = inventory && Array.isArray(inventory.recordsData) ? inventory.recordsData : [];
+                const counters = lokals.reduce((result, lokal) => {
+                    result[lokal] = records.filter(record => String(record.lokals || "").trim().toLowerCase() === lokal.toLowerCase()).length;
+                    return result;
+                }, {});
+                saveCounters(counters);
+                renderReport();
+            } catch (error) {
+                saveStatus.textContent = "Unable to sync from Rizal inventory. Showing the last saved counts.";
+                console.warn("Local POS report sync failed.", error);
+            }
+        }
 
         document.getElementById("resetReportBtn").addEventListener("click", () => {
             if (!confirm("Reset all Lokal counters to zero?")) return;
             localStorage.removeItem(reportStorageKey);
-            saveStatus.textContent = "All counters were reset.";
+            saveStatus.textContent = "Refreshing counts from Rizal inventory...";
             renderReport();
+            refreshCountersFromInventory();
         });
 
         document.getElementById("exportReportBtn").addEventListener("click", () => {
@@ -175,6 +187,8 @@
         const administratorMenuItem = document.getElementById("administratorMenuItem");
         if (administratorMenuItem && currentAccount && (currentAccount.role === "Developer" || accountName === "admin")) administratorMenuItem.style.display = "";
         renderReport();
+        refreshCountersFromInventory();
+        window.setInterval(refreshCountersFromInventory, 10000);
     </script>
 </body>
 </html>
