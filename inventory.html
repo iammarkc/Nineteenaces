@@ -1980,13 +1980,22 @@
                 if (!fieldName) return;
 
                 const originalValue = cell.textContent.trim();
-                const input = fieldName === "rack" ? document.createElement("select") : document.createElement("input");
+                const isSelectField = fieldName === "rack" || fieldName === "status";
+                const input = isSelectField ? document.createElement("select") : document.createElement("input");
                 if (fieldName === "rack") {
                     ["", ...getSystemOptions()].forEach(optionValue => {
                         const option = document.createElement("option");
                         option.value = optionValue;
                         option.textContent = optionValue || "-- Select System --";
                         option.selected = optionValue === (originalValue === "-" ? "" : originalValue);
+                        input.appendChild(option);
+                    });
+                } else if (fieldName === "status") {
+                    ["ACTIVE", "DAMAGE", "LOST", "DISABLED", "NOT ACTIVE", "TEST UNIT"].forEach(optionValue => {
+                        const option = document.createElement("option");
+                        option.value = optionValue;
+                        option.textContent = optionValue;
+                        option.selected = optionValue === originalValue.toUpperCase();
                         input.appendChild(option);
                     });
                 } else {
