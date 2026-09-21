@@ -135,6 +135,23 @@
         if (!response.ok && response.status !== 404) throw new Error(`Firestore inventory delete failed: ${response.status}`);
     }
 
+    async function loadInventoryHistoryFromFirestore(office) {
+        const response = await fetch(`${firestoreRestBase}/inventoryHistory/${encodeURIComponent(office)}?key=${firebaseConfig.apiKey}`, { cache: "no-store" });
+        if (response.status === 404) return [];
+        if (!response.ok) throw new Error(`Firestore inventory history read failed: ${response.status}`);
+        const document = await response.json();
+        return document.fields?.entries ? fromFirestoreValue(document.fields.entries) : [];
+    }
+
+    async function saveInventoryHistoryToFirestore(office, entries) {
+        const response = await fetch(`${firestoreRestBase}/inventoryHistory/${encodeURIComponent(office)}?key=${firebaseConfig.apiKey}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fields: { entries: toFirestoreValue(entries.slice(0, 200)) } })
+        });
+        if (!response.ok) throw new Error(`Firestore inventory history write failed: ${response.status}`);
+    }
+
     window.sharedAttendance = {
         ready: Promise.resolve(),
         async load() {
@@ -168,7 +185,9 @@
         ready: Promise.resolve(),
         load: office => loadInventoryFromFirestore(office),
         save: (office, inventory) => saveInventoryToFirestore(office, inventory),
-        clear: office => clearInventoryFromFirestore(office)
+        clear: office => clearInventoryFromFirestore(office),
+        loadHistory: office => loadInventoryHistoryFromFirestore(office),
+        saveHistory: (office, entries) => saveInventoryHistoryToFirestore(office, entries)
     };
 
     window.sharedAccounts = {

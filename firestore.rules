@@ -10,5 +10,8 @@ service cloud.firestore {
     match /inventoryData/{office} {
       allow read, write: if true;
     }
+    match /inventoryHistory/{office} {
+      allow read, write: if true;
+    }
   }
 }

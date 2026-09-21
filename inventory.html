@@ -1306,7 +1306,8 @@
             }
 
             // Load saved data from localStorage and the shared office store.
-            loadSavedData().then(() => {
+            loadSavedData().then(async () => {
+                await syncInventoryHistoryFromFirestore();
                 if (window.sharedInventory) {
                     window.setInterval(refreshSharedInventory, 10000);
                 }
@@ -1321,10 +1322,56 @@
 
         const INVENTORY_STORAGE_KEYS = ["posSummaryData", "posRecordsData", "inventoryState", "posInventoryData", "inventoryCleared"];
         let sharedInventorySaveQueue = Promise.resolve();
+        let sharedHistorySaveQueue = Promise.resolve();
         let activeDetailedInlineEditor = null;
 
         function escapeHtml(value) {
             return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        function recordInventoryEdit(fieldName, oldValue, newValue, record) {
+            if (String(oldValue ?? '') === String(newValue ?? '')) return;
+
+            const office = getCurrentUserOffice() || 'Rizal';
+            const historyKey = `inventoryEditHistory_${office}`;
+            const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+            const loggedIn = getLoggedInDisplayName();
+            history.unshift({
+                field: fieldName,
+                oldValue: String(oldValue ?? '-') || '-',
+                newValue: String(newValue ?? '-') || '-',
+                serialNumber: String(record?.serialNumber || '-'),
+                record: `${record?.posNo || '-'} / ${record?.serialNumber || '-'}`,
+                username: loggedIn?.username || 'Unknown',
+                user: loggedIn?.username || 'Unknown',
+                timestamp: new Date().toISOString()
+            });
+            localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 200)));
+            queueInventoryHistorySave(office, history);
+        }
+
+        async function syncInventoryHistoryFromFirestore() {
+            if (!window.sharedInventory?.loadHistory) return;
+            const office = getCurrentUserOffice() || 'Rizal';
+            try {
+                const remoteHistory = await window.sharedInventory.loadHistory(office);
+                const localHistory = JSON.parse(localStorage.getItem(`inventoryEditHistory_${office}`) || '[]');
+                const mergedHistory = [...remoteHistory, ...localHistory].reduce((entries, entry) => {
+                    const identity = `${entry.timestamp}|${entry.username || entry.user}|${entry.serialNumber}|${entry.field}|${entry.newValue}`;
+                    if (!entries.some(existing => existing.identity === identity)) entries.push({ identity, ...entry });
+                    return entries;
+                }, []).sort((first, second) => new Date(second.timestamp) - new Date(first.timestamp)).slice(0, 200);
+                localStorage.setItem(`inventoryEditHistory_${office}`, JSON.stringify(mergedHistory.map(({ identity, ...entry }) => entry)));
+            } catch (error) {
+                console.warn('Inventory edit history could not be loaded from Firestore.', error);
+            }
+        }
+
+        function queueInventoryHistorySave(office, history) {
+            if (!window.sharedInventory?.saveHistory) return;
+            sharedHistorySaveQueue = sharedHistorySaveQueue.then(() => window.sharedInventory.saveHistory(office, history)).catch(error => {
+                console.warn('Inventory edit history could not be saved to Firestore.', error);
+            });
         }
 
         function renderEmptyInventoryState() {
@@ -1996,6 +2043,7 @@
                 : JSON.parse(localStorage.getItem(storageKeys.recordsKey) || "[]");
 
             if (!recordsData[recordIndex]) return;
+            recordInventoryEdit(fieldName, recordsData[recordIndex][fieldName], value, recordsData[recordIndex]);
             recordsData[recordIndex][fieldName] = value;
             const summaryData = JSON.parse(localStorage.getItem(storageKeys.summaryKey) || "{}");
             saveInventoryData(summaryData, recordsData);
@@ -3034,6 +3082,10 @@
                 transferTo: detailForm.querySelector("[name='transferTo']").value.trim() || "-",
                 columnJ: detailForm.querySelector("[name='columnJ']").value.trim() || "-"
             };
+
+            ["rack", "posNo", "serialNumber", "fullName", "userId", "address", "status", "lokals", "noteIssue", "transferTo", "columnJ"].forEach(fieldName => {
+                recordInventoryEdit(fieldName, originalRecord[fieldName], updatedRecord[fieldName], originalRecord);
+            });
 
             const storageKeys = getInventoryStorageKeys();
             const recordsData = JSON.parse(localStorage.getItem(storageKeys.recordsKey) || "[]");
