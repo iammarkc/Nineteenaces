@@ -61,6 +61,14 @@ function writeStoredValue(key, value) {
     }
 }
 
+function storeLoginSession(username) {
+    if (window.authSession) {
+        window.authSession.set(username);
+        return;
+    }
+    writeStoredValue("loggedInUser", username);
+}
+
 function getInventoryRedirect(account) {
     const permissions = Array.isArray(account && account.permissions)
         ? account.permissions.map(permission => String(permission).trim().toLowerCase())
@@ -223,7 +231,7 @@ async function login() {
                 messageDiv.textContent = "✓ Login successful!";
                 messageDiv.style.color = "green";
 
-                writeStoredValue("loggedInUser", result.account.username);
+                storeLoginSession(result.account.username);
                 writeStoredValue("userAccounts", JSON.stringify(result.accounts || {}));
 
                 setTimeout(function() {
@@ -268,7 +276,7 @@ async function login() {
         messageDiv.textContent = "✓ Login successful!";
         messageDiv.style.color = "green";
 
-        writeStoredValue("loggedInUser", sqliteResult.account.username);
+        storeLoginSession(sqliteResult.account.username);
 
         setTimeout(function() {
             const account = accounts[sqliteResult.account.username] || sqliteResult.account;
@@ -319,7 +327,7 @@ async function login() {
         messageDiv.textContent = "✓ Login successful!";
         messageDiv.style.color = "green";
 
-        writeStoredValue("loggedInUser", matchedUsername);
+        storeLoginSession(matchedUsername);
 
         setTimeout(function() {
             window.location.href = getInventoryRedirect(storedAccount);
@@ -335,7 +343,7 @@ async function login() {
         messageDiv.style.color = "green";
 
         const accountName = testUsername.toLowerCase() === "admin" ? "admin" : testUsername;
-        writeStoredValue("loggedInUser", accountName);
+        storeLoginSession(accountName);
 
         if (inputValue.toLowerCase() === "admin") {
             ensureDefaultAdminAccount();

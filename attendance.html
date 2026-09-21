@@ -11,13 +11,18 @@
     <style>
         :root { --navy: #082f49; --blue: #0e7490; --cyan: #0891b2; --ink: #18344a; --muted: #607789; --line: #dce9ef; --bg: #eef4f8; }
         body { background: radial-gradient(circle at 8% 10%, rgba(34, 211, 238, .1), transparent 24%), radial-gradient(circle at 92% 35%, rgba(59, 130, 246, .08), transparent 28%), var(--bg); color: var(--ink); min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-        .navbar { background: linear-gradient(110deg, #082f49, #0e7490 58%, #155e75) !important; box-shadow: 0 5px 24px rgba(8,47,73,.2); }
-        .navbar-brand { font-size: 18px; font-weight: 700; }
-        .nav-link { font-size: 14px; font-weight: 500; margin: 0 10px; }
+        .navbar { background: linear-gradient(110deg, #082f49 0%, #0e7490 52%, #155e75 100%) !important; box-shadow: 0 5px 24px rgba(8, 47, 73, 0.2); border-bottom: 1px solid rgba(255, 255, 255, 0.1); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+        .navbar-brand { font-size: 18px; font-weight: 700; letter-spacing: 0; display: inline-flex; align-items: center; gap: 4px; }
+        .nav-link { font-weight: 500; font-size: 14px; margin: 0 10px; transition: color 0.3s ease; }
+        .nav-link:hover { color: #e0e7ff !important; }
         .user-display { display: flex; flex-direction: column; justify-content: center; line-height: 1.15; }
         .user-display-name { white-space: nowrap; }
-        .user-display-username { color: rgba(226, 233, 255, .72); font-size: 11px; font-weight: 400; margin-top: 3px; }
-        .container-fluid { max-width: 1500px; }
+        .user-display-username { color: rgba(226, 233, 255, 0.7); font-size: 11px; font-weight: 400; margin-top: 3px; }
+        .dropdown-menu { background-color: #ffffff; border: 1px solid #e8eef7; border-radius: 6px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        .dropdown-item { color: #1e3a5f; font-weight: 500; font-size: 14px; padding: 10px 16px; transition: all 0.2s ease; }
+        .dropdown-item:hover { background-color: #f0f4f9; color: #1e3a5f; }
+        .dropdown-item.active { background-color: #e8eef7; color: #1e3a5f; }
+        .dropdown-divider { border-color: #e8eef7; margin: 6px 0; }
         .attendance-container { max-width: 1680px; margin: 32px auto 40px; padding: 0 20px; }
         .hero { position: relative; overflow: hidden; background: linear-gradient(110deg, var(--navy), var(--blue) 58%, #155e75); border-radius: 16px; color: white; padding: 38px 40px; margin-bottom: 28px; box-shadow: 0 14px 34px rgba(8,47,73,.18); }
         .hero::after { position: absolute; width: 260px; height: 260px; right: -70px; top: -120px; border: 1px solid rgba(186,230,253,.24); border-radius: 50%; box-shadow: 0 0 0 24px rgba(186,230,253,.05), 0 0 0 48px rgba(186,230,253,.035); content: ""; }
@@ -52,6 +57,12 @@
         .status-editor { border: 1px solid #d8e1eb; border-radius: 5px; color: var(--ink); padding: 5px 8px; font-size: 12px; margin-right: 4px; }
         .clock-modal { position: fixed; inset: 0; z-index: 2300; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(10, 17, 29, .72); }
         .clock-modal.active { display: flex; }
+        body.embedded-clock { min-height: 100%; overflow: hidden; background: transparent; }
+        body.embedded-clock > nav, body.embedded-clock > main, body.embedded-clock > .change-password-modal { display: none !important; }
+        body.embedded-clock #clockModal { display: flex; background: transparent; padding: 12px; }
+        body.embedded-change-password { min-height: 100%; overflow: hidden; background: transparent; }
+        body.embedded-change-password > nav, body.embedded-change-password > main, body.embedded-change-password > #clockModal { display: none !important; }
+        body.embedded-change-password #changePasswordModal { display: flex; background: transparent; padding: 12px; }
         .clock-modal-content { width: min(680px, 100%); max-height: 90vh; overflow-y: auto; background: white; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.28); }
         .clock-modal-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 22px; color: white; background: linear-gradient(110deg, var(--navy), var(--blue)); }
         .clock-modal-body { padding: 22px; }
@@ -66,26 +77,51 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-boxes me-2"></i>Inventory Management
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-lg-center">
+                <ul class="navbar-nav ms-auto">
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-list me-1"></i>Menu</a>
+                        <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-list me-1"></i>Menu
+                        </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenu">
-                            <li><a class="dropdown-item" id="attendanceInventoryMenuItem" href="inventory.html"><i class="bi bi-boxes me-2"></i>Inventory</a></li>
-                            <li><a class="dropdown-item active" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
-                            <li><button class="dropdown-item" id="openClockModalMenuBtn" type="button"><i class="bi bi-clock me-2"></i>Clock in / out</button></li>
-                            <li><button class="dropdown-item" id="changePasswordMenuBtn" type="button"><i class="bi bi-key me-2"></i>Change Password</button></li>
+                            <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Rizal" href="inventory.html?office=Rizal"><i class="bi bi-boxes me-2"></i>Inventory of Rizal</a></li>
+                            <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Cebu" href="inventory.html?office=Cebu"><i class="bi bi-boxes me-2"></i>Inventory of Cebu</a></li>
+                            <li><a class="dropdown-item" href="#" id="localPosReportMenuBtn"><i class="bi bi-bar-chart-line me-2"></i>Local POS Report</a></li>
                             <li id="administratorMenuItem" style="display: none;"><a class="dropdown-item" href="administrator.html"><i class="bi bi-shield-lock me-2"></i>Administrator</a></li>
+                            <li><a class="dropdown-item" data-permission="inventory" href="#" id="clearInventoryMenuBtn"><i class="bi bi-trash me-2"></i>Clear Inventory</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li id="addAccountMenuItemDivider" style="display: none;"><hr class="dropdown-divider"></li>
+                            <li id="addAccountMenuItemContainer" style="display: none;"><a class="dropdown-item" data-permission="addAccount" href="inventory.html?office=Rizal&embedded=1&openAddUser=1" id="addAccountBtn"><i class="bi bi-person-plus me-2"></i>Add User</a></li>
+                            <li id="usersMenuItemContainer" style="display: none;"><a class="dropdown-item" data-permission="users" href="inventory.html?office=Rizal&embedded=1&openUsers=1" id="usersMenuBtn"><i class="bi bi-people me-2"></i>Users</a></li>
+                            <li><button class="dropdown-item" id="changePasswordMenuBtn" type="button"><i class="bi bi-key me-2"></i>Change Password</button></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
+                            <li><button class="dropdown-item" id="openClockModalMenuBtn" type="button"><i class="bi bi-clock me-2"></i>Clock in / out</button></li>
                         </ul>
                     </li>
-                    <li class="nav-item"><span class="nav-link user-display" id="userDisplay"><span class="user-display-name">User</span><small class="user-display-username">@User</small></span></li>
-                    <li class="nav-item"><button class="btn btn-danger ms-lg-2" id="logoutBtn">Logout</button></li>
+                    <li class="nav-item">
+                        <span class="nav-link user-display" id="userDisplay" style="cursor: default;">
+                            <span class="user-display-name">User</span>
+                            <small class="user-display-username">@User</small>
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-danger ms-2" id="logoutBtn">Logout</button>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
+
+    <div id="attendanceAccountOverlay" style="position: fixed; inset: 0; z-index: 5000; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(10, 17, 29, 0.62);">
+        <iframe id="attendanceAccountFrame" title="Account management" style="width: min(1000px, 100%); height: min(760px, 94vh); border: 0; border-radius: 14px; background: transparent; box-shadow: 0 20px 60px rgba(0,0,0,.28);"></iframe>
+    </div>
 
     <main class="container-fluid attendance-container">
         <section class="hero">
@@ -148,6 +184,7 @@
     </div>
 
     <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/auth-session.js?v=20260921-1"></script>
     <script src="js/firebase-shared.js?v=20260919-3"></script>
     <script src="js/password-security.js?v=20260919-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/sql.js@1.11.0/dist/sql-wasm.js"></script>
@@ -296,12 +333,33 @@
         });
         document.getElementById("exportAttendanceBtn").addEventListener("click", () => { const csv = ["Date,Employee,Employee ID,Office,Time in,Time out,Status", ...getRows().map(row => [dateInput.value, row.name, row.id, row.office, row.timeIn || "", row.timeOut || "", row.status || "Pending"].map(value => `"${String(value).replace(/"/g, '""')}"`).join(","))].join("\n"); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); link.download = `attendance-${dateInput.value}.csv`; link.click(); URL.revokeObjectURL(link.href); });
         document.getElementById("openClockModalMenuBtn").addEventListener("click", () => { clockDateInput.value = dateInput.value; clockModal.classList.add("active"); });
-        document.getElementById("closeClockModalBtn").addEventListener("click", () => clockModal.classList.remove("active"));
+        function openAttendanceAccountOverlay(event) {
+            if (event) event.preventDefault();
+            const overlay = document.getElementById("attendanceAccountOverlay");
+            const frame = document.getElementById("attendanceAccountFrame");
+            if (!overlay || !frame) return;
+            frame.src = event.currentTarget.href;
+            overlay.style.display = "flex";
+        }
+        document.querySelectorAll('a[href*="embedded=1"]').forEach(link => link.addEventListener("click", openAttendanceAccountOverlay));
+        window.addEventListener("message", event => {
+            if (event.data?.type === "closeAccountOverlay") {
+                document.getElementById("attendanceAccountFrame").src = "about:blank";
+                document.getElementById("attendanceAccountOverlay").style.display = "none";
+            }
+        });
+        document.getElementById("closeClockModalBtn").addEventListener("click", () => {
+            if (new URLSearchParams(window.location.search).get("embedded") === "1" && window.parent !== window) {
+                window.parent.postMessage({ type: "closeClockOverlay" }, "*");
+                return;
+            }
+            clockModal.classList.remove("active");
+        });
         clockModal.addEventListener("click", event => { if (event.target === clockModal) clockModal.classList.remove("active"); });
         document.getElementById("clockInBtn").addEventListener("click", () => updateClockTime("in"));
         document.getElementById("clockOutBtn").addEventListener("click", () => updateClockTime("out"));
         clockDateInput.addEventListener("change", () => { dateInput.value = clockDateInput.value; render(); });
-        document.getElementById("logoutBtn").addEventListener("click", () => { localStorage.removeItem("loggedInUser"); sessionStorage.removeItem("loggedInUser"); window.location.href = "index.html"; });
+        document.getElementById("logoutBtn").addEventListener("click", () => { if (window.authSession) window.authSession.logout(); else { localStorage.removeItem("loggedInUser"); sessionStorage.removeItem("loggedInUser"); } window.location.href = "index.html"; });
         const accountName = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser");
         const accounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
         const currentAccount = accounts[accountName];
@@ -311,29 +369,29 @@
         userDisplay.querySelector(".user-display-name").textContent = displayName;
         userDisplay.querySelector(".user-display-username").textContent = `@${displayUsername}`;
         const canEditAttendance = currentAccount && ["Developer", "IT Admin"].includes(currentAccount.role);
-        const administratorMenuItem = document.getElementById("administratorMenuItem");
-        if (administratorMenuItem && currentAccount && (currentAccount.role === "Developer" || accountName === "admin")) administratorMenuItem.style.display = "";
         if (!canEditAttendance) document.getElementById("clearAttendanceBtn").style.display = "none";
-        const inventoryMenuItem = document.getElementById("attendanceInventoryMenuItem");
-        const hasInventoryPermission = currentAccount && (
-            currentAccount.username === "admin" ||
-            currentAccount.role === "Developer" ||
-            (Array.isArray(currentAccount.permissions) && currentAccount.permissions.includes("inventory"))
-        );
+        const isDeveloper = currentAccount && (currentAccount.role === "Developer" || accountName === "admin");
+        const permissions = new Set((currentAccount && Array.isArray(currentAccount.permissions)) ? currentAccount.permissions : []);
         const allowedInventoryOffices = currentAccount && Array.isArray(currentAccount.inventoryAccess)
             ? currentAccount.inventoryAccess.filter(office => office === "Rizal" || office === "Cebu")
             : currentAccount && ["Rizal", "Cebu"].includes(currentAccount.office)
                 ? [currentAccount.office]
                 : ["Rizal", "Cebu"];
-        const landingOffice = allowedInventoryOffices.includes(currentAccount && currentAccount.office)
-            ? currentAccount.office
-            : allowedInventoryOffices[0];
-
-        if (!hasInventoryPermission || !landingOffice) {
-            inventoryMenuItem.closest("li").style.display = "none";
-        } else {
-            inventoryMenuItem.href = `inventory.html?office=${encodeURIComponent(landingOffice)}`;
-        }
+        const setMenuItemVisibility = (id, visible) => {
+            const item = document.getElementById(id);
+            if (item) item.style.display = visible ? "" : "none";
+        };
+        const rizalInventoryItem = document.querySelector("[data-inventory-office='Rizal']");
+        const cebuInventoryItem = document.querySelector("[data-inventory-office='Cebu']");
+        if (rizalInventoryItem) rizalInventoryItem.closest("li").style.display = isDeveloper || allowedInventoryOffices.includes("Rizal") ? "" : "none";
+        if (cebuInventoryItem) cebuInventoryItem.closest("li").style.display = isDeveloper || allowedInventoryOffices.includes("Cebu") ? "" : "none";
+        setMenuItemVisibility("administratorMenuItem", isDeveloper);
+        setMenuItemVisibility("clearInventoryMenuBtn", isDeveloper);
+        const canAddAccount = isDeveloper || permissions.has("addAccount");
+        const canManageUsers = isDeveloper || permissions.has("users");
+        setMenuItemVisibility("addAccountMenuItemContainer", canAddAccount);
+        setMenuItemVisibility("addAccountMenuItemDivider", canAddAccount);
+        setMenuItemVisibility("usersMenuItemContainer", canManageUsers);
         dateInput.value = today();
         clockDateInput.value = dateInput.value;
         const loggedInEmployee = currentAccount && currentAccount.name
@@ -345,6 +403,17 @@
         clockEmployeeInput.innerHTML = clockEmployees.map(employee => `<option value="${escapeHtml(employee.id)}">${escapeHtml(employee.name)}${employee.office ? ` (${escapeHtml(employee.office)})` : ""}</option>`).join("");
         clockEmployeeInput.disabled = !canEditAttendance;
         render();
+        if (new URLSearchParams(window.location.search).get("embedded") === "1") {
+            document.body.classList.add("embedded-clock");
+        }
+        if (new URLSearchParams(window.location.search).get("changePassword") === "1") {
+            document.body.classList.remove("embedded-clock");
+            document.body.classList.add("embedded-change-password");
+            document.getElementById("changePasswordModal").classList.add("active");
+        }
+        if (new URLSearchParams(window.location.search).get("openClock") === "1") {
+            clockModal.classList.add("active");
+        }
         if (window.sharedAttendance) {
             const refreshSharedAttendance = () => window.sharedAttendance.load().then(sharedRecords => {
                 localStorage.setItem(storageKey, JSON.stringify(sharedRecords));

@@ -26,9 +26,13 @@
         modal.style.display = "none";
         newInput.value = "";
         confirmInput.value = "";
+        if (new URLSearchParams(window.location.search).get("changePassword") === "1" && window.parent !== window) {
+            window.parent.postMessage({ type: "closePasswordOverlay" }, "*");
+        }
     }
 
     menuButton.addEventListener("click", () => {
+        if (document.getElementById("inventoryPasswordOverlay")) return;
         modal.classList.add("active");
         modal.style.display = "flex";
         newInput.focus();

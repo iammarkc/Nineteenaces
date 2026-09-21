@@ -12,6 +12,7 @@
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/bootstrap-icons.css">
     <link href="css/login.css" rel="stylesheet">
+    <script>if (new URLSearchParams(window.location.search).get("embedded") === "1") document.documentElement.classList.add("embedded-account-page");</script>
     <style>
         body {
             background:
@@ -366,20 +367,31 @@
             justify-content: center;
             z-index: 2300;
             overflow-y: auto;
+            padding: 20px;
         }
         .account-modal-overlay.active {
             display: flex;
         }
+        body.embedded-account { min-height: 100%; overflow: hidden; background: transparent; }
+        body.embedded-account > *:not(#inventoryAddUserModal):not(#inventoryUsersModal):not(script):not(style) { display: none !important; }
+        html.embedded-account-page body > *:not(#inventoryAddUserModal):not(#inventoryUsersModal):not(script):not(style) { display: none !important; }
+        body.embedded-account .account-modal-overlay { display: none !important; background: transparent; padding: 12px; }
+        body.embedded-account-add #inventoryAddUserModal, body.embedded-account-users #inventoryUsersModal { display: flex !important; }
         .account-modal {
             background: white;
             border-radius: 12px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
             padding: 40px;
-            width: 90%;
+            width: min(600px, calc(100vw - 40px));
             max-width: 600px;
-            margin: 20px auto;
+            max-height: calc(100vh - 40px);
+            min-width: 0;
+            margin: 0 auto;
+            overflow-y: auto;
+            resize: both;
         }
         .account-modal.users-modal {
+            width: min(1000px, calc(100vw - 40px));
             max-width: 1000px;
             padding: 30px;
         }
@@ -444,6 +456,12 @@
             font-weight: 600;
             cursor: pointer;
         }
+        @media (max-width: 575px) {
+            .account-modal-overlay { padding: 12px; }
+            .account-modal, .account-modal.users-modal { width: calc(100vw - 24px); max-height: calc(100vh - 24px); padding: 24px; }
+            .account-modal h2 { font-size: 23px; }
+            .account-permissions-grid { grid-template-columns: 1fr; }
+        }
         .inventory-users-table {
             width: 100%;
             border-collapse: collapse;
@@ -481,9 +499,7 @@
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenu">
                             <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Rizal" href="inventory.html?office=Rizal"><i class="bi bi-boxes me-2"></i>Inventory of Rizal</a></li>
                             <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Cebu" href="inventory.html?office=Cebu"><i class="bi bi-boxes me-2"></i>Inventory of Cebu</a></li>
-                            <li><a class="dropdown-item" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
                             <li><a class="dropdown-item" href="#" id="localPosReportMenuBtn"><i class="bi bi-bar-chart-line me-2"></i>Local POS Report</a></li>
-                            <li><button class="dropdown-item" id="changePasswordMenuBtn" type="button"><i class="bi bi-key me-2"></i>Change Password</button></li>
                             <li id="administratorMenuItem" style="display: none;"><a class="dropdown-item" href="administrator.html"><i class="bi bi-shield-lock me-2"></i>Administrator</a></li>
                             <li><a class="dropdown-item" data-permission="inventory" href="#" id="clearInventoryMenuBtn"><i class="bi bi-trash me-2"></i>Clear Inventory</a></li>
                             <li><hr class="dropdown-divider"></li>
@@ -491,10 +507,13 @@
                             <li id="addAccountMenuItemContainer" style="display: none;">
                                 <a class="dropdown-item" data-permission="addAccount" href="#add-user" id="addAccountBtn"><i class="bi bi-person-plus me-2"></i>Add User</a>
                             </li>
-                            <li id="usersMenuItemDivider" style="display: none;"><hr class="dropdown-divider"></li>
                             <li id="usersMenuItemContainer" style="display: none;">
                                 <a class="dropdown-item" data-permission="users" href="#users" id="usersMenuBtn"><i class="bi bi-people me-2"></i>Users</a>
                             </li>
+                            <li><button class="dropdown-item" id="changePasswordMenuBtn" type="button"><i class="bi bi-key me-2"></i>Change Password</button></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
+                            <li><a class="dropdown-item" href="attendance.html?openClock=1"><i class="bi bi-clock me-2"></i>Clock in / out</a></li>
                         </ul>
                     </li>
                     <li class="nav-item">
@@ -925,8 +944,8 @@
     </div>
 
     <!-- Add Record Modal -->
-    <div id="addRecordModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: none; align-items: center; justify-content: center; z-index: 1000; overflow: hidden;">
-        <div id="addRecordModalContent" style="background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); padding: 40px; width: 90%; max-width: 600px; min-width: 400px; max-height: 90vh; margin: 20px auto; overflow-y: auto; resize: both; position: relative;">
+    <div id="addRecordModal" style="position: fixed; inset: 0; background: rgba(10, 17, 29, 0.62); display: none; align-items: center; justify-content: center; z-index: 3000; overflow: hidden; padding: 20px;">
+        <div id="addRecordModalContent" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid rgba(30, 58, 95, 0.16); border-radius: 12px; box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35); padding: 40px; width: min(90vw, 600px); min-width: min(400px, calc(100vw - 40px)); max-height: 90vh; margin: 0; overflow-y: auto; resize: both;">
             <h2 style="color: #1e3a5f; font-size: 28px; font-weight: 700; margin-bottom: 30px; display: flex; align-items: center; cursor: move;" id="modalDragHandle">
                 <i class="bi bi-plus-circle me-2"></i>Add New POS Record
             </h2>
@@ -1030,6 +1049,16 @@
             <iframe id="localPosReportFrame" src="local-pos-report.html" style="width: 100%; height: 100%; border: 0; background: white; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.28);"></iframe>
         </div>
     </div>
+    <div id="inventoryClockOverlay" style="position: fixed; inset: 0; z-index: 5000; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(10, 17, 29, 0.62);">
+        <div style="position: relative; width: min(680px, 100%); height: min(520px, 90vh); overflow: hidden; background: transparent; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.28);">
+            <iframe id="inventoryClockFrame" title="Clock in / out" style="width: 100%; height: 100%; border: 0; border-radius: 14px; background: transparent;"></iframe>
+        </div>
+    </div>
+    <div id="inventoryPasswordOverlay" style="position: fixed; inset: 0; z-index: 5000; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(10, 17, 29, 0.62);">
+        <div style="position: relative; width: min(680px, 100%); height: min(520px, 90vh); overflow: hidden; background: transparent; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.28);">
+            <iframe id="inventoryPasswordFrame" title="Change Password" style="width: 100%; height: 100%; border: 0; border-radius: 14px; background: transparent;"></iframe>
+        </div>
+    </div>
     <div class="account-modal-overlay" id="inventoryEditUserModal">
         <div class="account-modal">
             <h2><i class="bi bi-pencil-square me-2"></i>Edit Account</h2>
@@ -1056,6 +1085,7 @@
     </div>
 
     <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/auth-session.js?v=20260921-1"></script>
     <script src="js/firebase-shared.js?v=20260919-2"></script>
     <script src="js/password-security.js?v=20260919-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/sql.js@1.11.0/dist/sql-wasm.js"></script>
@@ -1069,8 +1099,11 @@
             const displayName = (account && account.name) ? account.name : username;
 
             if (account && account.disabled) {
-                localStorage.removeItem("loggedInUser");
-                sessionStorage.removeItem("loggedInUser");
+                if (window.authSession) window.authSession.logout();
+                else {
+                    localStorage.removeItem("loggedInUser");
+                    sessionStorage.removeItem("loggedInUser");
+                }
                 alert('This account has been disabled. Please contact an administrator.');
                 window.location.href = 'index.html';
                 return null;
@@ -1231,7 +1264,6 @@
             const addAccountMenuContainer = document.getElementById('addAccountMenuItemContainer');
             const addAccountMenuDivider = document.getElementById('addAccountMenuItemDivider');
             const usersMenuContainer = document.getElementById('usersMenuItemContainer');
-            const usersMenuDivider = document.getElementById('usersMenuItemDivider');
             const administratorMenuItem = document.getElementById('administratorMenuItem');
 
             if (clearDataBtn) {
@@ -1249,7 +1281,6 @@
             if (addAccountMenuContainer) addAccountMenuContainer.style.display = canAddAccount ? 'block' : 'none';
             if (addAccountMenuDivider) addAccountMenuDivider.style.display = canAddAccount ? 'block' : 'none';
             if (usersMenuContainer) usersMenuContainer.style.display = canManageUsers ? 'block' : 'none';
-            if (usersMenuDivider) usersMenuDivider.style.display = canManageUsers ? 'block' : 'none';
 
             document.querySelectorAll('#adminMenu + .dropdown-menu [data-permission]').forEach(item => {
                 const menuEntry = item.closest('li');
@@ -1314,6 +1345,19 @@
             });
             setupInlineInventoryEditing();
             setupSummaryInlineEditing();
+
+            if (new URLSearchParams(window.location.search).get("embedded") === "1") {
+                document.body.classList.add("embedded-account");
+                window.setTimeout(() => {
+                    if (window.location.search.includes("openUsers=1")) {
+                        document.body.classList.add("embedded-account-users");
+                        openInventoryUsers();
+                    } else {
+                        document.body.classList.add("embedded-account-add");
+                        document.getElementById("inventoryAddUserModal").style.display = "flex";
+                    }
+                }, 0);
+            }
             
             // Update last update time
             const now = new Date();
@@ -1329,7 +1373,7 @@
             return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         }
 
-        function recordInventoryEdit(fieldName, oldValue, newValue, record) {
+        function recordInventoryEdit(fieldName, oldValue, newValue, record, action = "change") {
             if (String(oldValue ?? '') === String(newValue ?? '')) return;
 
             const office = getCurrentUserOffice() || 'Rizal';
@@ -1338,8 +1382,93 @@
             const loggedIn = getLoggedInDisplayName();
             history.unshift({
                 field: fieldName,
+                action,
+                eventType: 'change',
                 oldValue: String(oldValue ?? '-') || '-',
                 newValue: String(newValue ?? '-') || '-',
+                serialNumber: String(record?.serialNumber || '-'),
+                record: `${record?.posNo || '-'} / ${record?.serialNumber || '-'}`,
+                username: loggedIn?.username || 'Unknown',
+                user: loggedIn?.username || 'Unknown',
+                timestamp: new Date().toISOString()
+            });
+            localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 200)));
+            queueInventoryHistorySave(office, history);
+        }
+
+        function recordNewInventoryRecord(record) {
+            const office = getCurrentUserOffice() || 'Rizal';
+            const historyKey = `inventoryEditHistory_${office}`;
+            const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+            const loggedIn = getLoggedInDisplayName();
+            const recordDetails = [
+                `System: ${record?.rack || '-'}`,
+                `POS NO.: ${record?.posNo || '-'}`,
+                `Serial Number: ${record?.serialNumber || '-'}`,
+                `Full Name: ${record?.fullName || '-'}`,
+                `User ID: ${record?.userId || '-'}`,
+                `Address: ${record?.address || '-'}`,
+                `Status: ${record?.status || '-'}`,
+                `LOKALS: ${record?.lokals || '-'}`,
+                `Note/Issue: ${record?.noteIssue || '-'}`,
+                `Transfer To: ${record?.transferTo || '-'}`,
+                `Column J: ${record?.columnJ || '-'}`
+            ].join(' | ');
+            history.unshift({
+                action: 'new_record',
+                eventType: 'newRecord',
+                field: 'record',
+                oldValue: '-',
+                newValue: recordDetails,
+                recordData: {
+                    createdBy: String(record?.createdBy || loggedIn?.username || 'Unknown'),
+                    rack: record?.rack || '-',
+                    posNo: record?.posNo || '-',
+                    serialNumber: record?.serialNumber || '-',
+                    fullName: record?.fullName || '-',
+                    userId: record?.userId || '-',
+                    address: record?.address || '-',
+                    status: record?.status || '-',
+                    lokals: record?.lokals || '-',
+                    noteIssue: record?.noteIssue || '-',
+                    transferTo: record?.transferTo || '-',
+                    columnJ: record?.columnJ || '-'
+                },
+                serialNumber: String(record?.serialNumber || '-'),
+                record: `${record?.posNo || '-'} / ${record?.serialNumber || '-'}`,
+                username: String(record?.createdBy || loggedIn?.username || 'Unknown'),
+                user: String(record?.createdBy || loggedIn?.username || 'Unknown'),
+                timestamp: new Date().toISOString()
+            });
+            localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 200)));
+            queueInventoryHistorySave(office, history);
+        }
+
+        function recordDeletedInventoryRecord(record) {
+            const office = getCurrentUserOffice() || 'Rizal';
+            const historyKey = `inventoryEditHistory_${office}`;
+            const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+            const loggedIn = getLoggedInDisplayName();
+            history.unshift({
+                action: 'deleted_record',
+                eventType: 'deletedRecord',
+                field: 'record',
+                oldValue: 'Existing record',
+                newValue: 'Deleted record',
+                recordData: {
+                    createdBy: String(record?.createdBy || loggedIn?.username || 'Unknown'),
+                    rack: record?.rack || '-',
+                    posNo: record?.posNo || '-',
+                    serialNumber: record?.serialNumber || '-',
+                    fullName: record?.fullName || '-',
+                    userId: record?.userId || '-',
+                    address: record?.address || '-',
+                    status: record?.status || '-',
+                    lokals: record?.lokals || '-',
+                    noteIssue: record?.noteIssue || '-',
+                    transferTo: record?.transferTo || '-',
+                    columnJ: record?.columnJ || '-'
+                },
                 serialNumber: String(record?.serialNumber || '-'),
                 record: `${record?.posNo || '-'} / ${record?.serialNumber || '-'}`,
                 username: loggedIn?.username || 'Unknown',
@@ -2413,6 +2542,9 @@
             document.getElementById("inventoryAddUserModal").style.display = "none";
             document.getElementById("inventoryUsersModal").style.display = "none";
             document.getElementById("inventoryEditUserModal").style.display = "none";
+            if (new URLSearchParams(window.location.search).get("embedded") === "1" && window.parent !== window) {
+                window.parent.postMessage({ type: "closeAccountOverlay" }, "*");
+            }
         }
 
         function getAccountRoleLevel(account, username = "") {
@@ -2505,10 +2637,67 @@
             if (event.target === this) closeLocalPosReportModal();
         });
 
+        function openInventoryClockOverlay(event) {
+            if (event) event.preventDefault();
+            const overlay = document.getElementById("inventoryClockOverlay");
+            const frame = document.getElementById("inventoryClockFrame");
+            if (!overlay || !frame) return;
+            frame.src = "attendance.html?openClock=1&embedded=1";
+            overlay.style.display = "flex";
+        }
+
+        function closeInventoryClockOverlay() {
+            const overlay = document.getElementById("inventoryClockOverlay");
+            const frame = document.getElementById("inventoryClockFrame");
+            if (frame) frame.src = "about:blank";
+            if (overlay) overlay.style.display = "none";
+        }
+
+        function openInventoryPasswordOverlay(event) {
+            if (event) event.preventDefault();
+            const overlay = document.getElementById("inventoryPasswordOverlay");
+            const frame = document.getElementById("inventoryPasswordFrame");
+            if (!overlay || !frame) return;
+            frame.src = "attendance.html?changePassword=1&embedded=1";
+            overlay.style.display = "flex";
+        }
+
+        function closeInventoryPasswordOverlay() {
+            const overlay = document.getElementById("inventoryPasswordOverlay");
+            const frame = document.getElementById("inventoryPasswordFrame");
+            if (frame) frame.src = "about:blank";
+            if (overlay) overlay.style.display = "none";
+        }
+
+        document.getElementById("changePasswordMenuBtn")?.addEventListener("click", openInventoryPasswordOverlay);
+        document.getElementById("inventoryPasswordOverlay")?.addEventListener("click", event => {
+            if (event.target.id === "inventoryPasswordOverlay") closeInventoryPasswordOverlay();
+        });
+        if (window.location.hash === "#change-password" || new URLSearchParams(window.location.search).get("changePassword") === "1") {
+            openInventoryPasswordOverlay();
+        }
+
+        document.querySelectorAll('a[href*="attendance.html?openClock=1"]').forEach(link => {
+            link.addEventListener("click", openInventoryClockOverlay);
+        });
+        document.getElementById("inventoryClockOverlay")?.addEventListener("click", event => {
+            if (event.target.id === "inventoryClockOverlay") closeInventoryClockOverlay();
+        });
+        window.addEventListener("message", event => {
+            if (event.data?.type === "closeClockOverlay") closeInventoryClockOverlay();
+            if (event.data?.type === "closePasswordOverlay") closeInventoryPasswordOverlay();
+        });
+
         document.addEventListener("keydown", function (event) {
             if (event.key === "Escape") {
                 if (document.getElementById("localPosReportModal")?.style.display === "flex") {
                     closeLocalPosReportModal();
+                }
+                if (document.getElementById("inventoryClockOverlay")?.style.display === "flex") {
+                    closeInventoryClockOverlay();
+                }
+                if (document.getElementById("inventoryPasswordOverlay")?.style.display === "flex") {
+                    closeInventoryPasswordOverlay();
                 }
             }
         });
@@ -2666,8 +2855,11 @@
 
         // Logout function
         document.getElementById("logoutBtn").addEventListener("click", function () {
-            localStorage.removeItem("loggedInUser");
-            sessionStorage.removeItem("loggedInUser");
+            if (window.authSession) window.authSession.logout();
+            else {
+                localStorage.removeItem("loggedInUser");
+                sessionStorage.removeItem("loggedInUser");
+            }
             window.location.href = "index.html";
         });
 
@@ -2707,6 +2899,7 @@
                 newY = Math.max(0, Math.min(newY, maxY));
                 
                 modalContent.style.position = "fixed";
+                modalContent.style.transform = "none";
                 modalContent.style.margin = "0";
                 modalContent.style.left = newX + "px";
                 modalContent.style.top = newY + "px";
@@ -2840,10 +3033,12 @@
         // Add Record button - Open modal
         document.getElementById("addProductBtn").addEventListener("click", function () {
             // Reset modal to default position and size
-            modalContent.style.position = "relative";
-            modalContent.style.left = "auto";
-            modalContent.style.top = "auto";
-            modalContent.style.width = "90%";
+            modalContent.style.position = "fixed";
+            modalContent.style.transform = "translate(-50%, -50%)";
+            modalContent.style.left = "50%";
+            modalContent.style.top = "50%";
+            modalContent.style.margin = "0";
+            modalContent.style.width = "min(90vw, 600px)";
             modalContent.style.maxWidth = "600px";
             modalContent.style.height = "auto";
             
@@ -2866,6 +3061,7 @@
         // Handle Add Record form submission
         document.getElementById("addRecordForm").addEventListener("submit", function (e) {
             e.preventDefault();
+            const loggedIn = getLoggedInDisplayName();
             
             const newRecord = {
                 rack: document.getElementById("formRack")?.value || "",
@@ -2879,6 +3075,7 @@
                 noteIssue: document.getElementById("formNoteIssue")?.value || "",
                 transferTo: document.getElementById("formTransferTo")?.value || "",
                 columnJ: document.getElementById("formColumnJ")?.value || "",
+                createdBy: loggedIn?.username || localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser") || "Unknown",
                 recordDate: new Date().toISOString()
             };
             
@@ -2886,6 +3083,7 @@
             let recordsData = JSON.parse(localStorage.getItem(storageKeys.recordsKey) || "[]");
             
             recordsData.push(newRecord);
+            recordNewInventoryRecord(newRecord);
             
             const currentSummary = JSON.parse(localStorage.getItem(storageKeys.summaryKey) || "{}");
             saveInventoryData(currentSummary, recordsData);
@@ -3040,6 +3238,8 @@
         function deleteRecordFromInventory(recordToDelete) {
             if (!recordToDelete) return;
 
+            recordDeletedInventoryRecord(recordToDelete);
+
             const storageKeys = getInventoryStorageKeys();
             const recordsData = JSON.parse(localStorage.getItem(storageKeys.recordsKey) || "[]");
             const filteredRecords = recordsData.filter(record => {
@@ -3079,6 +3279,7 @@
             if (!detailForm) return;
 
             const updatedRecord = {
+                createdBy: originalRecord.createdBy || "",
                 rack: detailForm.querySelector("[name='rack']").value || "",
                 posNo: detailForm.querySelector("[name='posNo']").value.trim() || originalRecord.posNo || "-",
                 serialNumber: detailForm.querySelector("[name='serialNumber']").value.trim() || originalRecord.serialNumber || "-",

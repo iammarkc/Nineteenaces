@@ -11,6 +11,18 @@
         :root { --ink: #1c3552; --muted: #8793a2; --line: #d9d9d9; --sidebar: #e7e8e9; --yellow: #ffc800; --cyan: #49c1d1; }
         * { box-sizing: border-box; }
         body { min-height: 100vh; margin: 0; color: var(--ink); background: #f5f6f7; font-family: Arial, Helvetica, sans-serif; }
+        .navbar { background: linear-gradient(110deg, #082f49 0%, #0e7490 52%, #155e75 100%) !important; box-shadow: 0 5px 24px rgba(8, 47, 73, 0.2); border-bottom: 1px solid rgba(255, 255, 255, 0.1); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+        .navbar-brand { font-size: 18px; font-weight: 700; letter-spacing: 0; display: inline-flex; align-items: center; gap: 4px; }
+        .nav-link { font-weight: 500; font-size: 14px; margin: 0 10px; transition: color 0.3s ease; }
+        .nav-link:hover { color: #e0e7ff !important; }
+        .user-display { display: flex; flex-direction: column; justify-content: center; line-height: 1.15; }
+        .user-display-name { white-space: nowrap; }
+        .user-display-username { color: rgba(226, 233, 255, 0.7); font-size: 11px; font-weight: 400; margin-top: 3px; }
+        .dropdown-menu { background-color: #ffffff; border: 1px solid #e8eef7; border-radius: 6px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        .dropdown-item { color: #1e3a5f; font-weight: 500; font-size: 14px; padding: 10px 16px; transition: all 0.2s ease; }
+        .dropdown-item:hover { background-color: #f0f4f9; color: #1e3a5f; }
+        .dropdown-item.active { background-color: #e8eef7; color: #1e3a5f; }
+        .dropdown-divider { border-color: #e8eef7; margin: 6px 0; }
         .top-strip { height: 52px; display: flex; align-items: center; background: linear-gradient(110deg, #45c2d1, #4fc5d5); }
         .top-nav { width: min(930px, calc(100% - 34px)); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; color: white; }
         .top-nav-brand { color: white; font-size: 16px; font-weight: 700; text-decoration: none; }
@@ -58,39 +70,72 @@
         .users-table th { background: #f1f3f4; font-weight: 700; }
         .users-table tr:last-child td { border-bottom: 0; }
         .users-loading { padding: 24px; color: var(--muted); text-align: center; }
-        .history-panel { display: none; }
+        .history-panel { display: none; min-width: 0; }
         .history-panel.visible { display: block; }
         .history-panel h2 { margin: 0 0 18px; font-size: 17px; }
         .history-tabs { display: flex; gap: 6px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
         .history-tab { padding: 9px 13px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--muted); cursor: pointer; font-size: 13px; font-weight: 700; }
         .history-tab.active, .history-tab:hover { border-bottom-color: var(--yellow); color: var(--ink); }
+        .history-filters { display: grid; grid-template-columns: 1fr 170px; gap: 8px; margin-bottom: 14px; }
+        .history-filters input { min-width: 0; padding: 9px 10px; border: 1px solid var(--line); border-radius: 4px; color: var(--ink); }
+        .history-filters input:focus { outline: 2px solid rgba(73, 193, 209, .25); border-color: var(--cyan); }
         .history-list { display: grid; gap: 10px; }
+        .history-list-scroll { max-height: 480px; overflow: auto; padding-right: 6px; }
         .history-entry { padding: 13px 15px; border: 1px solid var(--line); border-radius: 5px; background: #fafbfc; font-size: 13px; }
         .history-entry strong { color: var(--ink); }
         .history-entry .history-values { margin-top: 5px; color: #506779; }
         .history-entry small { display: block; margin-top: 7px; color: var(--muted); }
+        .delete-record-entry { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+        .delete-record-details { min-width: 0; }
+        .delete-record-details strong { display: block; overflow-wrap: anywhere; }
+        .delete-record-button { flex: 0 0 auto; padding: 8px 10px; border: 0; border-radius: 4px; background: #b42318; color: white; cursor: pointer; }
+        .delete-record-button:hover { background: #8f1c13; }
+        .delete-record-filters { display: grid; grid-template-columns: 1fr 170px; gap: 8px; margin-bottom: 14px; }
+        .delete-record-filters input { min-width: 0; padding: 9px 10px; border: 1px solid var(--line); border-radius: 4px; color: var(--ink); }
+        .delete-record-filters input:focus { outline: 2px solid rgba(73, 193, 209, .25); border-color: var(--cyan); }
         .admin-footer { display: flex; justify-content: flex-end; margin-top: 38px; }
         .logout-btn { padding: 8px 16px; border: 1px solid #c7d0d8; border-radius: 4px; background: white; color: var(--ink); cursor: pointer; }
         .logout-btn:hover { background: #f1f4f6; }
-        @media (max-width: 760px) { .top-strip { height: 38px; } .admin-shell { width: calc(100% - 20px); min-height: 0; margin-top: 0; grid-template-columns: 1fr; border-radius: 0 0 10px 10px; } .admin-sidebar { padding: 18px 0 0; } .admin-brand { padding-bottom: 10px; } .admin-nav { grid-template-columns: repeat(3, 1fr); } .admin-nav button { padding: 10px; font-size: 12px; } .admin-content { padding: 26px 22px 32px; } .status-grid { grid-template-columns: 1fr; } .section-rule, .section-label { grid-column: auto; } }
+        @media (max-width: 760px) { .top-strip { height: 38px; } .admin-shell { width: calc(100% - 20px); min-height: 0; margin-top: 0; grid-template-columns: 1fr; border-radius: 0 0 10px 10px; } .admin-sidebar { padding: 18px 0 0; } .admin-brand { padding-bottom: 10px; } .admin-nav { grid-template-columns: repeat(3, 1fr); } .admin-nav button { padding: 10px; font-size: 12px; } .admin-content { padding: 26px 22px 32px; } .status-grid { grid-template-columns: 1fr; } .section-rule, .section-label { grid-column: auto; } .history-filters, .delete-record-filters { grid-template-columns: 1fr; } .history-list-scroll { max-height: 55vh; } }
     </style>
 </head>
 <body>
-    <div class="top-strip">
-        <nav class="top-nav" aria-label="Administrator menu">
-            <a class="top-nav-brand" href="administrator.html"><i class="bi bi-shield-lock me-2"></i>Administrator</a>
-            <div class="top-nav-actions">
-                <div class="menu-wrap">
-                    <button class="menu-toggle" id="menuToggle" type="button" aria-expanded="false" aria-controls="adminDropdown"><i class="bi bi-list me-1"></i>Menu</button>
-                    <div class="menu-dropdown" id="adminDropdown">
-                        <a href="inventory.html"><i class="bi bi-boxes me-2"></i>Inventory</a>
-                        <a href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a>
-                        <a href="administrator.html"><i class="bi bi-shield-lock me-2"></i>Administrator</a>
-                    </div>
-                </div>
-                <button class="logout-btn" id="logoutBtn" type="button"><i class="bi bi-box-arrow-right me-1"></i>Logout</button>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#"><i class="bi bi-boxes me-2"></i>Inventory Management</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" aria-expanded="false"><i class="bi bi-list me-1"></i>Menu</a>
+                        <ul class="dropdown-menu dropdown-menu-end" id="adminDropdown" aria-labelledby="adminMenu">
+                            <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Rizal" href="inventory.html?office=Rizal"><i class="bi bi-boxes me-2"></i>Inventory of Rizal</a></li>
+                            <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Cebu" href="inventory.html?office=Cebu"><i class="bi bi-boxes me-2"></i>Inventory of Cebu</a></li>
+                            <li><a class="dropdown-item" href="local-pos-report.html"><i class="bi bi-bar-chart-line me-2"></i>Local POS Report</a></li>
+                            <li><a class="dropdown-item active" href="administrator.html"><i class="bi bi-shield-lock me-2"></i>Administrator</a></li>
+                            <li><a class="dropdown-item" href="inventory.html"><i class="bi bi-trash me-2"></i>Clear Inventory</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="inventory.html?office=Rizal&embedded=1&openAddUser=1"><i class="bi bi-person-plus me-2"></i>Add User</a></li>
+                            <li><a class="dropdown-item" href="inventory.html?office=Rizal&embedded=1&openUsers=1"><i class="bi bi-people me-2"></i>Users</a></li>
+                            <li><a class="dropdown-item" href="inventory.html#change-password"><i class="bi bi-key me-2"></i>Change Password</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
+                            <li><a class="dropdown-item" href="attendance.html?openClock=1"><i class="bi bi-clock me-2"></i>Clock in / out</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><span class="nav-link user-display" id="userDisplay" style="cursor: default;"><span class="user-display-name">Administrator</span><small class="user-display-username">@admin</small></span></li>
+                    <li class="nav-item"><button class="btn btn-danger ms-2" id="logoutBtn" type="button">Logout</button></li>
+                </ul>
             </div>
-        </nav>
+        </div>
+    </nav>
+    <div id="administratorClockOverlay" style="position: fixed; inset: 0; z-index: 5000; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(10, 17, 29, 0.62);">
+        <div style="position: relative; width: min(680px, 100%); height: min(520px, 90vh); overflow: hidden; background: transparent; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.28);">
+            <iframe id="administratorClockFrame" title="Clock in / out" style="width: 100%; height: 100%; border: 0; border-radius: 14px; background: transparent;"></iframe>
+        </div>
+    </div>
+    <div id="administratorAccountOverlay" style="position: fixed; inset: 0; z-index: 5000; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(10, 17, 29, 0.62);">
+        <iframe id="administratorAccountFrame" title="Account management" style="width: min(1000px, 100%); height: min(760px, 94vh); border: 0; border-radius: 14px; background: transparent; box-shadow: 0 20px 60px rgba(0,0,0,.28);"></iframe>
     </div>
     <main class="admin-shell">
         <aside class="admin-sidebar" aria-label="Administrator navigation">
@@ -99,6 +144,7 @@
                 <button class="active" type="button" id="trackPosBtn"><i class="bi bi-geo-alt"></i>Track POS</button>
                 <button type="button" id="usersBtn"><i class="bi bi-people"></i>Users</button>
                 <button type="button" id="editHistoryBtn"><i class="bi bi-clock-history"></i>Edit History</button>
+                <button type="button" id="deleteRecordBtn"><i class="bi bi-trash3"></i>Delete Record</button>
             </nav>
         </aside>
         <section class="admin-content">
@@ -132,10 +178,29 @@
                     <button class="history-tab active" id="historyRizalBtn" type="button" role="tab">Rizal Inventory</button>
                     <button class="history-tab" id="historyCebuBtn" type="button" role="tab">Cebu Inventory</button>
                 </div>
-                <div class="history-list" id="historyList"></div>
+                <div class="history-filters">
+                    <input id="historySearchInput" type="search" placeholder="Search serial, username, POS, field, or change..." aria-label="Search edit history">
+                    <input id="historyDateInput" type="date" aria-label="Filter edit history by date">
+                </div>
+                <div class="history-list-scroll">
+                    <div class="history-list" id="historyList"></div>
+                </div>
+            </div>
+            <div class="history-panel" id="deleteRecordPanel">
+                <h2><i class="bi bi-trash3 me-2"></i>Delete Record</h2>
+                <div class="history-tabs" role="tablist" aria-label="Deleted inventory offices">
+                    <button class="history-tab active" id="deletedRizalBtn" type="button" role="tab">Rizal Inventory</button>
+                    <button class="history-tab" id="deletedCebuBtn" type="button" role="tab">Cebu Inventory</button>
+                </div>
+                <div class="delete-record-filters">
+                    <input id="deleteRecordSearchInput" type="search" placeholder="Search POS, serial, name, status, or address..." aria-label="Search inventory records to delete">
+                    <input id="deleteRecordDateInput" type="date" aria-label="Filter records by date">
+                </div>
+                <div class="history-list-scroll"><div class="history-list" id="deletedRecordList"></div></div>
             </div>
         </section>
     </main>
+    <script src="js/auth-session.js?v=20260921-1"></script>
     <script src="js/firebase-shared.js?v=20260919-4"></script>
     <script>
         const username = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser");
@@ -143,13 +208,17 @@
         const account = accounts[username];
         if (!account || (account.role !== "Developer" && username !== "admin")) window.location.href = "index.html";
         document.getElementById("logoutBtn").addEventListener("click", () => {
-            localStorage.removeItem("loggedInUser");
-            sessionStorage.removeItem("loggedInUser");
+            if (window.authSession) window.authSession.logout();
+            else {
+                localStorage.removeItem("loggedInUser");
+                sessionStorage.removeItem("loggedInUser");
+            }
             window.location.href = "index.html";
         });
         const trackPosBtn = document.getElementById("trackPosBtn");
         const usersBtn = document.getElementById("usersBtn");
         const editHistoryBtn = document.getElementById("editHistoryBtn");
+        const deleteRecordBtn = document.getElementById("deleteRecordBtn");
         const statusSection = document.querySelector(".status-section");
         const mapPanel = document.getElementById("mapPanel");
         const usersPanel = document.getElementById("usersPanel");
@@ -157,6 +226,17 @@
         const historyList = document.getElementById("historyList");
         const historyRizalBtn = document.getElementById("historyRizalBtn");
         const historyCebuBtn = document.getElementById("historyCebuBtn");
+        const deleteRecordPanel = document.getElementById("deleteRecordPanel");
+        const deletedRecordList = document.getElementById("deletedRecordList");
+        const deletedRizalBtn = document.getElementById("deletedRizalBtn");
+        const deletedCebuBtn = document.getElementById("deletedCebuBtn");
+        const deleteRecordSearchInput = document.getElementById("deleteRecordSearchInput");
+        const deleteRecordDateInput = document.getElementById("deleteRecordDateInput");
+        const historySearchInput = document.getElementById("historySearchInput");
+        const historyDateInput = document.getElementById("historyDateInput");
+        let loadedHistoryEntries = [];
+        let loadedDeletedRecords = [];
+        let selectedDeletedOffice = account && account.office === "Cebu" ? "Cebu" : "Rizal";
         let selectedHistoryOffice = account && account.office === "Cebu" ? "Cebu" : "Rizal";
         const usersLoading = document.getElementById("usersLoading");
         const usersTable = document.getElementById("usersTable");
@@ -190,15 +270,134 @@
                     console.warn("Inventory edit history could not be loaded from Firestore.", error);
                 }
             }
-            const history = entries.map(entry => ({ ...entry, office }));
-            history.sort((first, second) => new Date(second.timestamp) - new Date(first.timestamp));
-            historyList.innerHTML = history.length ? history.slice(0, 100).map(entry => `
+            if (window.sharedInventory?.load) {
+                try {
+                    const inventory = await window.sharedInventory.load(office);
+                    const records = Array.isArray(inventory?.recordsData) ? inventory.recordsData : [];
+                    entries = entries.map(entry => {
+                        const isNewRecord = entry.eventType === "newRecord" || entry.action === "new_record";
+                        const hasRecordDetails = entry.newValue && entry.newValue !== "New record";
+                        if (!isNewRecord || hasRecordDetails) return entry;
+
+                        const matchingRecord = records.find(record =>
+                            String(record.posNo || "") === String(entry.record || "").split(" /")[0] &&
+                            String(record.serialNumber || "") === String(entry.serialNumber || "")
+                        );
+                        if (!matchingRecord) return entry;
+
+                        return {
+                            ...entry,
+                            newValue: formatInventoryRecordDetails(matchingRecord),
+                            recordData: matchingRecord,
+                            username: matchingRecord.createdBy || (entry.username === "Inventory" ? username : entry.username),
+                            user: matchingRecord.createdBy || (entry.user === "Inventory" ? username : entry.user)
+                        };
+                    });
+                    const historyRecordKeys = new Set(entries
+                        .filter(entry => entry.eventType === "newRecord" || entry.action === "new_record")
+                        .map(entry => `${entry.record || ""}|${entry.serialNumber || ""}`));
+                    records.forEach(record => {
+                        const recordKey = `${record.posNo || "-"} / ${record.serialNumber || "-"}|${record.serialNumber || "-"}`;
+                        if (historyRecordKeys.has(recordKey)) return;
+
+                        entries.push({
+                            action: "new_record",
+                            eventType: "newRecord",
+                            field: "record",
+                            oldValue: "-",
+                            newValue: formatInventoryRecordDetails(record),
+                            recordData: record,
+                            serialNumber: String(record.serialNumber || "-"),
+                            record: `${record.posNo || "-"} / ${record.serialNumber || "-"}`,
+                            username: String(record.createdBy || record.username || username || "Unknown"),
+                            user: String(record.createdBy || record.username || username || "Unknown"),
+                            timestamp: record.recordDate || record.dateAdded || record.createdAt || record.updatedAt || new Date().toISOString(),
+                            reconciled: true
+                        });
+                    });
+                } catch (error) {
+                    console.warn("Inventory records could not be loaded for new-record history details.", error);
+                }
+            }
+            loadedHistoryEntries = entries.map(entry => ({ ...entry, office }));
+            loadedHistoryEntries.sort((first, second) => getHistoryTimestamp(second) - getHistoryTimestamp(first));
+            renderFilteredHistory();
+        }
+        function getHistoryTimestamp(entry) {
+            const timestamp = entry?.timestamp ? new Date(entry.timestamp).getTime() : NaN;
+            return Number.isNaN(timestamp) ? 0 : timestamp;
+        }
+        function formatInventoryRecordDetails(record) {
+            return [
+                `System: ${record?.rack || "-"}`,
+                `POS NO.: ${record?.posNo || "-"}`,
+                `Serial Number: ${record?.serialNumber || "-"}`,
+                `Full Name: ${record?.fullName || "-"}`,
+                `User ID: ${record?.userId || "-"}`,
+                `Address: ${record?.address || "-"}`,
+                `Status: ${record?.status || "-"}`,
+                `LOKALS: ${record?.lokals || "-"}`,
+                `Note/Issue: ${record?.noteIssue || "-"}`,
+                `Transfer To: ${record?.transferTo || "-"}`,
+                `Column J: ${record?.columnJ || "-"}`
+            ].join(" | ");
+        }
+        function renderNewRecordDetails(entry) {
+            if (!entry.recordData) return `Added: ${escapeHtml(entry.newValue || "New record")}`;
+
+            const fields = [
+                ["System", entry.recordData.rack],
+                ["POS NO.", entry.recordData.posNo],
+                ["Serial Number", entry.recordData.serialNumber],
+                ["Full Name", entry.recordData.fullName],
+                ["User ID", entry.recordData.userId],
+                ["Address", entry.recordData.address],
+                ["Status", entry.recordData.status],
+                ["LOKALS", entry.recordData.lokals],
+                ["Note/Issue", entry.recordData.noteIssue],
+                ["Transfer To", entry.recordData.transferTo],
+                ["Column J", entry.recordData.columnJ]
+            ];
+            return `<strong>Entered data:</strong><div>${fields.map(([label, value]) => `<div><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value || "-")}</div>`).join("")}</div>`;
+        }
+        function renderDeletedRecordDetails(entry) {
+            if (!entry.recordData) return `Deleted: ${escapeHtml(entry.newValue || "Deleted record")}`;
+
+            const fields = [
+                ["System", entry.recordData.rack],
+                ["POS NO.", entry.recordData.posNo],
+                ["Serial Number", entry.recordData.serialNumber],
+                ["Full Name", entry.recordData.fullName],
+                ["User ID", entry.recordData.userId],
+                ["Address", entry.recordData.address],
+                ["Status", entry.recordData.status],
+                ["LOKALS", entry.recordData.lokals],
+                ["Note/Issue", entry.recordData.noteIssue],
+                ["Transfer To", entry.recordData.transferTo],
+                ["Column J", entry.recordData.columnJ]
+            ];
+            return `<strong>Deleted data:</strong><div>${fields.map(([label, value]) => `<div><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value || "-")}</div>`).join("")}</div>`;
+        }
+        function renderFilteredHistory() {
+            const searchTerm = historySearchInput.value.trim().toLowerCase();
+            const selectedDate = historyDateInput.value;
+            const history = loadedHistoryEntries.filter(entry => {
+                const searchableText = [entry.serialNumber, entry.username, entry.user, entry.record, entry.field, entry.oldValue, entry.newValue, entry.office].join(" ").toLowerCase();
+                const entryDate = entry.timestamp ? new Date(entry.timestamp).toISOString().slice(0, 10) : "";
+                return (!searchTerm || searchableText.includes(searchTerm)) && (!selectedDate || entryDate === selectedDate);
+            });
+            historyList.innerHTML = history.length ? history.slice(0, 100).map(entry => {
+                const isNewRecord = entry.eventType === "newRecord" || entry.action === "new_record";
+                const isDeletedRecord = entry.eventType === "deletedRecord" || entry.action === "deleted_record";
+                const editorUsername = entry.recordData?.createdBy || entry.username || entry.user || "User";
+                return `
                 <div class="history-entry">
-                    <strong>Changes Applied</strong> for ${escapeHtml(entry.record || "POS record")}
-                    <div class="history-values">${escapeHtml(entry.oldValue || "-")} <i class="bi bi-arrow-right"></i> ${escapeHtml(entry.newValue || "-")}</div>
-                    <small>Serial: ${escapeHtml(entry.serialNumber || "-")} · Editor: ${escapeHtml(entry.username || entry.user || "User")} · ${escapeHtml(entry.office)} · ${new Date(entry.timestamp).toLocaleString()}</small>
+                    <strong>${isNewRecord ? "Newly Added Record" : (isDeletedRecord ? "Deleted Record" : "Changes Applied")}</strong> for ${escapeHtml(entry.record || "POS record")}
+                    <div class="history-values">${isNewRecord ? renderNewRecordDetails(entry) : (isDeletedRecord ? renderDeletedRecordDetails(entry) : `${escapeHtml(entry.oldValue || "-")} <i class="bi bi-arrow-right"></i> ${escapeHtml(entry.newValue || "-")}`)}</div>
+                    <small>Serial: ${escapeHtml(entry.serialNumber || "-")} · Editor: ${escapeHtml(editorUsername)} · ${escapeHtml(entry.office)} · ${new Date(entry.timestamp).toLocaleString()}</small>
                 </div>
-            `).join("") : '<div class="users-loading">No edit history found.</div>';
+            `;
+            }).join("") : '<div class="users-loading">No matching edit history found.</div>';
         }
         function selectHistoryOffice(office) {
             selectedHistoryOffice = office;
@@ -206,20 +405,140 @@
             historyCebuBtn.classList.toggle("active", office === "Cebu");
             loadEditHistoryPanel();
         }
+        async function loadDeletedRecordPanel() {
+            const office = selectedDeletedOffice;
+            let inventory = null;
+            if (window.sharedInventory?.load) {
+                try {
+                    inventory = await window.sharedInventory.load(office);
+                } catch (error) {
+                    console.warn("Inventory records could not be loaded from Firestore.", error);
+                }
+            }
+            loadedDeletedRecords = Array.isArray(inventory?.recordsData) ? inventory.recordsData : [];
+            renderFilteredDeletedRecords();
+        }
+        function renderFilteredDeletedRecords() {
+            const searchTerm = deleteRecordSearchInput.value.trim().toLowerCase();
+            const selectedDate = deleteRecordDateInput.value;
+            const records = loadedDeletedRecords.filter(record => {
+                const searchableText = [record.posNo, record.serialNumber, record.fullName, record.userId, record.address, record.status, record.lokals, record.noteIssue, record.transferTo].join(" ").toLowerCase();
+                const recordDateValue = record.recordDate || record.dateAdded || record.createdAt || record.updatedAt || "";
+                const recordDate = recordDateValue ? new Date(recordDateValue) : null;
+                const recordDateString = recordDate && !Number.isNaN(recordDate.getTime()) ? recordDate.toISOString().slice(0, 10) : "";
+                return (!searchTerm || searchableText.includes(searchTerm)) && (!selectedDate || recordDateString === selectedDate);
+            }).sort((first, second) => getDeletedRecordTimestamp(second) - getDeletedRecordTimestamp(first));
+            const office = selectedDeletedOffice;
+            deletedRecordList.innerHTML = records.length ? records.map(record => {
+                const recordIndex = loadedDeletedRecords.indexOf(record);
+                return `
+                <div class="history-entry delete-record-entry">
+                    <div class="delete-record-details">
+                        <strong>${escapeHtml(record.posNo || "-")} / ${escapeHtml(record.serialNumber || "-")}</strong>
+                        <div class="history-values">${escapeHtml(record.fullName || "-")} · ${escapeHtml(record.status || "-")}</div>
+                        <small>${escapeHtml(record.address || "-")} · ${escapeHtml(office)} Inventory</small>
+                    </div>
+                    <button class="delete-record-button" type="button" data-record-index="${recordIndex}" title="Permanently delete this record" aria-label="Permanently delete ${escapeHtml(record.serialNumber || "record")}"><i class="bi bi-trash3"></i></button>
+                </div>
+            `;
+            }).join("") : '<div class="users-loading">No matching inventory records found.</div>';
+            deletedRecordList.querySelectorAll(".delete-record-button").forEach(button => {
+                button.addEventListener("click", () => permanentlyDeleteRecord(office, loadedDeletedRecords[Number(button.dataset.recordIndex)]));
+            });
+        }
+        function getDeletedRecordTimestamp(record) {
+            const recordDate = record?.recordDate || record?.dateAdded || record?.createdAt || record?.updatedAt;
+            const timestamp = recordDate ? new Date(recordDate).getTime() : NaN;
+            return Number.isNaN(timestamp) ? 0 : timestamp;
+        }
+        async function permanentlyDeleteRecord(office, record) {
+            if (!record) return;
+            const confirmed = window.confirm(`WARNING: This will permanently delete POS ${record.posNo || "-"} with serial number ${record.serialNumber || "-"} from ${office} Inventory. This action cannot be undone. Continue?`);
+            if (!confirmed) return;
+
+            try {
+                const inventory = await window.sharedInventory.load(office);
+                const records = Array.isArray(inventory?.recordsData) ? inventory.recordsData : [];
+                const filteredRecords = records.filter(item => !(String(item.posNo || "") === String(record.posNo || "") && String(item.serialNumber || "") === String(record.serialNumber || "")));
+                if (filteredRecords.length === records.length) {
+                    alert("The record was not found. Refreshing the list.");
+                    await loadDeletedRecordPanel();
+                    return;
+                }
+                await window.sharedInventory.save(office, { ...(inventory || {}), recordsData: filteredRecords, updatedAt: new Date().toISOString() });
+                const suffix = office === "Rizal" ? "_Rizal" : "_Cebu";
+                localStorage.setItem(`posRecordsData${suffix}`, JSON.stringify(filteredRecords));
+                localStorage.setItem(`inventoryState${suffix}`, JSON.stringify({ ...(inventory || {}), recordsData: filteredRecords, updatedAt: new Date().toISOString() }));
+                await recordDeletedHistoryEntry(office, record);
+                alert("Record permanently deleted.");
+                await loadDeletedRecordPanel();
+            } catch (error) {
+                console.error("Permanent record deletion failed.", error);
+                alert("The record could not be deleted. Check the Firestore connection and rules.");
+            }
+        }
+        async function recordDeletedHistoryEntry(office, record) {
+            const historyKey = `inventoryEditHistory_${office}`;
+            let history = JSON.parse(localStorage.getItem(historyKey) || "[]");
+
+            if (window.sharedInventory?.loadHistory) {
+                try {
+                    const remoteHistory = await window.sharedInventory.loadHistory(office);
+                    history = [...remoteHistory, ...history].reduce((uniqueEntries, entry) => {
+                        const identity = `${entry.timestamp}|${entry.username || entry.user}|${entry.serialNumber}|${entry.field}|${entry.action}`;
+                        if (!uniqueEntries.some(existing => existing.identity === identity)) uniqueEntries.push({ identity, ...entry });
+                        return uniqueEntries;
+                    }, []).map(({ identity, ...entry }) => entry);
+                } catch (error) {
+                    console.warn("Existing inventory history could not be loaded before recording deletion.", error);
+                }
+            }
+
+            const editorUsername = username || account?.username || "Unknown";
+            history.unshift({
+                action: "deleted_record",
+                eventType: "deletedRecord",
+                field: "record",
+                oldValue: "Existing record",
+                newValue: "Deleted record",
+                recordData: { ...record },
+                serialNumber: String(record.serialNumber || "-"),
+                record: `${record.posNo || "-"} / ${record.serialNumber || "-"}`,
+                username: editorUsername,
+                user: editorUsername,
+                timestamp: new Date().toISOString()
+            });
+
+            history = history.slice(0, 200);
+            localStorage.setItem(historyKey, JSON.stringify(history));
+            if (window.sharedInventory?.saveHistory) {
+                await window.sharedInventory.saveHistory(office, history);
+            }
+        }
+        function selectDeletedOffice(office) {
+            selectedDeletedOffice = office;
+            deletedRizalBtn.classList.toggle("active", office === "Rizal");
+            deletedCebuBtn.classList.toggle("active", office === "Cebu");
+            loadDeletedRecordPanel();
+        }
         function showAdminTab(tab) {
             const showMap = tab === "trackPos";
             const showUsers = tab === "users";
             const showHistory = tab === "editHistory";
-            statusSection.style.display = showMap || showUsers || showHistory ? "none" : "block";
+            const showDeletedRecords = tab === "deleteRecord";
+            statusSection.style.display = showMap || showUsers || showHistory || showDeletedRecords ? "none" : "block";
             mapPanel.classList.toggle("visible", showMap);
             usersPanel.classList.toggle("visible", showUsers);
             historyPanel.classList.toggle("visible", showHistory);
+            deleteRecordPanel.classList.toggle("visible", showDeletedRecords);
             trackPosBtn.classList.toggle("active", showMap);
             usersBtn.classList.toggle("active", showUsers);
             editHistoryBtn.classList.toggle("active", showHistory);
-            localStorage.setItem("administratorActiveTab", showMap ? "trackPos" : (showUsers ? "users" : (showHistory ? "editHistory" : "network")));
+            deleteRecordBtn.classList.toggle("active", showDeletedRecords);
+            localStorage.setItem("administratorActiveTab", showMap ? "trackPos" : (showUsers ? "users" : (showHistory ? "editHistory" : (showDeletedRecords ? "deleteRecord" : "network"))));
             if (showUsers) loadUsersPanel();
             if (showHistory) loadEditHistoryPanel();
+            if (showDeletedRecords) loadDeletedRecordPanel();
         }
         trackPosBtn.addEventListener("click", () => {
             showAdminTab("trackPos");
@@ -230,20 +549,70 @@
         editHistoryBtn.addEventListener("click", () => {
             showAdminTab("editHistory");
         });
+        deleteRecordBtn.addEventListener("click", () => {
+            showAdminTab("deleteRecord");
+        });
         historyRizalBtn.addEventListener("click", () => selectHistoryOffice("Rizal"));
         historyCebuBtn.addEventListener("click", () => selectHistoryOffice("Cebu"));
+        deletedRizalBtn.addEventListener("click", () => selectDeletedOffice("Rizal"));
+        deletedCebuBtn.addEventListener("click", () => selectDeletedOffice("Cebu"));
+        historySearchInput.addEventListener("input", renderFilteredHistory);
+        historyDateInput.addEventListener("input", renderFilteredHistory);
+        deleteRecordSearchInput.addEventListener("input", renderFilteredDeletedRecords);
+        deleteRecordDateInput.addEventListener("input", renderFilteredDeletedRecords);
         const savedAdminTab = localStorage.getItem("administratorActiveTab");
-        showAdminTab(savedAdminTab === "users" || savedAdminTab === "editHistory" ? savedAdminTab : "trackPos");
-        const menuToggle = document.getElementById("menuToggle");
+        showAdminTab(savedAdminTab === "users" || savedAdminTab === "editHistory" || savedAdminTab === "deleteRecord" ? savedAdminTab : "trackPos");
+        const menuToggle = document.getElementById("adminMenu");
         const adminDropdown = document.getElementById("adminDropdown");
         menuToggle.addEventListener("click", event => {
+            event.preventDefault();
             event.stopPropagation();
-            const isOpen = adminDropdown.classList.toggle("open");
+            const isOpen = adminDropdown.classList.toggle("show");
             menuToggle.setAttribute("aria-expanded", String(isOpen));
         });
-        document.addEventListener("click", () => {
-            adminDropdown.classList.remove("open");
+        document.addEventListener("click", event => {
+            if (adminDropdown.contains(event.target) || menuToggle.contains(event.target)) return;
+            adminDropdown.classList.remove("show");
             menuToggle.setAttribute("aria-expanded", "false");
+        });
+        function openAdministratorClockOverlay(event) {
+            if (event) event.preventDefault();
+            const overlay = document.getElementById("administratorClockOverlay");
+            const frame = document.getElementById("administratorClockFrame");
+            if (!overlay || !frame) return;
+            frame.src = "attendance.html?openClock=1&embedded=1";
+            overlay.style.display = "flex";
+        }
+        function closeAdministratorClockOverlay() {
+            const overlay = document.getElementById("administratorClockOverlay");
+            const frame = document.getElementById("administratorClockFrame");
+            if (frame) frame.src = "about:blank";
+            if (overlay) overlay.style.display = "none";
+        }
+        document.querySelectorAll('a[href*="attendance.html?openClock=1"]').forEach(link => link.addEventListener("click", openAdministratorClockOverlay));
+        function openAdministratorAccountOverlay(event) {
+            if (event) event.preventDefault();
+            const overlay = document.getElementById("administratorAccountOverlay");
+            const frame = document.getElementById("administratorAccountFrame");
+            if (!overlay || !frame) return;
+            frame.src = event.currentTarget.href;
+            overlay.style.display = "flex";
+        }
+        document.querySelectorAll('a[href*="embedded=1"]').forEach(link => link.addEventListener("click", openAdministratorAccountOverlay));
+        window.addEventListener("message", event => {
+            if (event.data?.type === "closeAccountOverlay") {
+                document.getElementById("administratorAccountFrame").src = "about:blank";
+                document.getElementById("administratorAccountOverlay").style.display = "none";
+            }
+        });
+        document.getElementById("administratorClockOverlay")?.addEventListener("click", event => {
+            if (event.target.id === "administratorClockOverlay") closeAdministratorClockOverlay();
+        });
+        window.addEventListener("message", event => {
+            if (event.data?.type === "closeClockOverlay") closeAdministratorClockOverlay();
+        });
+        document.addEventListener("keydown", event => {
+            if (event.key === "Escape") closeAdministratorClockOverlay();
         });
     </script>
 </body>
