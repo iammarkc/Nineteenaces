@@ -194,7 +194,7 @@
             history.sort((first, second) => new Date(second.timestamp) - new Date(first.timestamp));
             historyList.innerHTML = history.length ? history.slice(0, 100).map(entry => `
                 <div class="history-entry">
-                    <strong>${escapeHtml(entry.field || "Field")} changed</strong> for ${escapeHtml(entry.record || "POS record")}
+                    <strong>Changes Applied</strong> for ${escapeHtml(entry.record || "POS record")}
                     <div class="history-values">${escapeHtml(entry.oldValue || "-")} <i class="bi bi-arrow-right"></i> ${escapeHtml(entry.newValue || "-")}</div>
                     <small>Serial: ${escapeHtml(entry.serialNumber || "-")} · Editor: ${escapeHtml(entry.username || entry.user || "User")} · ${escapeHtml(entry.office)} · ${new Date(entry.timestamp).toLocaleString()}</small>
                 </div>
