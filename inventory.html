@@ -482,7 +482,7 @@
                             <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Rizal" href="inventory.html?office=Rizal"><i class="bi bi-boxes me-2"></i>Inventory of Rizal</a></li>
                             <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Cebu" href="inventory.html?office=Cebu"><i class="bi bi-boxes me-2"></i>Inventory of Cebu</a></li>
                             <li><a class="dropdown-item" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
-                            <li><a class="dropdown-item" data-permission="localPosReport" href="local-pos-report.html"><i class="bi bi-bar-chart-line me-2"></i>Local POS Report</a></li>
+                            <li><a class="dropdown-item" href="#" id="localPosReportMenuBtn"><i class="bi bi-bar-chart-line me-2"></i>Local POS Report</a></li>
                             <li><button class="dropdown-item" id="changePasswordMenuBtn" type="button"><i class="bi bi-key me-2"></i>Change Password</button></li>
                             <li id="administratorMenuItem" style="display: none;"><a class="dropdown-item" href="administrator.html"><i class="bi bi-shield-lock me-2"></i>Administrator</a></li>
                             <li><a class="dropdown-item" data-permission="inventory" href="#" id="clearInventoryMenuBtn"><i class="bi bi-trash me-2"></i>Clear Inventory</a></li>
@@ -1025,6 +1025,11 @@
             <div class="account-modal-buttons" style="margin-top: 20px;"><button type="button" class="btn-cancel" id="inventoryCloseUsersBtn">Close</button></div>
         </div>
     </div>
+    <div class="account-modal-overlay" id="localPosReportModal">
+        <div class="account-modal users-modal" style="width: 96%; max-width: 1600px; height: 90vh; padding: 0; overflow: hidden; background: transparent; border: none; box-shadow: none;">
+            <iframe id="localPosReportFrame" src="local-pos-report.html" style="width: 100%; height: 100%; border: 0; background: white; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.28);"></iframe>
+        </div>
+    </div>
     <div class="account-modal-overlay" id="inventoryEditUserModal">
         <div class="account-modal">
             <h2><i class="bi bi-pencil-square me-2"></i>Edit Account</h2>
@@ -1316,6 +1321,7 @@
 
         const INVENTORY_STORAGE_KEYS = ["posSummaryData", "posRecordsData", "inventoryState", "posInventoryData", "inventoryCleared"];
         let sharedInventorySaveQueue = Promise.resolve();
+        let activeDetailedInlineEditor = null;
 
         function escapeHtml(value) {
             return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
@@ -1757,6 +1763,7 @@
         // Populate inventory table with POS records
         function populateInventoryTable(recordsData) {
             const tbody = document.getElementById("inventoryTableBody");
+            if (activeDetailedInlineEditor && document.contains(activeDetailedInlineEditor.input)) return;
             let html = "";
             
             recordsData.forEach((record, index) => {
@@ -1853,32 +1860,19 @@
                 input.focus();
                 input.select();
 
-                let editFinished = false;
-                const finishEdit = function (save) {
-                    if (editFinished || input !== cell.querySelector("input")) return;
-                    editFinished = true;
-
-                    if (!save) {
-                        cell.textContent = originalValue;
-                        return;
-                    }
-
+                const saveSummaryEdit = function () {
                     const oldModel = row.dataset.summaryModel;
                     const newValue = input.value.trim();
                     const storageKeys = getInventoryStorageKeys();
                     const summaryData = JSON.parse(localStorage.getItem(storageKeys.summaryKey) || "{}");
                     const currentData = summaryData[oldModel];
 
-                    if (!currentData || (fieldName === "model" && !newValue)) {
-                        cell.textContent = originalValue;
-                        return;
-                    }
+                    if (!currentData || (fieldName === "model" && !newValue)) return false;
 
                     if (fieldName === "model") {
                         if (newValue !== oldModel && summaryData[newValue]) {
                             alert("A summary record with that model already exists.");
-                            cell.textContent = originalValue;
-                            return;
+                            return false;
                         }
                         delete summaryData[oldModel];
                         summaryData[newValue] = currentData;
@@ -1888,103 +1882,46 @@
 
                     const recordsData = JSON.parse(localStorage.getItem(storageKeys.recordsKey) || "[]");
                     saveInventoryData(summaryData, recordsData);
-                    updateSummaryDisplay(summaryData);
+                    return true;
+                };
+
+                let editFinished = false;
+                const handleOutsideClick = function (mouseEvent) {
+                    if (!cell.contains(mouseEvent.target)) saveSummaryEdit();
+                };
+
+                const finishEdit = function (save) {
+                    if (editFinished || input !== cell.querySelector("input")) return;
+                    editFinished = true;
+                    document.removeEventListener("mousedown", handleOutsideClick);
+
+                    if (!save) {
+                        cell.textContent = originalValue;
+                        return;
+                    }
+
+                    if (!saveSummaryEdit()) {
+                        cell.textContent = originalValue;
+                        return;
+                    }
+                    updateSummaryDisplay(JSON.parse(localStorage.getItem(getInventoryStorageKeys().summaryKey) || "{}"));
                 };
 
                 input.addEventListener("keydown", function (keyEvent) {
                     if (keyEvent.key === "Enter") {
                         keyEvent.preventDefault();
-                        finishEdit(true);
                     } else if (keyEvent.key === "Escape") {
                         keyEvent.preventDefault();
                         finishEdit(false);
                     }
                 });
-                input.addEventListener("blur", function () {
-                    finishEdit(true);
-                });
+                document.addEventListener("mousedown", handleOutsideClick);
             });
         }
 
         function setupInlineInventoryEditing() {
             const tbody = document.getElementById("inventoryTableBody");
             if (!tbody) return;
-
-            tbody.addEventListener("click", function (event) {
-                const clickedCell = event.target.closest("td");
-                const clickedRow = clickedCell && clickedCell.closest("tr[data-record-index]");
-                if (clickedCell && clickedRow && clickedCell.cellIndex === 7 && getCurrentUserOffice() === "Rizal" && !clickedCell.querySelector("select")) {
-                    const select = document.createElement("select");
-                    const originalValue = clickedCell.textContent.trim();
-                    ["", ...getLokalsOptions()].forEach(optionValue => {
-                        const option = document.createElement("option");
-                        option.value = optionValue;
-                        option.textContent = optionValue || "-- Select Lokals --";
-                        option.selected = optionValue === (originalValue === "-" ? "" : originalValue);
-                        select.appendChild(option);
-                    });
-                    select.style.cssText = "width: 100%; min-width: 130px; padding: 4px 6px; border: 1px solid #1e3a5f; border-radius: 4px; font: inherit; color: #1e3a5f; background: white;";
-                    clickedCell.textContent = "";
-                    clickedCell.appendChild(select);
-                    select.focus();
-
-                    let finished = false;
-                    const finish = function (save) {
-                        if (finished || select !== clickedCell.querySelector("select")) return;
-                        finished = true;
-                        const value = save ? select.value || "-" : originalValue;
-                        if (save) persistInventoryField(clickedRow, "lokals", value);
-                        clickedCell.textContent = value;
-                        applyInventorySearch();
-                    };
-                    select.addEventListener("change", () => finish(true));
-                    select.addEventListener("keydown", event => {
-                        if (event.key === "Enter") finish(true);
-                        if (event.key === "Escape") finish(false);
-                    });
-                    select.addEventListener("blur", () => finish(select.value !== (originalValue === "-" ? "" : originalValue)));
-                    return;
-                }
-
-                const badge = event.target.closest(".status-badge");
-                const cell = badge && badge.closest("td");
-                const row = cell && cell.closest("tr[data-record-index]");
-                if (!badge || !cell || !row || cell.querySelector("select")) return;
-
-                const select = document.createElement("select");
-                ["ACTIVE", "DAMAGE", "LOST", "DISABLED", "NOT ACTIVE", "TEST UNIT"].forEach(status => {
-                    const option = document.createElement("option");
-                    option.value = status;
-                    option.textContent = status;
-                    option.selected = status === badge.textContent.trim();
-                    select.appendChild(option);
-                });
-                select.style.cssText = "padding: 4px 6px; border: 1px solid #1e3a5f; border-radius: 4px; font: inherit; color: #1e3a5f;";
-                cell.textContent = "";
-                cell.appendChild(select);
-                select.focus();
-
-                const originalValue = badge.textContent.trim();
-                let statusEditFinished = false;
-                const finishStatusEdit = function (save) {
-                    if (statusEditFinished || select !== cell.querySelector("select")) return;
-                    statusEditFinished = true;
-                    const value = save ? select.value : originalValue;
-                    if (save) persistInventoryField(row, "status", value);
-                    cell.innerHTML = `<span class="status-badge ${getStatusBadgeClass(value)}">${escapeHtml(value)}</span>`;
-                };
-
-                select.addEventListener("change", function () {
-                    finishStatusEdit(true);
-                });
-                select.addEventListener("keydown", function (keyEvent) {
-                    if (keyEvent.key === "Enter") finishStatusEdit(true);
-                    if (keyEvent.key === "Escape") finishStatusEdit(false);
-                });
-                select.addEventListener("blur", function () {
-                    finishStatusEdit(select.value !== originalValue);
-                });
-            });
 
             tbody.addEventListener("dblclick", function (event) {
                 const cell = event.target.closest("td");
@@ -2009,18 +1946,28 @@
                     input.type = "text";
                 }
                 input.value = originalValue === "-" || originalValue === "N/A" ? "" : originalValue;
+                let initialValue = input.value.trim();
                 input.style.cssText = "width: 100%; min-width: 80px; padding: 6px 8px; border: 1px solid #1e3a5f; border-radius: 4px; font: inherit; color: #1e3a5f;";
                 cell.textContent = "";
                 cell.appendChild(input);
                 input.focus();
                 if (typeof input.select === "function") input.select();
+                activeDetailedInlineEditor = { input, cell };
+
+                let editFinished = false;
+                const handleOutsideClick = function (mouseEvent) {
+                    if (!cell.contains(mouseEvent.target)) finishEdit(true);
+                };
 
                 const finishEdit = function (save) {
-                    if (input !== cell.querySelector("input, select")) return;
+                    if (editFinished || input !== cell.querySelector("input, select")) return;
+                    editFinished = true;
+                    if (activeDetailedInlineEditor?.input === input) activeDetailedInlineEditor = null;
+                    document.removeEventListener("mousedown", handleOutsideClick);
                     const value = save ? input.value.trim() || "-" : originalValue;
-                    if (save) persistInventoryField(row, fieldName, value);
+                    if (save && input.value.trim() !== initialValue) persistInventoryField(row, fieldName, value);
 
-                    if (fieldName === "status" && save) {
+                    if (fieldName === "status") {
                         cell.innerHTML = `<span class="status-badge ${getStatusBadgeClass(value)}">${escapeHtml(value)}</span>`;
                     } else {
                         cell.textContent = value;
@@ -2031,20 +1978,12 @@
                 input.addEventListener("keydown", function (keyEvent) {
                     if (keyEvent.key === "Enter") {
                         keyEvent.preventDefault();
-                        finishEdit(true);
                     } else if (keyEvent.key === "Escape") {
                         keyEvent.preventDefault();
                         finishEdit(false);
                     }
                 });
-                if (fieldName === "rack") {
-                    input.addEventListener("change", function () {
-                        finishEdit(true);
-                    });
-                }
-                input.addEventListener("blur", function () {
-                    finishEdit(true);
-                });
+                document.addEventListener("mousedown", handleOutsideClick);
             });
         }
 
@@ -2486,6 +2425,35 @@
         document.getElementById("usersMenuBtn")?.addEventListener("click", function (event) {
             event.preventDefault();
             openInventoryUsers();
+        });
+
+        function openLocalPosReportModal() {
+            const modal = document.getElementById("localPosReportModal");
+            const frame = document.getElementById("localPosReportFrame");
+            if (modal) modal.style.display = "flex";
+            if (frame && !frame.src) frame.src = "local-pos-report.html";
+        }
+
+        function closeLocalPosReportModal() {
+            const modal = document.getElementById("localPosReportModal");
+            if (modal) modal.style.display = "none";
+        }
+
+        document.getElementById("localPosReportMenuBtn")?.addEventListener("click", function (event) {
+            event.preventDefault();
+            openLocalPosReportModal();
+        });
+
+        document.getElementById("localPosReportModal")?.addEventListener("click", function (event) {
+            if (event.target === this) closeLocalPosReportModal();
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                if (document.getElementById("localPosReportModal")?.style.display === "flex") {
+                    closeLocalPosReportModal();
+                }
+            }
         });
 
         document.getElementById("inventoryCancelUserBtn")?.addEventListener("click", closeInventoryAccountModals);
@@ -3049,22 +3017,22 @@
             return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;").replace(/'/g, "&#39;");
         }
 
-        function saveEditedDetailRecord(originalRecord) {
-            const form = document.getElementById("detailRecordForm");
-            if (!form) return;
+        function saveEditedDetailRecord(originalRecord, options = { silent: false }) {
+            const detailForm = document.getElementById("detailRecordForm");
+            if (!detailForm) return;
 
             const updatedRecord = {
-                rack: form.querySelector("[name='rack']").value || "",
-                posNo: form.querySelector("[name='posNo']").value.trim() || originalRecord.posNo || "-",
-                serialNumber: form.querySelector("[name='serialNumber']").value.trim() || originalRecord.serialNumber || "-",
-                fullName: form.querySelector("[name='fullName']").value.trim() || "-",
-                userId: form.querySelector("[name='userId']").value.trim() || "-",
-                address: form.querySelector("[name='address']").value.trim() || "-",
-                status: form.querySelector("[name='status']").value.trim() || originalRecord.status || "ACTIVE",
-                lokals: form.querySelector("[name='lokals']").value.trim() || "-",
-                noteIssue: form.querySelector("[name='noteIssue']").value.trim() || "-",
-                transferTo: form.querySelector("[name='transferTo']").value.trim() || "-",
-                columnJ: form.querySelector("[name='columnJ']").value.trim() || "-"
+                rack: detailForm.querySelector("[name='rack']").value || "",
+                posNo: detailForm.querySelector("[name='posNo']").value.trim() || originalRecord.posNo || "-",
+                serialNumber: detailForm.querySelector("[name='serialNumber']").value.trim() || originalRecord.serialNumber || "-",
+                fullName: detailForm.querySelector("[name='fullName']").value.trim() || "-",
+                userId: detailForm.querySelector("[name='userId']").value.trim() || "-",
+                address: detailForm.querySelector("[name='address']").value.trim() || "-",
+                status: detailForm.querySelector("[name='status']").value.trim() || originalRecord.status || "ACTIVE",
+                lokals: detailForm.querySelector("[name='lokals']").value.trim() || "-",
+                noteIssue: detailForm.querySelector("[name='noteIssue']").value.trim() || "-",
+                transferTo: detailForm.querySelector("[name='transferTo']").value.trim() || "-",
+                columnJ: detailForm.querySelector("[name='columnJ']").value.trim() || "-"
             };
 
             const storageKeys = getInventoryStorageKeys();
@@ -3086,8 +3054,10 @@
             updateSummaryDisplay(summaryData);
             populateInventoryTable(recordsData);
 
-            document.getElementById("detailViewModal").style.display = "none";
-            alert("Record updated successfully!");
+            if (!options.silent) {
+                document.getElementById("detailViewModal").style.display = "none";
+                alert("Record updated successfully!");
+            }
         }
 
         function showDetailView(record) {
@@ -3098,7 +3068,7 @@
 
             const statusOptions = ["ACTIVE", "DAMAGE", "LOST", "DISABLED", "NOT ACTIVE", "TEST UNIT"];
             const detailHTML = `
-                <div style="width: 100%; overflow: auto;">
+                <div id="detailRecordForm" style="width: 100%; overflow: auto;">
                     <table class="inventory-table" style="margin-top: 0; width: 100%; min-width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr>
@@ -3144,18 +3114,46 @@
 
                 <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
                     <button id="deleteDetailRecordBtn" type="button" style="background: #dc3545; color: white; border: none; border-radius: 8px; padding: 12px 18px; font-weight: 700; cursor: pointer;">Delete Record</button>
-                    <button id="saveDetailRecordBtn" type="button" style="background: #1e3a5f; color: white; border: none; border-radius: 8px; padding: 12px 18px; font-weight: 700; cursor: pointer;">Save Changes</button>
                 </div>
             `;
 
             document.getElementById("detailContent").innerHTML = detailHTML;
 
-            const saveBtn = document.getElementById("saveDetailRecordBtn");
-            if (saveBtn) {
-                saveBtn.addEventListener("click", function () {
-                    saveEditedDetailRecord(record);
+            const detailFields = document.querySelectorAll("#detailContent input, #detailContent select, #detailContent textarea");
+            const getFieldValue = (field) => {
+                if (field.tagName === "SELECT") return field.value || "";
+                return (field.value || "").trim();
+            };
+
+            detailFields.forEach((field) => {
+                const initialValue = getFieldValue(field);
+                field.dataset.originalValue = initialValue;
+                field.dataset.hasChanged = "false";
+
+                field.addEventListener("focus", function () {
+                    field.dataset.originalValue = getFieldValue(field);
+                    field.dataset.hasChanged = "false";
                 });
-            }
+
+                field.addEventListener("input", function () {
+                    const currentValue = getFieldValue(field);
+                    field.dataset.hasChanged = currentValue !== field.dataset.originalValue ? "true" : "false";
+                });
+
+                field.addEventListener("change", function () {
+                    const currentValue = getFieldValue(field);
+                    field.dataset.hasChanged = currentValue !== field.dataset.originalValue ? "true" : "false";
+                });
+
+                field.addEventListener("blur", function () {
+                    const currentValue = getFieldValue(field);
+                    if (field.dataset.hasChanged === "true" && currentValue !== field.dataset.originalValue) {
+                        saveEditedDetailRecord(record, { silent: true });
+                        field.dataset.originalValue = currentValue;
+                        field.dataset.hasChanged = "false";
+                    }
+                });
+            });
 
             const deleteBtn = document.getElementById("deleteDetailRecordBtn");
             if (deleteBtn) {

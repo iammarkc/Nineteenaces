@@ -24,6 +24,24 @@ body::before {
   pointer-events: none;
 }
 
+body::after {
+  position: absolute;
+  inset: 0;
+  background: url("https://upload.wikimedia.org/wikipedia/commons/a/ab/Rocket_Launch.gif") center / cover no-repeat;
+  content: "";
+  opacity: 0.22;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+@media (max-width: 600px) {
+  body::after {
+    background-position: center;
+    background-size: cover;
+    opacity: 0.16;
+  }
+}
+
 @keyframes loginAurora {
   0% {
     background-position: 0% 0%, 100% 100%, 0% 50%;
@@ -35,7 +53,7 @@ body::before {
 
 .form-signin {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   max-width: 330px;
   padding: 2.25rem 2rem 2rem;
   border: 1px solid rgba(186, 230, 253, 0.2);

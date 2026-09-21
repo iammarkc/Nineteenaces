@@ -44,7 +44,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="local-pos-report.html"><i class="bi bi-bar-chart-line me-2"></i>Local POS Report</a>
+            <a class="navbar-brand" href="local-pos-report.html"><i class="bi bi-bar-chart-line me-2"></i>Stations POS Report</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-lg-center">
@@ -53,7 +53,6 @@
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenu">
                             <li><a class="dropdown-item" href="inventory.html"><i class="bi bi-boxes me-2"></i>Inventory</a></li>
                             <li><a class="dropdown-item" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
-                            <li><a class="dropdown-item active" href="local-pos-report.html"><i class="bi bi-bar-chart-line me-2"></i>Local POS Report</a></li>
                             <li><button class="dropdown-item" id="changePasswordMenuBtn" type="button"><i class="bi bi-key me-2"></i>Change Password</button></li>
                             <li id="administratorMenuItem" style="display: none;"><a class="dropdown-item" href="administrator.html"><i class="bi bi-shield-lock me-2"></i>Administrator</a></li>
                         </ul>
@@ -68,8 +67,8 @@
     <main class="report-container">
         <header class="report-hero">
             <div>
-                <h1>Local POS Report</h1>
-                <p>Record the current POS counter for every Lokal across the Rizal area.</p>
+                <h1>Stations POS Report</h1>
+                <p>Record the current POS counter for every station across the Rizal area.</p>
             </div>
         </header>
 
@@ -79,7 +78,7 @@
 
         <section class="report-card" aria-labelledby="lokalsTitle">
             <div class="report-toolbar">
-                <h2 id="lokalsTitle"><i class="bi bi-geo-alt me-2"></i>Lokals</h2>
+                <h2 id="lokalsTitle"><i class="bi bi-geo-alt me-2"></i>Station</h2>
                 <div class="toolbar-actions">
                     <button class="btn btn-light btn-sm" id="exportReportBtn" type="button"><i class="bi bi-download me-1"></i>Export CSV</button>
                 </div>
@@ -107,6 +106,24 @@
         const currentAccount = accounts[accountName];
         const hasLocalPosReportPermission = currentAccount && (currentAccount.username === "admin" || currentAccount.role === "Developer" || (Array.isArray(currentAccount.permissions) && currentAccount.permissions.includes("localPosReport")));
         if (!hasLocalPosReportPermission) window.location.href = "index.html";
+
+        if (window.self !== window.top) {
+            const embeddedControls = [
+                document.getElementById("adminMenu"),
+                document.getElementById("userDisplay"),
+                document.getElementById("logoutBtn")
+            ];
+
+            embeddedControls.forEach(control => {
+                if (!control) return;
+                const parentItem = control.closest("li");
+                if (parentItem) {
+                    parentItem.style.display = "none";
+                } else {
+                    control.style.display = "none";
+                }
+            });
+        }
 
         const lokals = ["Angono", "Baras", "Binangonan", "Boso-Boso", "Cainta", "Cardona", "Cogeo", "Isla Binangonan", "Isla Cardona", "Jala-Jala 1", "Jala-Jala 2", "Kasiglahan", "Montalban", "Morong", "Pililla", "Sampaloc", "San Mateo", "Tanay", "TayTay", "Teresa", "Upper Antipolo"];
         const reportStorageKey = "localPosCounters";

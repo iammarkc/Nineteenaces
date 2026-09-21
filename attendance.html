@@ -75,7 +75,6 @@
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenu">
                             <li><a class="dropdown-item" id="attendanceInventoryMenuItem" href="inventory.html"><i class="bi bi-boxes me-2"></i>Inventory</a></li>
                             <li><a class="dropdown-item active" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
-                            <li><a class="dropdown-item" id="attendanceLocalPosReportMenuItem" href="local-pos-report.html"><i class="bi bi-bar-chart-line me-2"></i>Local POS Report</a></li>
                             <li><button class="dropdown-item" id="openClockModalMenuBtn" type="button"><i class="bi bi-clock me-2"></i>Clock in / out</button></li>
                             <li><button class="dropdown-item" id="changePasswordMenuBtn" type="button"><i class="bi bi-key me-2"></i>Change Password</button></li>
                             <li id="administratorMenuItem" style="display: none;"><a class="dropdown-item" href="administrator.html"><i class="bi bi-shield-lock me-2"></i>Administrator</a></li>
@@ -316,7 +315,6 @@
         if (administratorMenuItem && currentAccount && (currentAccount.role === "Developer" || accountName === "admin")) administratorMenuItem.style.display = "";
         if (!canEditAttendance) document.getElementById("clearAttendanceBtn").style.display = "none";
         const inventoryMenuItem = document.getElementById("attendanceInventoryMenuItem");
-        const localPosReportMenuItem = document.getElementById("attendanceLocalPosReportMenuItem");
         const hasInventoryPermission = currentAccount && (
             currentAccount.username === "admin" ||
             currentAccount.role === "Developer" ||
@@ -336,8 +334,6 @@
         } else {
             inventoryMenuItem.href = `inventory.html?office=${encodeURIComponent(landingOffice)}`;
         }
-        const hasLocalPosReportPermission = currentAccount && (currentAccount.username === "admin" || currentAccount.role === "Developer" || (Array.isArray(currentAccount.permissions) && currentAccount.permissions.includes("localPosReport")));
-        if (!hasLocalPosReportPermission && localPosReportMenuItem) localPosReportMenuItem.closest("li").style.display = "none";
         dateInput.value = today();
         clockDateInput.value = dateInput.value;
         const loggedInEmployee = currentAccount && currentAccount.name
