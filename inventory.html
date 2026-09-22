@@ -2628,6 +2628,14 @@
 
         document.getElementById("addAccountBtn")?.addEventListener("click", function (event) {
             event.preventDefault();
+            const accounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
+            const administratorPermission = document.getElementById("inventoryPermissionAdministrator");
+            const canGrantAdministrator = canManageAccountAccess(accounts);
+            if (administratorPermission) {
+                administratorPermission.disabled = !canGrantAdministrator;
+                administratorPermission.checked = canGrantAdministrator && administratorPermission.checked;
+                administratorPermission.closest(".account-permission-item").style.opacity = canGrantAdministrator ? "1" : "0.5";
+            }
             document.getElementById("inventoryAddUserModal").style.display = "flex";
         });
 
@@ -2855,19 +2863,20 @@
 
             try {
                 const accounts = await getInventoryAccounts();
-                if (!canManageAccountAccess(accounts)) {
-                    alert("Only Developer or admin can assign account roles and access permissions.");
-                    return;
-                }
                 if (accounts[username]) {
                     alert("Username already exists.");
                     return;
                 }
 
+                const canGrantAdministrator = canManageAccountAccess(accounts);
+                const safePermissions = canGrantAdministrator
+                    ? permissions
+                    : permissions.filter(permission => permission !== "administrator");
+
                 accounts[username] = {
                     name, username, email, password, office, role,
                     inventoryAccess: office === "Both" ? ["Rizal", "Cebu"] : inventoryAccess,
-                    permissions,
+                    permissions: safePermissions,
                     disabled: false
                 };
 
