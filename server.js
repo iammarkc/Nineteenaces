@@ -31,35 +31,13 @@ const DEFAULT_ACCOUNTS = {
     username: 'admin',
     name: 'System Administrator',
     email: 'admin@system.com',
-    password: 'Admin123!',
+    password: 'pbkdf2$120000$2XNgwntuJZcWoUj3o9W8cg$BWEuKPwR2cCnoXY-2bQ3TgNp3_OvNL_8yZEnvS55Hbc',
     role: 'Developer',
     permissions: ['inventory'],
     office: '',
     inventoryAccess: ['Rizal', 'Cebu'],
     disabled: false
   },
-  testuser: {
-    username: 'testuser',
-    name: 'Test User',
-    email: 'testuser@system.com',
-    password: 'Test123!',
-    role: 'User',
-    permissions: ['inventory'],
-    office: 'Rizal',
-    inventoryAccess: ['Rizal'],
-    disabled: false
-  },
-  demo: {
-    username: 'demo',
-    name: 'Demo User',
-    email: 'demo@system.com',
-    password: 'Demo123!',
-    role: 'User',
-    permissions: ['inventory'],
-    office: 'Cebu',
-    inventoryAccess: ['Cebu'],
-    disabled: false
-  }
 };
 
 async function ensureAccountsFile() {

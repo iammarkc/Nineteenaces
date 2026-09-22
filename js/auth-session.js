@@ -44,6 +44,13 @@
             session = null;
         }
 
+        if (!session) {
+            const legacyUsername = storage.getItem(LOGGED_IN_USER_KEY);
+            if (legacyUsername) {
+                return setSession(legacyUsername);
+            }
+        }
+
         if (!session || !session.username || !Number.isFinite(session.expiresAt) || Date.now() >= session.expiresAt) {
             removeStoredSession();
             return null;
@@ -72,8 +79,10 @@
         try {
             storage.setItem(SESSION_KEY, JSON.stringify(session));
             storage.setItem(LOGGED_IN_USER_KEY, session.username);
+            const storedSession = JSON.parse(storage.getItem(SESSION_KEY) || "null");
+            if (!storedSession || storedSession.username !== session.username) return null;
         } catch (error) {
-            // Keep the in-memory return value; restricted storage will require another login after navigation.
+            return null;
         }
         return session;
     }

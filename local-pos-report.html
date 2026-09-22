@@ -98,7 +98,7 @@
     <script src="js/firebase-shared.js?v=20260919-3"></script>
     <script src="js/password-security.js?v=20260919-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/sql.js@1.11.0/dist/sql-wasm.js"></script>
-    <script src="js/auth-session.js?v=20260921-1"></script>
+    <script src="js/auth-session.js?v=20260921-2"></script>
     <script src="js/sqlite-login.js?v=20260919-2"></script>
     <script src="js/change-password.js?v=20260919-4"></script>
     <script>
@@ -194,7 +194,7 @@
         userDisplay.querySelector(".user-display-name").textContent = displayName;
         userDisplay.querySelector(".user-display-username").textContent = `@${displayUsername}`;
         const administratorMenuItem = document.getElementById("administratorMenuItem");
-        if (administratorMenuItem && currentAccount && (currentAccount.role === "Developer" || accountName === "admin")) administratorMenuItem.style.display = "";
+        if (administratorMenuItem && currentAccount && (currentAccount.role === "Developer" || accountName === "admin" || (Array.isArray(currentAccount.permissions) && currentAccount.permissions.includes("administrator")))) administratorMenuItem.style.display = "";
         renderReport();
         refreshCountersFromInventory();
         window.setInterval(refreshCountersFromInventory, 10000);

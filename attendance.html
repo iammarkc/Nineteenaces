@@ -184,7 +184,7 @@
     </div>
 
     <script src="js/bootstrap.bundle.min.js"></script>
-    <script src="js/auth-session.js?v=20260921-1"></script>
+    <script src="js/auth-session.js?v=20260921-2"></script>
     <script src="js/firebase-shared.js?v=20260919-3"></script>
     <script src="js/password-security.js?v=20260919-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/sql.js@1.11.0/dist/sql-wasm.js"></script>
@@ -206,7 +206,9 @@
         const clockModal = document.getElementById("clockModal");
         const clockDateInput = document.getElementById("clockDate");
         const clockEmployeeInput = document.getElementById("clockEmployee");
-
+        const clockInButton = document.getElementById("clockInBtn");
+        const clockOutButton = document.getElementById("clockOutBtn");
+        const clockNotice = document.getElementById("clockNotice");
         function today() { return new Date().toISOString().slice(0, 10); }
         function readRecords() { try { return JSON.parse(localStorage.getItem(storageKey) || "{}"); } catch (error) { return {}; } }
         function writeRecords(records) {
@@ -356,8 +358,8 @@
             clockModal.classList.remove("active");
         });
         clockModal.addEventListener("click", event => { if (event.target === clockModal) clockModal.classList.remove("active"); });
-        document.getElementById("clockInBtn").addEventListener("click", () => updateClockTime("in"));
-        document.getElementById("clockOutBtn").addEventListener("click", () => updateClockTime("out"));
+        clockInButton.addEventListener("click", () => updateClockTime("in"));
+        clockOutButton.addEventListener("click", () => updateClockTime("out"));
         clockDateInput.addEventListener("change", () => { dateInput.value = clockDateInput.value; render(); });
         document.getElementById("logoutBtn").addEventListener("click", () => { if (window.authSession) window.authSession.logout(); else { localStorage.removeItem("loggedInUser"); sessionStorage.removeItem("loggedInUser"); } window.location.href = "index.html"; });
         const accountName = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser");
@@ -385,7 +387,7 @@
         const cebuInventoryItem = document.querySelector("[data-inventory-office='Cebu']");
         if (rizalInventoryItem) rizalInventoryItem.closest("li").style.display = isDeveloper || allowedInventoryOffices.includes("Rizal") ? "" : "none";
         if (cebuInventoryItem) cebuInventoryItem.closest("li").style.display = isDeveloper || allowedInventoryOffices.includes("Cebu") ? "" : "none";
-        setMenuItemVisibility("administratorMenuItem", isDeveloper);
+        setMenuItemVisibility("administratorMenuItem", isDeveloper || permissions.has("administrator"));
         setMenuItemVisibility("clearInventoryMenuBtn", isDeveloper);
         const canAddAccount = isDeveloper || permissions.has("addAccount");
         const canManageUsers = isDeveloper || permissions.has("users");

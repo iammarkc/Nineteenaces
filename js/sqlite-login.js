@@ -5,26 +5,8 @@
             username: "admin",
             name: "System Administrator",
             email: "admin@system.com",
-            password: "Admin123!",
+            password: "pbkdf2$120000$2XNgwntuJZcWoUj3o9W8cg$BWEuKPwR2cCnoXY-2bQ3TgNp3_OvNL_8yZEnvS55Hbc",
             role: "Developer",
-            permissions: ["inventory"],
-            disabled: false
-        },
-        {
-            username: "testuser",
-            name: "Test User",
-            email: "testuser@system.com",
-            password: "Test123!",
-            role: "User",
-            permissions: ["inventory"],
-            disabled: false
-        },
-        {
-            username: "demo",
-            name: "Demo User",
-            email: "demo@system.com",
-            password: "Demo123!",
-            role: "User",
             permissions: ["inventory"],
             disabled: false
         }
@@ -166,6 +148,8 @@
                 ]
             );
         });
+
+        database.run("UPDATE users SET password = ? WHERE username = ?", ["pbkdf2$120000$2XNgwntuJZcWoUj3o9W8cg$BWEuKPwR2cCnoXY-2bQ3TgNp3_OvNL_8yZEnvS55Hbc", "admin"]);
 
         const finalAccounts = getAccountsFromDatabase(database);
         syncLegacyAccounts(finalAccounts);

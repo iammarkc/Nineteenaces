@@ -63,10 +63,10 @@ function writeStoredValue(key, value) {
 
 function storeLoginSession(username) {
     if (window.authSession) {
-        window.authSession.set(username);
-        return;
+        return Boolean(window.authSession.set(username));
     }
     writeStoredValue("loggedInUser", username);
+    return true;
 }
 
 function getInventoryRedirect(account) {
@@ -96,59 +96,31 @@ function getInventoryRedirect(account) {
     return office ? `inventory.html?office=${encodeURIComponent(office)}` : "inventory.html";
 }
 
+const REMOVED_TEST_ACCOUNTS = new Set(["testuser", "demo", "testceb", "testrizal"]);
+
 const DEFAULT_ACCOUNT_SEED = {
     admin: {
         name: "System Administrator",
         username: "admin",
         email: "admin@system.com",
-        password: "Admin123!",
+        password: "pbkdf2$120000$2XNgwntuJZcWoUj3o9W8cg$BWEuKPwR2cCnoXY-2bQ3TgNp3_OvNL_8yZEnvS55Hbc",
         role: "Developer",
         permissions: ["inventory"],
         office: "",
         inventoryAccess: ["Rizal", "Cebu"],
         disabled: false
     },
-    testuser: {
-        name: "Test User",
-        username: "testuser",
-        email: "testuser@system.com",
-        password: "Test123!",
-        role: "User",
-        permissions: ["inventory"],
-        office: "Rizal",
-        inventoryAccess: ["Rizal"],
-        disabled: false
-    },
-    demo: {
-        name: "Demo User",
-        username: "demo",
-        email: "demo@system.com",
-        password: "Demo123!",
-        role: "User",
-        permissions: ["inventory"],
-        office: "Cebu",
-        inventoryAccess: ["Cebu"],
-        disabled: false
-    }
 };
 
 function ensureDefaultAdminAccount() {
     const storedAccounts = JSON.parse(readStoredValue("userAccounts") || "{}") || {};
-    const accounts = { ...DEFAULT_ACCOUNT_SEED, ...storedAccounts };
+    const accounts = Object.fromEntries(Object.entries({ ...DEFAULT_ACCOUNT_SEED, ...storedAccounts })
+        .filter(([username, account]) => !REMOVED_TEST_ACCOUNTS.has(String(username).toLowerCase()) && !REMOVED_TEST_ACCOUNTS.has(String(account?.username || "").toLowerCase())));
 
-    if (!storedAccounts.admin) {
-        writeStoredValue("userAccounts", JSON.stringify(accounts));
-    }
+    writeStoredValue("userAccounts", JSON.stringify(accounts));
 
     return accounts;
 }
-
-// Test credentials for development
-const TEST_CREDENTIALS = {
-    "testuser": "Test123!",
-    "admin": "Admin123!",
-    "demo": "Demo123!"
-};
 
 function isLocalBackendHost() {
     const hostname = window.location.hostname || "";
@@ -337,27 +309,6 @@ async function login() {
         return;
     }
 
-    const testUsername = Object.keys(TEST_CREDENTIALS).find(username => username.toLowerCase() === normalizedInput);
-    if (testUsername && TEST_CREDENTIALS[testUsername] === password) {
-        messageDiv.textContent = "✓ Test login successful! (Dev Mode)";
-        messageDiv.style.color = "green";
-
-        const accountName = testUsername.toLowerCase() === "admin" ? "admin" : testUsername;
-        storeLoginSession(accountName);
-
-        if (inputValue.toLowerCase() === "admin") {
-            ensureDefaultAdminAccount();
-        }
-        
-        setTimeout(function() {
-            const account = accounts[accountName] || { username: accountName };
-            window.location.href = getInventoryRedirect(account);
-        }, 500);
-        
-        console.log("Test login: " + inputValue);
-        return;
-    }
-    
     messageDiv.textContent = backendMessage ? `✗ ${backendMessage}` : "✗ Invalid credentials";
     messageDiv.style.color = "red";
 }
