@@ -8,46 +8,52 @@
     <link rel="icon" type="image/x-icon" href="images/icon256.ico">
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/bootstrap-icons.css">
+    <script src="js/theme-switch.js?v=20260928-1"></script>
+    <link rel="stylesheet" href="css/theme-switch.css?v=20260928-2">
     <style>
-        :root { --navy: #082f49; --blue: #0e7490; --cyan: #0891b2; --ink: #18344a; --muted: #607789; --line: #dce9ef; --bg: #eef4f8; }
+        :root { --navy: #082f49; --blue: #0e7490; --cyan: #0891b2; --ink: #18344a; --muted: #607789; --line: #dce9ef; --bg: #eef4f8; --surface: rgba(255,255,255,.92); --surface-solid: #ffffff; --surface-muted: #eff8fb; --field: #ffffff; --table-hover: #ecfeff; --menu-text: #1e3a5f; --menu-hover: #f0f4f9; }
+        :root[data-bs-theme="dark"] { color-scheme: dark; --navy: #b7e4f4; --blue: #54abc0; --cyan: #56c3d4; --ink: #e5edf3; --muted: #a8b8c5; --line: #354958; --bg: #111b24; --surface: #1a2934; --surface-solid: #1d2d39; --surface-muted: #243744; --field: #13212b; --table-hover: #263b48; --menu-text: #e1eaf0; --menu-hover: #2b3d49; }
         body { background: radial-gradient(circle at 8% 10%, rgba(34, 211, 238, .1), transparent 24%), radial-gradient(circle at 92% 35%, rgba(59, 130, 246, .08), transparent 28%), var(--bg); color: var(--ink); min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        :root[data-bs-theme="dark"] body { background: radial-gradient(circle at 8% 10%, rgba(34, 211, 238, .07), transparent 24%), radial-gradient(circle at 92% 35%, rgba(59, 130, 246, .06), transparent 28%), var(--bg); }
         .navbar { background: linear-gradient(110deg, #082f49 0%, #0e7490 52%, #155e75 100%) !important; box-shadow: 0 5px 24px rgba(8, 47, 73, 0.2); border-bottom: 1px solid rgba(255, 255, 255, 0.1); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+        :root[data-bs-theme="dark"] .navbar { background: linear-gradient(110deg, #10232e 0%, #174354 52%, #1b3b49 100%) !important; }
         .navbar-brand { font-size: 18px; font-weight: 700; letter-spacing: 0; display: inline-flex; align-items: center; gap: 4px; }
         .nav-link { font-weight: 500; font-size: 14px; margin: 0 10px; transition: color 0.3s ease; }
         .nav-link:hover { color: #e0e7ff !important; }
         .user-display { display: flex; flex-direction: column; justify-content: center; line-height: 1.15; }
         .user-display-name { white-space: nowrap; }
         .user-display-username { color: rgba(226, 233, 255, 0.7); font-size: 11px; font-weight: 400; margin-top: 3px; }
-        .dropdown-menu { background-color: #ffffff; border: 1px solid #e8eef7; border-radius: 6px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
-        .dropdown-item { color: #1e3a5f; font-weight: 500; font-size: 14px; padding: 10px 16px; transition: all 0.2s ease; }
-        .dropdown-item:hover { background-color: #f0f4f9; color: #1e3a5f; }
-        .dropdown-item.active { background-color: #e8eef7; color: #1e3a5f; }
-        .dropdown-divider { border-color: #e8eef7; margin: 6px 0; }
+        .dropdown-menu { background-color: var(--surface-solid); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        .dropdown-item { color: var(--menu-text); font-weight: 500; font-size: 14px; padding: 10px 16px; transition: all 0.2s ease; }
+        .dropdown-item:hover { background-color: var(--menu-hover); color: var(--menu-text); }
+        .dropdown-item.active { background-color: var(--surface-muted); color: var(--menu-text); }
+        .dropdown-divider { border-color: var(--line); margin: 6px 0; }
         .attendance-container { max-width: 1680px; margin: 32px auto 40px; padding: 0 20px; }
         .hero { position: relative; overflow: hidden; background: linear-gradient(110deg, var(--navy), var(--blue) 58%, #155e75); border-radius: 16px; color: white; padding: 38px 40px; margin-bottom: 28px; box-shadow: 0 14px 34px rgba(8,47,73,.18); }
         .hero::after { position: absolute; width: 260px; height: 260px; right: -70px; top: -120px; border: 1px solid rgba(186,230,253,.24); border-radius: 50%; box-shadow: 0 0 0 24px rgba(186,230,253,.05), 0 0 0 48px rgba(186,230,253,.035); content: ""; }
         .hero h1 { font-size: 30px; margin: 0 0 8px; font-weight: 700; }
         .hero p { margin: 0; opacity: .88; font-size: 15px; }
-        .card { background: rgba(255,255,255,.9); border: 1px solid rgba(186,211,224,.72); border-radius: 12px; box-shadow: 0 8px 24px rgba(15,54,76,.07); transition: transform .22s ease, box-shadow .22s ease; }
+        .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 8px 24px rgba(15,54,76,.07); transition: transform .22s ease, box-shadow .22s ease; }
         .card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(15,54,76,.12); }
+        :root[data-bs-theme="dark"] .card { box-shadow: 0 8px 24px rgba(0,0,0,.18); }
         .stat-card { padding: 24px; min-height: 146px; }
         .stat-label { color: var(--muted); text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: .4px; }
-        .stat-value { color: #0c4a6e; font-size: 38px; font-weight: 700; margin-top: 14px; }
+        .stat-value { color: var(--blue); font-size: 38px; font-weight: 700; margin-top: 14px; }
         .stat-icon { color: var(--blue); font-size: 23px; float: right; background: linear-gradient(145deg, #cffafe, #dbeafe); border-radius: 12px; padding: 10px 12px; }
         .card-header { background: linear-gradient(110deg, var(--navy), var(--blue)); color: white; border: 0; border-radius: 12px 12px 0 0; padding: 17px 20px; font-weight: 600; }
         .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--line); }
-        .toolbar input, .toolbar select { border: 1px solid #c8dce6; border-radius: 10px; padding: 10px 12px; color: var(--ink); background: rgba(255,255,255,.86); transition: border-color .18s ease, box-shadow .18s ease; }
+        .toolbar input, .toolbar select { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; color: var(--ink); background: var(--field); transition: border-color .18s ease, box-shadow .18s ease; }
         .toolbar input:focus, .toolbar select:focus { border-color: #22b8cf; box-shadow: 0 0 0 .2rem rgba(34,184,207,.13); outline: none; }
         .toolbar input { flex: 1 1 220px; }
         .toolbar select { min-width: 140px; }
         .btn-primary { background: linear-gradient(135deg, #0891b2, #2563eb); border: 0; border-radius: 8px; font-weight: 600; }
         .btn-primary:hover { background: linear-gradient(135deg, #0e7490, #1d4ed8); }
         .attendance-table { width: 100%; min-width: 760px; border-collapse: collapse; }
-        .attendance-table th { color: var(--navy); background: #eff8fb; text-transform: uppercase; font-size: 12px; letter-spacing: .3px; padding: 13px 16px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
-        .attendance-table td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid #eef2f6; vertical-align: middle; }
+        .attendance-table th { color: var(--navy); background: var(--surface-muted); text-transform: uppercase; font-size: 12px; letter-spacing: .3px; padding: 13px 16px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+        .attendance-table td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
         .time-editable { cursor: pointer; }
         .attendance-table tbody tr { transition: background .18s ease; }
-        .attendance-table tbody tr:hover { background: #ecfeff; }
+        .attendance-table tbody tr:hover { background: var(--table-hover); }
         .attendance-view-tabs { display: flex; gap: 6px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
         .attendance-view-tab { padding: 10px 14px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--muted); font-weight: 700; cursor: pointer; }
         .attendance-view-tab.active, .attendance-view-tab:hover { border-bottom-color: var(--cyan); color: var(--navy); }
@@ -56,15 +62,22 @@
         .task-form { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; align-items: end; padding: 18px 20px; border-bottom: 1px solid var(--line); }
         .task-form-field { display: flex; flex-direction: column; gap: 6px; }
         .task-form-field label { color: var(--muted); font-size: 12px; font-weight: 700; }
-        .task-form input, .task-form select { min-width: 0; padding: 9px 10px; border: 1px solid #c8dce6; border-radius: 6px; color: var(--ink); background: white; }
+        .task-form input, .task-form select { min-width: 0; padding: 9px 10px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--field); }
         .task-form .task-description { grid-column: 1 / -1; }
         .task-toolbar { display: flex; gap: 10px; align-items: center; padding: 16px 20px; }
-        .task-toolbar input, .task-toolbar select { min-width: 0; padding: 9px 10px; border: 1px solid #c8dce6; border-radius: 6px; color: var(--ink); background: white; }
+        .task-toolbar input, .task-toolbar select { min-width: 0; padding: 9px 10px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--field); }
         .task-toolbar input { flex: 1 1 220px; }
         .tasks-table { width: 100%; min-width: 800px; border-collapse: collapse; }
-        .tasks-table th { padding: 12px 14px; color: var(--navy); background: #eff8fb; font-size: 12px; text-align: left; text-transform: uppercase; }
-        .tasks-table td { padding: 12px 14px; border-top: 1px solid #eef2f6; font-size: 13px; vertical-align: middle; }
-        .task-status-select { min-width: 120px; padding: 6px 8px; border: 1px solid #c8dce6; border-radius: 5px; background: white; color: var(--ink); }
+        .tasks-table th { padding: 12px 14px; color: var(--navy); background: var(--surface-muted); font-size: 12px; text-align: left; text-transform: uppercase; }
+        .tasks-table td { padding: 12px 14px; border-top: 1px solid var(--line); font-size: 13px; vertical-align: middle; }
+        .task-status-badge { display: inline-block; padding: 5px 9px; border-radius: 4px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+        .task-status-pending { color: #745500; background: #fff0b3; }
+        .task-status-in-progress { color: #8b1e24; background: #fbd9dc; }
+        .task-status-completed { color: #17633a; background: #dff4e7; }
+        .task-status-select { min-width: 120px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 5px; color: var(--ink); background: var(--field); font-weight: 700; }
+        .task-status-select.task-status-pending { border-color: #e7cf78; }
+        .task-status-select.task-status-in-progress { border-color: #e3a0a5; }
+        .task-status-select.task-status-completed { border-color: #8ac6a0; }
         .task-description { color: var(--muted); margin-top: 4px; }
         .task-notice { margin: 0; padding: 0 20px 14px; color: #8b2830; font-size: 13px; }
         .status { border-radius: 4px; padding: 4px 9px; font-size: 12px; font-weight: 700; }
@@ -72,7 +85,7 @@
         .status-late { color: #815b00; background: #fff0c2; }
         .status-absent { color: #8b2830; background: #fbe1e3; }
         .status-pending { color: #586b7d; background: #e9eef3; }
-        .action-btn { border: 1px solid #d8e1eb; background: white; color: var(--navy); border-radius: 5px; padding: 5px 8px; margin-right: 4px; }
+        .action-btn { border: 1px solid var(--line); background: var(--surface-solid); color: var(--navy); border-radius: 5px; padding: 5px 8px; margin-right: 4px; }
         .action-btn:hover { background: #edf3f9; }
         .clock-modal { position: fixed; inset: 0; z-index: 2300; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(10, 17, 29, .72); }
         .clock-modal.active { display: flex; }
@@ -82,13 +95,26 @@
         body.embedded-change-password { min-height: 100%; overflow: hidden; background: transparent; }
         body.embedded-change-password > nav, body.embedded-change-password > main, body.embedded-change-password > #clockModal { display: none !important; }
         body.embedded-change-password #changePasswordModal { display: flex; background: transparent; padding: 12px; }
-        .clock-modal-content { width: min(680px, 100%); max-height: 90vh; overflow-y: auto; background: white; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.28); }
+        .clock-modal-content { width: min(680px, 100%); max-height: 90vh; overflow-y: auto; background: var(--surface-solid); color: var(--ink); border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.28); }
         .clock-modal-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 22px; color: white; background: linear-gradient(110deg, var(--navy), var(--blue)); }
         .clock-modal-body { padding: 22px; }
         .clock-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
         .clock-field[hidden], .task-form[hidden] { display: none !important; }
         .clock-field label { color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; }
-        .clock-field input, .clock-field select { border: 1px solid #d8e1eb; border-radius: 6px; padding: 10px 12px; color: var(--ink); background: white; }
+        .clock-field input, .clock-field select { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; color: var(--ink); background: var(--field); }
+        :root[data-bs-theme="dark"] .btn-light { --bs-btn-color: var(--ink); --bs-btn-bg: #304552; --bs-btn-border-color: #415866; --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #3b5665; --bs-btn-hover-border-color: #526c7b; --bs-btn-active-color: #fff; --bs-btn-active-bg: #3b5665; --bs-btn-active-border-color: #526c7b; }
+        :root[data-bs-theme="dark"] .btn-secondary { --bs-btn-color: #fff; --bs-btn-bg: #465967; --bs-btn-border-color: #526674; --bs-btn-hover-bg: #536775; --bs-btn-hover-border-color: #627683; }
+        :root[data-bs-theme="dark"] .btn-outline-danger { --bs-btn-color: #ff9da3; --bs-btn-border-color: #bd626b; --bs-btn-hover-bg: #8b2830; --bs-btn-hover-border-color: #8b2830; --bs-btn-hover-color: #fff; }
+        :root[data-bs-theme="dark"] .status-pending { color: #d5c17e; background: #40391f; }
+        :root[data-bs-theme="dark"] .status-present { color: #9ed9af; background: #1e3b2b; }
+        :root[data-bs-theme="dark"] .status-late { color: #edcc7a; background: #40351b; }
+        :root[data-bs-theme="dark"] .status-absent { color: #f1a4a8; background: #45252a; }
+        :root[data-bs-theme="dark"] .task-status-pending { color: #f0d777; background: #463c1c; }
+        :root[data-bs-theme="dark"] .task-status-in-progress { color: #ffb0b4; background: #49282d; }
+        :root[data-bs-theme="dark"] .task-status-completed { color: #a5dfb4; background: #1e3c2b; }
+        :root[data-bs-theme="dark"] .task-notice { color: #ffadb2; }
+        :root[data-bs-theme="dark"] .empty-state { color: var(--muted); }
+        :root[data-bs-theme="dark"] #clearTasksDescription, :root[data-bs-theme="dark"] #clearAttendanceDescription, :root[data-bs-theme="dark"] #clockNotice { color: var(--muted) !important; }
         .clock-actions { display: flex; gap: 10px; flex-wrap: wrap; }
         .empty-state { color: var(--muted); text-align: center; padding: 38px 16px !important; }
         @media (max-width: 760px) { .task-form { grid-template-columns: 1fr 1fr; } .task-form .task-description { grid-column: 1 / -1; } }
@@ -106,6 +132,9 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <li class="nav-item d-flex align-items-center ms-2">
+                        <label class="theme-switch" for="themeToggleBtn" title="Toggle light and dark mode"><input id="themeToggleBtn" type="checkbox" role="switch" aria-label="Dark mode" aria-checked="false"><span class="theme-switch-track" aria-hidden="true"><i class="bi bi-sun-fill"></i><i class="bi bi-moon-stars-fill"></i><span class="theme-switch-thumb"><i class="bi bi-sun-fill"></i></span></span></label>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-list me-1"></i>Menu
@@ -264,7 +293,7 @@
 
     <script src="js/bootstrap.bundle.min.js"></script>
     <script src="js/auth-session.js?v=20260921-2"></script>
-    <script src="js/firebase-shared.js?v=20260928-2"></script>
+    <script src="js/firebase-shared.js?v=20260928-3"></script>
     <script src="js/password-security.js?v=20260919-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/sql.js@1.11.0/dist/sql-wasm.js"></script>
     <script src="js/sqlite-login.js?v=20260919-2"></script>
@@ -340,12 +369,17 @@
             taskNotice.textContent = message;
             taskNotice.hidden = !message;
         }
+        function taskStatusClass(status) {
+            if (status === "Completed") return "task-status-completed";
+            if (status === "In Progress") return "task-status-in-progress";
+            return "task-status-pending";
+        }
         function renderAttendanceTasks() {
             const searchTerm = taskSearchInput.value.trim().toLowerCase();
             const selectedStatus = taskStatusFilter.value;
             const visibleTasks = canManageAttendanceTasks ? attendanceTasks.filter(task => (selectedStatus === "All" || task.status === selectedStatus) && (!searchTerm || `${task.title} ${task.description} ${task.assignedToName} ${task.assignedTo} ${task.office}`.toLowerCase().includes(searchTerm))) : [];
             document.getElementById("taskCountLabel").textContent = `${visibleTasks.length} ${visibleTasks.length === 1 ? "task" : "tasks"}`;
-            assignedTasksBody.innerHTML = visibleTasks.length ? visibleTasks.map(task => `<tr><td><strong>${escapeHtml(task.title)}</strong>${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ""}</td><td>${escapeHtml(task.type || "Task")}</td><td>${escapeHtml(task.priority || "Normal")}</td><td>${escapeHtml(task.assignedToName)}<div class="task-description">@${escapeHtml(task.assignedTo)}</div></td><td>${escapeHtml(task.office || "Unassigned")}</td><td>${escapeHtml(task.dueDate || "-")}</td><td>${escapeHtml(task.status || "Pending")}</td><td>${canDeleteAttendanceTasks ? `<button class="action-btn" data-task-delete-id="${escapeHtml(task.id)}" type="button" aria-label="Delete ${escapeHtml(task.title)}" title="Delete task"><i class="bi bi-trash"></i></button>` : "-"}</td></tr>`).join("") : `<tr><td class="empty-state" colspan="8">No assigned tasks found.</td></tr>`;
+            assignedTasksBody.innerHTML = visibleTasks.length ? visibleTasks.map(task => `<tr><td><strong>${escapeHtml(task.title)}</strong>${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ""}</td><td>${escapeHtml(task.type || "Task")}</td><td>${escapeHtml(task.priority || "Normal")}</td><td>${escapeHtml(task.assignedToName)}<div class="task-description">@${escapeHtml(task.assignedTo)}</div></td><td>${escapeHtml(task.office || "Unassigned")}</td><td>${escapeHtml(task.dueDate || "-")}</td><td><span class="task-status-badge ${taskStatusClass(task.status)}">${escapeHtml(task.status || "Pending")}</span></td><td>${canDeleteAttendanceTasks ? `<button class="action-btn" data-task-delete-id="${escapeHtml(task.id)}" type="button" aria-label="Delete ${escapeHtml(task.title)}" title="Delete task"><i class="bi bi-trash"></i></button>` : "-"}</td></tr>`).join("") : `<tr><td class="empty-state" colspan="8">No assigned tasks found.</td></tr>`;
             renderMyTasks();
         }
         function renderMyTasks() {
@@ -353,7 +387,7 @@
             const selectedStatus = myTaskStatusFilter.value;
             const visibleTasks = attendanceTasks.filter(task => task.assignedTo === loggedInUsername && (selectedStatus === "All" || task.status === selectedStatus) && (!searchTerm || `${task.title} ${task.description} ${task.office}`.toLowerCase().includes(searchTerm)));
             document.getElementById("myTaskCountLabel").textContent = `${visibleTasks.length} ${visibleTasks.length === 1 ? "task" : "tasks"}`;
-            myTasksBody.innerHTML = visibleTasks.length ? visibleTasks.map(task => `<tr><td><strong>${escapeHtml(task.title)}</strong>${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ""}</td><td>${escapeHtml(task.type || "Task")}</td><td>${escapeHtml(task.priority || "Normal")}</td><td>${escapeHtml(task.office || "Unassigned")}</td><td>${escapeHtml(task.dueDate || "-")}</td><td><select class="task-status-select" data-my-task-status-id="${escapeHtml(task.id)}" aria-label="Update ${escapeHtml(task.title)} status"><option ${task.status === "Pending" ? "selected" : ""}>Pending</option><option ${task.status === "In Progress" ? "selected" : ""}>In Progress</option><option ${task.status === "Completed" ? "selected" : ""}>Completed</option></select></td></tr>`).join("") : `<tr><td class="empty-state" colspan="6">No tasks have been assigned to you.</td></tr>`;
+            myTasksBody.innerHTML = visibleTasks.length ? visibleTasks.map(task => `<tr><td><strong>${escapeHtml(task.title)}</strong>${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ""}</td><td>${escapeHtml(task.type || "Task")}</td><td>${escapeHtml(task.priority || "Normal")}</td><td>${escapeHtml(task.office || "Unassigned")}</td><td>${escapeHtml(task.dueDate || "-")}</td><td><select class="task-status-select ${taskStatusClass(task.status)}" data-my-task-status-id="${escapeHtml(task.id)}" aria-label="Update ${escapeHtml(task.title)} status"><option ${task.status === "Pending" ? "selected" : ""}>Pending</option><option ${task.status === "In Progress" ? "selected" : ""}>In Progress</option><option ${task.status === "Completed" ? "selected" : ""}>Completed</option></select></td></tr>`).join("") : `<tr><td class="empty-state" colspan="6">No tasks have been assigned to you.</td></tr>`;
         }
         function openTasksExportDialog() {
             if (!canManageAttendanceTasks) return;

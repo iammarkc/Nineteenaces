@@ -7,6 +7,8 @@
     <link rel="icon" type="image/x-icon" href="images/icon256.ico">
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/bootstrap-icons.css">
+    <script src="js/theme-switch.js?v=20260928-1"></script>
+    <link rel="stylesheet" href="css/theme-switch.css?v=20260928-2">
     <style>
         :root { --ink: #1c3552; --muted: #8793a2; --line: #d9d9d9; --sidebar: #e7e8e9; --yellow: #ffc800; --cyan: #49c1d1; }
         * { box-sizing: border-box; }
@@ -106,6 +108,9 @@
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <li class="nav-item d-flex align-items-center ms-2">
+                        <label class="theme-switch" for="themeToggleBtn" title="Toggle light and dark mode"><input id="themeToggleBtn" type="checkbox" role="switch" aria-label="Dark mode" aria-checked="false"><span class="theme-switch-track" aria-hidden="true"><i class="bi bi-sun-fill"></i><i class="bi bi-moon-stars-fill"></i><span class="theme-switch-thumb"><i class="bi bi-sun-fill"></i></span></span></label>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" aria-expanded="false"><i class="bi bi-list me-1"></i>Menu</a>
                         <ul class="dropdown-menu dropdown-menu-end" id="adminDropdown" aria-labelledby="adminMenu">
@@ -214,7 +219,7 @@
         </section>
     </main>
     <script src="js/auth-session.js?v=20260921-2"></script>
-    <script src="js/firebase-shared.js?v=20260928-1"></script>
+    <script src="js/firebase-shared.js?v=20260928-3"></script>
     <script>
         const username = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser");
         const accounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");

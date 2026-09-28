@@ -75,6 +75,16 @@
         if (!response.ok) throw new Error(`Firestore account delete failed: ${response.status}`);
     }
 
+    async function saveAccountThemeToFirestore(username, theme) {
+        const params = new URLSearchParams({ key: firebaseConfig.apiKey, "updateMask.fieldPaths": "theme" });
+        const response = await fetch(`${firestoreRestBase}/accounts/${encodeURIComponent(username)}?${params.toString()}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fields: { theme: toFirestoreValue(theme) } })
+        });
+        if (!response.ok) throw new Error(`Account theme update failed: ${response.status}`);
+    }
+
     async function loadAttendanceFromFirestore() {
         const documents = await loadFirestoreCollection("attendanceRecords");
         return documents.reduce((records, document) => {
@@ -253,6 +263,7 @@
         ready: window.sharedAttendance.ready,
         load: () => window.sharedAttendance.loadAccounts(),
         save: accounts => window.sharedAttendance.saveAccounts(accounts),
+        saveTheme: (username, theme) => saveAccountThemeToFirestore(username, theme),
         delete: username => window.sharedAttendance.deleteAccount(username)
     };
 })();
