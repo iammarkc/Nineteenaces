@@ -4,6 +4,12 @@ service cloud.firestore {
     match /attendanceRecords/{recordId} {
       allow read, write: if true;
     }
+    match /attendanceHistory/{entryId} {
+      allow read, write: if true;
+    }
+    match /attendanceTasks/{taskId} {
+      allow read, write: if true;
+    }
     match /accounts/{username} {
       allow read, write: if true;
     }

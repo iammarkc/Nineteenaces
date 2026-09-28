@@ -95,6 +95,53 @@
         }));
     }
 
+    async function loadAttendanceHistoryFromFirestore() {
+        const documents = await loadFirestoreCollection("attendanceHistory");
+        return documents.map(document => ({
+            id: document.name.split("/").pop(),
+            ...Object.keys(document.fields || {}).reduce((entry, key) => ({ ...entry, [key]: fromFirestoreValue(document.fields[key]) }), {})
+        }));
+    }
+
+    async function saveAttendanceHistoryToFirestore(entry) {
+        const response = await fetch(`${firestoreRestBase}/attendanceHistory/${encodeURIComponent(entry.id)}?key=${firebaseConfig.apiKey}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fields: Object.keys(entry).reduce((fields, key) => ({ ...fields, [key]: toFirestoreValue(entry[key]) }), {}) })
+        });
+        if (!response.ok) throw new Error(`Firestore attendance history write failed: ${response.status}`);
+    }
+
+    async function loadAttendanceTasksFromFirestore() {
+        const documents = await loadFirestoreCollection("attendanceTasks");
+        return documents.map(document => ({
+            id: document.name.split("/").pop(),
+            ...Object.keys(document.fields || {}).reduce((task, key) => ({ ...task, [key]: fromFirestoreValue(document.fields[key]) }), {})
+        }));
+    }
+
+    async function saveAttendanceTasksToFirestore(tasks) {
+        const existingDocuments = await loadFirestoreCollection("attendanceTasks");
+        const taskIds = new Set(tasks.map(task => task.id));
+        await Promise.all([
+            ...tasks.map(async task => {
+                const response = await fetch(`${firestoreRestBase}/attendanceTasks/${encodeURIComponent(task.id)}?key=${firebaseConfig.apiKey}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ fields: Object.keys(task).reduce((fields, key) => ({ ...fields, [key]: toFirestoreValue(task[key]) }), {}) })
+                });
+                if (!response.ok) throw new Error(`Firestore attendance task write failed: ${response.status}`);
+            }),
+            ...existingDocuments
+                .filter(document => !taskIds.has(document.name.split("/").pop()))
+                .map(async document => {
+                    const taskId = document.name.split("/").pop();
+                    const response = await fetch(`${firestoreRestBase}/attendanceTasks/${encodeURIComponent(taskId)}?key=${firebaseConfig.apiKey}`, { method: "DELETE" });
+                    if (!response.ok) throw new Error(`Firestore attendance task delete failed: ${response.status}`);
+                })
+        ]);
+    }
+
     async function clearAttendanceFromFirestore(date) {
         return clearAttendanceRangeFromFirestore(date, date);
     }
@@ -163,6 +210,18 @@
                 [key]: { ...record, date: record.date || key.split(":")[0] }
             }), {});
             return saveAttendanceToFirestore(normalizedRecords);
+        },
+        async loadHistory() {
+            return loadAttendanceHistoryFromFirestore();
+        },
+        async saveHistory(entry) {
+            return saveAttendanceHistoryToFirestore(entry);
+        },
+        async loadTasks() {
+            return loadAttendanceTasksFromFirestore();
+        },
+        async saveTasks(tasks) {
+            return saveAttendanceTasksToFirestore(tasks);
         },
         async clearDate(date) {
             return clearAttendanceFromFirestore(date);

@@ -144,6 +144,7 @@
                 <button class="active" type="button" id="trackPosBtn"><i class="bi bi-geo-alt"></i>Track POS</button>
                 <button type="button" id="usersBtn"><i class="bi bi-people"></i>Users</button>
                 <button type="button" id="editHistoryBtn"><i class="bi bi-clock-history"></i>Edit History</button>
+                <button type="button" id="attendanceHistoryBtn"><i class="bi bi-calendar2-check"></i>Attendance History</button>
                 <button type="button" id="deleteRecordBtn"><i class="bi bi-trash3"></i>Delete Record</button>
             </nav>
         </aside>
@@ -186,6 +187,18 @@
                     <div class="history-list" id="historyList"></div>
                 </div>
             </div>
+            <div class="history-panel" id="attendanceHistoryPanel">
+                <h2><i class="bi bi-calendar2-check me-2"></i>Attendance History</h2>
+                <div class="history-tabs" role="tablist" aria-label="Attendance history offices">
+                    <button class="history-tab active" id="attendanceHistoryRizalBtn" type="button" role="tab">Rizal</button>
+                    <button class="history-tab" id="attendanceHistoryCebuBtn" type="button" role="tab">Cebu</button>
+                </div>
+                <div class="history-filters">
+                    <input id="attendanceHistorySearchInput" type="search" placeholder="Search employee, editor, username, or change..." aria-label="Search attendance history">
+                    <input id="attendanceHistoryDateInput" type="date" aria-label="Filter attendance history by edit date">
+                </div>
+                <div class="history-list-scroll"><div class="history-list" id="attendanceHistoryList"></div></div>
+            </div>
             <div class="history-panel" id="deleteRecordPanel">
                 <h2><i class="bi bi-trash3 me-2"></i>Delete Record</h2>
                 <div class="history-tabs" role="tablist" aria-label="Deleted inventory offices">
@@ -201,7 +214,7 @@
         </section>
     </main>
     <script src="js/auth-session.js?v=20260921-2"></script>
-    <script src="js/firebase-shared.js?v=20260919-4"></script>
+    <script src="js/firebase-shared.js?v=20260928-1"></script>
     <script>
         const username = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser");
         const accounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
@@ -219,12 +232,19 @@
         const trackPosBtn = document.getElementById("trackPosBtn");
         const usersBtn = document.getElementById("usersBtn");
         const editHistoryBtn = document.getElementById("editHistoryBtn");
+        const attendanceHistoryBtn = document.getElementById("attendanceHistoryBtn");
         const deleteRecordBtn = document.getElementById("deleteRecordBtn");
         const statusSection = document.querySelector(".status-section");
         const mapPanel = document.getElementById("mapPanel");
         const usersPanel = document.getElementById("usersPanel");
         const historyPanel = document.getElementById("historyPanel");
         const historyList = document.getElementById("historyList");
+        const attendanceHistoryPanel = document.getElementById("attendanceHistoryPanel");
+        const attendanceHistoryList = document.getElementById("attendanceHistoryList");
+        const attendanceHistorySearchInput = document.getElementById("attendanceHistorySearchInput");
+        const attendanceHistoryDateInput = document.getElementById("attendanceHistoryDateInput");
+        const attendanceHistoryRizalBtn = document.getElementById("attendanceHistoryRizalBtn");
+        const attendanceHistoryCebuBtn = document.getElementById("attendanceHistoryCebuBtn");
         const historyRizalBtn = document.getElementById("historyRizalBtn");
         const historyCebuBtn = document.getElementById("historyCebuBtn");
         const deleteRecordPanel = document.getElementById("deleteRecordPanel");
@@ -236,9 +256,11 @@
         const historySearchInput = document.getElementById("historySearchInput");
         const historyDateInput = document.getElementById("historyDateInput");
         let loadedHistoryEntries = [];
+        let loadedAttendanceHistoryEntries = [];
         let loadedDeletedRecords = [];
         let selectedDeletedOffice = account && account.office === "Cebu" ? "Cebu" : "Rizal";
         let selectedHistoryOffice = account && account.office === "Cebu" ? "Cebu" : "Rizal";
+        let selectedAttendanceHistoryOffice = account && account.office === "Cebu" ? "Cebu" : "Rizal";
         const usersLoading = document.getElementById("usersLoading");
         const usersTable = document.getElementById("usersTable");
         const usersTableBody = document.getElementById("usersTableBody");
@@ -323,6 +345,82 @@
             loadedHistoryEntries = entries.map(entry => ({ ...entry, office }));
             loadedHistoryEntries.sort((first, second) => getHistoryTimestamp(second) - getHistoryTimestamp(first));
             renderFilteredHistory();
+        }
+        async function loadAttendanceHistoryPanel() {
+            let entries = [];
+            let attendanceRecords = {};
+            try {
+                const localEntries = JSON.parse(localStorage.getItem("attendanceEditHistory") || "[]");
+                if (Array.isArray(localEntries)) entries = localEntries;
+            } catch (error) {
+                console.warn("Local attendance edit history could not be loaded.", error);
+            }
+            try {
+                const localRecords = JSON.parse(localStorage.getItem("attendanceRecords") || "{}");
+                if (localRecords && typeof localRecords === "object") attendanceRecords = localRecords;
+            } catch (error) {
+                console.warn("Local attendance records could not be loaded for history office lookup.", error);
+            }
+            if (window.sharedAttendance?.loadHistory) {
+                try {
+                    const remoteEntries = await window.sharedAttendance.loadHistory();
+                    entries = [...remoteEntries, ...entries].reduce((uniqueEntries, entry) => {
+                        const id = entry.id || `${entry.timestamp}|${entry.username}|${entry.employeeId}`;
+                        if (!uniqueEntries.some(existing => existing.id === id)) uniqueEntries.push({ ...entry, id });
+                        return uniqueEntries;
+                    }, []);
+                } catch (error) {
+                    console.warn("Shared attendance edit history could not be loaded.", error);
+                }
+            }
+            if (window.sharedAttendance?.load) {
+                try {
+                    attendanceRecords = { ...attendanceRecords, ...await window.sharedAttendance.load() };
+                } catch (error) {
+                    console.warn("Shared attendance records could not be loaded for history office lookup.", error);
+                }
+            }
+            const embeddedEntries = Object.values(attendanceRecords).flatMap(record => Array.isArray(record?.auditHistory) ? record.auditHistory : []);
+            entries = [...entries, ...embeddedEntries].reduce((uniqueEntries, entry) => {
+                const id = entry.id || `${entry.timestamp}|${entry.username}|${entry.employeeId}`;
+                if (!uniqueEntries.some(existing => existing.id === id)) uniqueEntries.push({ ...entry, id });
+                return uniqueEntries;
+            }, []);
+            entries = entries.map(entry => ({
+                ...entry,
+                office: entry.office || attendanceRecords[`${entry.workDate}:${entry.employeeId}`]?.office || ""
+            }));
+            loadedAttendanceHistoryEntries = entries.sort((first, second) => new Date(second.timestamp) - new Date(first.timestamp));
+            renderFilteredAttendanceHistory();
+        }
+        function renderFilteredAttendanceHistory() {
+            const searchTerm = attendanceHistorySearchInput.value.trim().toLowerCase();
+            const selectedDate = attendanceHistoryDateInput.value;
+            const entries = loadedAttendanceHistoryEntries.filter(entry => {
+                const searchableText = [entry.employeeName, entry.employeeId, entry.editorName, entry.username, entry.workDate, entry.office, ...(entry.changes || []).flatMap(change => [change.field, change.oldValue, change.newValue])].join(" ").toLowerCase();
+                const timestamp = entry.timestamp ? new Date(entry.timestamp) : null;
+                const editDate = timestamp && !Number.isNaN(timestamp.getTime()) ? timestamp.toISOString().slice(0, 10) : "";
+                const officeMatches = entry.office === selectedAttendanceHistoryOffice || entry.office === "Both Offices";
+                return officeMatches && (!searchTerm || searchableText.includes(searchTerm)) && (!selectedDate || editDate === selectedDate);
+            });
+            attendanceHistoryList.innerHTML = entries.length ? entries.slice(0, 500).map(entry => {
+                const timestamp = new Date(entry.timestamp);
+                const formattedTimestamp = Number.isNaN(timestamp.getTime()) ? "Unknown time" : timestamp.toLocaleString();
+                const changes = Array.isArray(entry.changes) ? entry.changes : [];
+                return `
+                    <div class="history-entry">
+                        <strong>${escapeHtml(entry.employeeName || entry.employeeId || "Unknown employee")}</strong> (${escapeHtml(entry.employeeId || "-")}) · Work date: ${escapeHtml(entry.workDate || "-")}
+                        <div class="history-values">${changes.map(change => `<div><strong>${escapeHtml(change.field)}:</strong> ${escapeHtml(change.oldValue || "-")} <i class="bi bi-arrow-right"></i> ${escapeHtml(change.newValue || "-")}</div>`).join("")}</div>
+                        <small>${escapeHtml(entry.office || "Unassigned")} · Editor: ${escapeHtml(entry.editorName || "Unknown")} · Username: ${escapeHtml(entry.username || "Unknown")} · Edited: ${escapeHtml(formattedTimestamp)}</small>
+                    </div>
+                `;
+            }).join("") : '<div class="users-loading">No matching attendance history found.</div>';
+        }
+        function selectAttendanceHistoryOffice(office) {
+            selectedAttendanceHistoryOffice = office;
+            attendanceHistoryRizalBtn.classList.toggle("active", office === "Rizal");
+            attendanceHistoryCebuBtn.classList.toggle("active", office === "Cebu");
+            renderFilteredAttendanceHistory();
         }
         function getHistoryTimestamp(entry) {
             const timestamp = entry?.timestamp ? new Date(entry.timestamp).getTime() : NaN;
@@ -526,19 +624,27 @@
             const showMap = tab === "trackPos";
             const showUsers = tab === "users";
             const showHistory = tab === "editHistory";
+            const showAttendanceHistory = tab === "attendanceHistory";
             const showDeletedRecords = tab === "deleteRecord";
-            statusSection.style.display = showMap || showUsers || showHistory || showDeletedRecords ? "none" : "block";
+            statusSection.style.display = showMap || showUsers || showHistory || showAttendanceHistory || showDeletedRecords ? "none" : "block";
             mapPanel.classList.toggle("visible", showMap);
             usersPanel.classList.toggle("visible", showUsers);
             historyPanel.classList.toggle("visible", showHistory);
+            attendanceHistoryPanel.classList.toggle("visible", showAttendanceHistory);
             deleteRecordPanel.classList.toggle("visible", showDeletedRecords);
             trackPosBtn.classList.toggle("active", showMap);
             usersBtn.classList.toggle("active", showUsers);
             editHistoryBtn.classList.toggle("active", showHistory);
+            attendanceHistoryBtn.classList.toggle("active", showAttendanceHistory);
             deleteRecordBtn.classList.toggle("active", showDeletedRecords);
-            localStorage.setItem("administratorActiveTab", showMap ? "trackPos" : (showUsers ? "users" : (showHistory ? "editHistory" : (showDeletedRecords ? "deleteRecord" : "network"))));
+            localStorage.setItem("administratorActiveTab", showMap ? "trackPos" : (showUsers ? "users" : (showHistory ? "editHistory" : (showAttendanceHistory ? "attendanceHistory" : (showDeletedRecords ? "deleteRecord" : "network")))));
             if (showUsers) loadUsersPanel();
             if (showHistory) loadEditHistoryPanel();
+            if (showAttendanceHistory) {
+                attendanceHistoryRizalBtn.classList.toggle("active", selectedAttendanceHistoryOffice === "Rizal");
+                attendanceHistoryCebuBtn.classList.toggle("active", selectedAttendanceHistoryOffice === "Cebu");
+                loadAttendanceHistoryPanel();
+            }
             if (showDeletedRecords) loadDeletedRecordPanel();
         }
         trackPosBtn.addEventListener("click", () => {
@@ -550,19 +656,26 @@
         editHistoryBtn.addEventListener("click", () => {
             showAdminTab("editHistory");
         });
+        attendanceHistoryBtn.addEventListener("click", () => {
+            showAdminTab("attendanceHistory");
+        });
         deleteRecordBtn.addEventListener("click", () => {
             showAdminTab("deleteRecord");
         });
         historyRizalBtn.addEventListener("click", () => selectHistoryOffice("Rizal"));
         historyCebuBtn.addEventListener("click", () => selectHistoryOffice("Cebu"));
+        attendanceHistoryRizalBtn.addEventListener("click", () => selectAttendanceHistoryOffice("Rizal"));
+        attendanceHistoryCebuBtn.addEventListener("click", () => selectAttendanceHistoryOffice("Cebu"));
         deletedRizalBtn.addEventListener("click", () => selectDeletedOffice("Rizal"));
         deletedCebuBtn.addEventListener("click", () => selectDeletedOffice("Cebu"));
         historySearchInput.addEventListener("input", renderFilteredHistory);
         historyDateInput.addEventListener("input", renderFilteredHistory);
+        attendanceHistorySearchInput.addEventListener("input", renderFilteredAttendanceHistory);
+        attendanceHistoryDateInput.addEventListener("input", renderFilteredAttendanceHistory);
         deleteRecordSearchInput.addEventListener("input", renderFilteredDeletedRecords);
         deleteRecordDateInput.addEventListener("input", renderFilteredDeletedRecords);
         const savedAdminTab = localStorage.getItem("administratorActiveTab");
-        showAdminTab(savedAdminTab === "users" || savedAdminTab === "editHistory" || savedAdminTab === "deleteRecord" ? savedAdminTab : "trackPos");
+        showAdminTab(savedAdminTab === "users" || savedAdminTab === "editHistory" || savedAdminTab === "attendanceHistory" || savedAdminTab === "deleteRecord" ? savedAdminTab : "trackPos");
         const menuToggle = document.getElementById("adminMenu");
         const adminDropdown = document.getElementById("adminDropdown");
         menuToggle.addEventListener("click", event => {

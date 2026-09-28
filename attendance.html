@@ -45,8 +45,28 @@
         .attendance-table { width: 100%; min-width: 760px; border-collapse: collapse; }
         .attendance-table th { color: var(--navy); background: #eff8fb; text-transform: uppercase; font-size: 12px; letter-spacing: .3px; padding: 13px 16px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
         .attendance-table td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid #eef2f6; vertical-align: middle; }
+        .time-editable { cursor: pointer; }
         .attendance-table tbody tr { transition: background .18s ease; }
         .attendance-table tbody tr:hover { background: #ecfeff; }
+        .attendance-view-tabs { display: flex; gap: 6px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
+        .attendance-view-tab { padding: 10px 14px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--muted); font-weight: 700; cursor: pointer; }
+        .attendance-view-tab.active, .attendance-view-tab:hover { border-bottom-color: var(--cyan); color: var(--navy); }
+        .task-panel { display: none; }
+        .task-panel.active { display: block; }
+        .task-form { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; align-items: end; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+        .task-form-field { display: flex; flex-direction: column; gap: 6px; }
+        .task-form-field label { color: var(--muted); font-size: 12px; font-weight: 700; }
+        .task-form input, .task-form select { min-width: 0; padding: 9px 10px; border: 1px solid #c8dce6; border-radius: 6px; color: var(--ink); background: white; }
+        .task-form .task-description { grid-column: 1 / -1; }
+        .task-toolbar { display: flex; gap: 10px; align-items: center; padding: 16px 20px; }
+        .task-toolbar input, .task-toolbar select { min-width: 0; padding: 9px 10px; border: 1px solid #c8dce6; border-radius: 6px; color: var(--ink); background: white; }
+        .task-toolbar input { flex: 1 1 220px; }
+        .tasks-table { width: 100%; min-width: 800px; border-collapse: collapse; }
+        .tasks-table th { padding: 12px 14px; color: var(--navy); background: #eff8fb; font-size: 12px; text-align: left; text-transform: uppercase; }
+        .tasks-table td { padding: 12px 14px; border-top: 1px solid #eef2f6; font-size: 13px; vertical-align: middle; }
+        .task-status-select { min-width: 120px; padding: 6px 8px; border: 1px solid #c8dce6; border-radius: 5px; background: white; color: var(--ink); }
+        .task-description { color: var(--muted); margin-top: 4px; }
+        .task-notice { margin: 0; padding: 0 20px 14px; color: #8b2830; font-size: 13px; }
         .status { border-radius: 4px; padding: 4px 9px; font-size: 12px; font-weight: 700; }
         .status-present { color: #17633a; background: #dff4e7; }
         .status-late { color: #815b00; background: #fff0c2; }
@@ -54,7 +74,6 @@
         .status-pending { color: #586b7d; background: #e9eef3; }
         .action-btn { border: 1px solid #d8e1eb; background: white; color: var(--navy); border-radius: 5px; padding: 5px 8px; margin-right: 4px; }
         .action-btn:hover { background: #edf3f9; }
-        .status-editor { border: 1px solid #d8e1eb; border-radius: 5px; color: var(--ink); padding: 5px 8px; font-size: 12px; margin-right: 4px; }
         .clock-modal { position: fixed; inset: 0; z-index: 2300; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(10, 17, 29, .72); }
         .clock-modal.active { display: flex; }
         body.embedded-clock { min-height: 100%; overflow: hidden; background: transparent; }
@@ -67,11 +86,13 @@
         .clock-modal-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 22px; color: white; background: linear-gradient(110deg, var(--navy), var(--blue)); }
         .clock-modal-body { padding: 22px; }
         .clock-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+        .clock-field[hidden], .task-form[hidden] { display: none !important; }
         .clock-field label { color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; }
         .clock-field input, .clock-field select { border: 1px solid #d8e1eb; border-radius: 6px; padding: 10px 12px; color: var(--ink); background: white; }
         .clock-actions { display: flex; gap: 10px; flex-wrap: wrap; }
         .empty-state { color: var(--muted); text-align: center; padding: 38px 16px !important; }
-        @media (max-width: 575px) { .attendance-container { margin-top: 24px; padding: 0 12px; } .hero { padding: 26px 22px; } .hero h1 { font-size: 25px; } .toolbar { padding: 14px; } }
+        @media (max-width: 760px) { .task-form { grid-template-columns: 1fr 1fr; } .task-form .task-description { grid-column: 1 / -1; } }
+        @media (max-width: 575px) { .attendance-container { margin-top: 24px; padding: 0 12px; } .hero { padding: 26px 22px; } .hero h1 { font-size: 25px; } .toolbar, .task-toolbar { padding: 14px; } .task-form { grid-template-columns: 1fr; padding: 14px; } .task-form .task-description { grid-column: auto; } }
     </style>
 </head>
 <body>
@@ -129,6 +150,12 @@
             <p>Track daily attendance and working hours across both offices.</p>
         </section>
 
+        <div class="attendance-view-tabs" role="tablist" aria-label="Attendance views">
+            <button class="attendance-view-tab active" id="dailyAttendanceTab" type="button" role="tab" aria-selected="true">Daily Attendance</button>
+            <button class="attendance-view-tab" id="assignedTasksTab" type="button" role="tab" aria-selected="false">Assigned Tasks</button>
+            <button class="attendance-view-tab" id="myTasksTab" type="button" role="tab" aria-selected="false">My Tasks</button>
+        </div>
+        <div id="dailyAttendanceView">
         <section class="row g-3 mb-4" aria-label="Attendance summary">
             <div class="col-sm-6 col-xl-3"><div class="card stat-card"><i class="bi bi-people stat-icon"></i><div class="stat-label">Total staff</div><div class="stat-value" id="totalStaff">0</div></div></div>
             <div class="col-sm-6 col-xl-3"><div class="card stat-card"><i class="bi bi-check2-circle stat-icon"></i><div class="stat-label">Present</div><div class="stat-value" id="presentCount">0</div></div></div>
@@ -145,9 +172,61 @@
                 <button class="btn btn-primary" id="exportAttendanceBtn" type="button" title="Export attendance as CSV"><i class="bi bi-download me-1"></i>Export</button>
                 <button class="btn btn-outline-danger" id="clearAttendanceBtn" type="button" title="Clear selected day's attendance"><i class="bi bi-trash me-1"></i>Clear day</button>
             </div>
-            <div class="table-responsive"><table class="attendance-table"><thead><tr><th>Employee</th><th>Employee ID</th><th>Office</th><th>Time in</th><th>Time out</th><th>Status</th><th>Actions</th></tr></thead><tbody id="attendanceTableBody"></tbody></table></div>
+            <div class="table-responsive"><table class="attendance-table"><thead><tr><th>Employee</th><th>Employee ID</th><th>Office</th><th>Time in</th><th>Time out</th><th>Status</th><th id="attendanceActionsHeader">Actions</th></tr></thead><tbody id="attendanceTableBody"></tbody></table></div>
+        </section>
+        </div>
+        <section class="card task-panel" id="assignedTasksView" aria-labelledby="assignedTasksTitle">
+            <div class="card-header d-flex justify-content-between align-items-center"><span id="assignedTasksTitle"><i class="bi bi-list-check me-2"></i>Assigned Tasks</span><div class="d-flex align-items-center gap-2"><span id="taskCountLabel">0 tasks</span><button class="btn btn-sm btn-light" id="exportTasksBtn" type="button" title="Export assigned tasks as CSV"><i class="bi bi-download me-1"></i>Export</button><button class="btn btn-sm btn-outline-danger" id="clearAssignedTasksBtn" type="button" hidden><i class="bi bi-trash me-1"></i>Clear</button></div></div>
+            <form class="task-form" id="taskAssignmentForm">
+                <div class="task-form-field"><label for="taskTitleInput">Task</label><input id="taskTitleInput" maxlength="120" required placeholder="Task title"></div>
+                <div class="task-form-field"><label for="taskTypeInput">Type</label><select id="taskTypeInput"><option>Task</option><option>Field work</option></select></div>
+                <div class="task-form-field"><label for="taskPriorityInput">Priority</label><select id="taskPriorityInput"><option>Normal</option><option>Urgent</option></select></div>
+                <div class="task-form-field"><label for="taskAssigneeInput">Assign to</label><select id="taskAssigneeInput" required></select></div>
+                <div class="task-form-field"><label for="taskDueDateInput">Due date</label><input id="taskDueDateInput" type="date"></div>
+                <div class="task-form-field"><button class="btn btn-primary" type="submit"><i class="bi bi-plus-lg me-1"></i>Assign task</button></div>
+                <div class="task-form-field task-description"><label for="taskDescriptionInput">Details</label><input id="taskDescriptionInput" maxlength="500" placeholder="Optional instructions"></div>
+            </form>
+            <div class="task-toolbar">
+                <input id="taskSearchInput" type="search" placeholder="Search tasks or employees" aria-label="Search assigned tasks">
+                <select id="taskStatusFilter" aria-label="Filter tasks by status"><option value="All">All statuses</option><option>Pending</option><option>In Progress</option><option>Completed</option></select>
+            </div>
+            <p class="task-notice" id="taskNotice" role="status" hidden></p>
+            <div class="table-responsive"><table class="tasks-table"><thead><tr><th>Task</th><th>Type</th><th>Priority</th><th>Assigned to</th><th>Office</th><th>Due date</th><th>Status</th><th>Action</th></tr></thead><tbody id="assignedTasksBody"></tbody></table></div>
+        </section>
+        <section class="card task-panel" id="myTasksView" aria-labelledby="myTasksTitle">
+            <div class="card-header d-flex justify-content-between align-items-center"><span id="myTasksTitle"><i class="bi bi-person-check me-2"></i>My Tasks</span><div class="d-flex align-items-center gap-2"><span id="myTaskCountLabel">0 tasks</span><button class="btn btn-sm btn-outline-danger" id="clearMyTasksBtn" type="button" hidden><i class="bi bi-trash me-1"></i>Clear</button></div></div>
+            <div class="task-toolbar">
+                <input id="myTaskSearchInput" type="search" placeholder="Search your tasks" aria-label="Search your tasks">
+                <select id="myTaskStatusFilter" aria-label="Filter your tasks by status"><option value="All">All statuses</option><option>Pending</option><option>In Progress</option><option>Completed</option></select>
+            </div>
+            <div class="table-responsive"><table class="tasks-table"><thead><tr><th>Task</th><th>Type</th><th>Priority</th><th>Office</th><th>Due date</th><th>Status</th></tr></thead><tbody id="myTasksBody"></tbody></table></div>
         </section>
     </main>
+
+    <div class="clock-modal" id="clearTasksModal" role="dialog" aria-modal="true" aria-labelledby="clearTasksTitle">
+        <div class="clock-modal-content">
+            <div class="clock-modal-header"><h2 id="clearTasksTitle" style="font-size: 20px; margin: 0;"><i class="bi bi-trash me-2"></i>Clear Tasks</h2><button class="btn btn-light btn-sm" id="closeClearTasksBtn" type="button" aria-label="Close clear tasks dialog">Close</button></div>
+            <div class="clock-modal-body">
+                <div class="clock-field"><label for="taskClearPeriod">Clear tasks assigned by</label><select id="taskClearPeriod"><option value="day">Day</option><option value="month">Month</option><option value="year">Year</option></select></div>
+                <div class="clock-field" id="taskClearDayField"><label for="taskClearDay">Day</label><input id="taskClearDay" type="date"></div>
+                <div class="clock-field" id="taskClearMonthField" hidden><label for="taskClearMonth">Month</label><input id="taskClearMonth" type="month"></div>
+                <div class="clock-field" id="taskClearYearField" hidden><label for="taskClearYear">Year</label><input id="taskClearYear" type="number" min="2000" max="2100" step="1"></div>
+                <p id="clearTasksDescription" style="color: #697c8f; font-size: 13px;">Choose the assignment period to clear.</p>
+                <div class="clock-actions"><button class="btn btn-danger" id="confirmClearTasksBtn" type="button"><i class="bi bi-trash me-1"></i>Clear tasks</button><button class="btn btn-secondary" id="cancelClearTasksBtn" type="button">Cancel</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="clock-modal" id="exportTasksModal" role="dialog" aria-modal="true" aria-labelledby="exportTasksTitle">
+        <div class="clock-modal-content">
+            <div class="clock-modal-header"><h2 id="exportTasksTitle" style="font-size: 20px; margin: 0;"><i class="bi bi-download me-2"></i>Export Assigned Tasks</h2><button class="btn btn-light btn-sm" id="closeExportTasksBtn" type="button" aria-label="Close export dialog">Close</button></div>
+            <div class="clock-modal-body">
+                <div class="clock-field"><label for="taskExportScope">Export data</label><select id="taskExportScope"><option value="all">All tasks</option><option value="Task">Task</option><option value="Field work">Field work</option><option value="employee">By employee</option></select></div>
+                <div class="clock-field" id="taskExportEmployeeField" hidden><label for="taskExportEmployee">Employee</label><select id="taskExportEmployee"></select></div>
+                <div class="clock-actions"><button class="btn btn-primary" id="confirmExportTasksBtn" type="button"><i class="bi bi-download me-1"></i>Download CSV</button><button class="btn btn-secondary" id="cancelExportTasksBtn" type="button">Cancel</button></div>
+            </div>
+        </div>
+    </div>
 
     <div class="clock-modal" id="clockModal" role="dialog" aria-modal="true" aria-labelledby="clockModalTitle">
         <div class="clock-modal-content">
@@ -185,7 +264,7 @@
 
     <script src="js/bootstrap.bundle.min.js"></script>
     <script src="js/auth-session.js?v=20260921-2"></script>
-    <script src="js/firebase-shared.js?v=20260919-3"></script>
+    <script src="js/firebase-shared.js?v=20260928-2"></script>
     <script src="js/password-security.js?v=20260919-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/sql.js@1.11.0/dist/sql-wasm.js"></script>
     <script src="js/sqlite-login.js?v=20260919-2"></script>
@@ -200,6 +279,8 @@
                 office: account.office === "Both" ? "Both Offices" : (account.office || "Unassigned")
             }));
         const storageKey = "attendanceRecords";
+        const taskStorageKey = "attendanceTasks";
+        const attendanceHistoryStorageKey = "attendanceEditHistory";
         const dateInput = document.getElementById("attendanceDate");
         const searchInput = document.getElementById("attendanceSearch");
         const officeInput = document.getElementById("attendanceOffice");
@@ -209,6 +290,29 @@
         const clockInButton = document.getElementById("clockInBtn");
         const clockOutButton = document.getElementById("clockOutBtn");
         const clockNotice = document.getElementById("clockNotice");
+        const taskAssignmentForm = document.getElementById("taskAssignmentForm");
+        const taskAssigneeInput = document.getElementById("taskAssigneeInput");
+        const taskNotice = document.getElementById("taskNotice");
+        const taskSearchInput = document.getElementById("taskSearchInput");
+        const taskStatusFilter = document.getElementById("taskStatusFilter");
+        const assignedTasksBody = document.getElementById("assignedTasksBody");
+        const myTaskSearchInput = document.getElementById("myTaskSearchInput");
+        const myTaskStatusFilter = document.getElementById("myTaskStatusFilter");
+        const myTasksBody = document.getElementById("myTasksBody");
+        const clearTasksModal = document.getElementById("clearTasksModal");
+        const taskClearPeriod = document.getElementById("taskClearPeriod");
+        const taskClearDay = document.getElementById("taskClearDay");
+        const taskClearMonth = document.getElementById("taskClearMonth");
+        const taskClearYear = document.getElementById("taskClearYear");
+        const exportTasksModal = document.getElementById("exportTasksModal");
+        const taskExportScope = document.getElementById("taskExportScope");
+        const taskExportEmployeeField = document.getElementById("taskExportEmployeeField");
+        const taskExportEmployee = document.getElementById("taskExportEmployee");
+        let taskClearScope = "assigned";
+        let attendanceTasks = [];
+        let canManageAttendanceTasks = false;
+        let canDeleteAttendanceTasks = false;
+        let loggedInUsername = "";
         function today() { return new Date().toISOString().slice(0, 10); }
         function readRecords() { try { return JSON.parse(localStorage.getItem(storageKey) || "{}"); } catch (error) { return {}; } }
         function writeRecords(records) {
@@ -219,6 +323,193 @@
                     const notice = document.getElementById("clockNotice");
                     if (notice) notice.textContent = "Saved on this device, but cloud sync failed. Check Firestore rules and connection.";
                 });
+            }
+        }
+        function readAttendanceTasks() {
+            try {
+                const tasks = JSON.parse(localStorage.getItem(taskStorageKey) || "[]");
+                return Array.isArray(tasks) ? tasks : [];
+            } catch (error) {
+                return [];
+            }
+        }
+        function saveAttendanceTasks() {
+            localStorage.setItem(taskStorageKey, JSON.stringify(attendanceTasks));
+        }
+        function showTaskNotice(message) {
+            taskNotice.textContent = message;
+            taskNotice.hidden = !message;
+        }
+        function renderAttendanceTasks() {
+            const searchTerm = taskSearchInput.value.trim().toLowerCase();
+            const selectedStatus = taskStatusFilter.value;
+            const visibleTasks = canManageAttendanceTasks ? attendanceTasks.filter(task => (selectedStatus === "All" || task.status === selectedStatus) && (!searchTerm || `${task.title} ${task.description} ${task.assignedToName} ${task.assignedTo} ${task.office}`.toLowerCase().includes(searchTerm))) : [];
+            document.getElementById("taskCountLabel").textContent = `${visibleTasks.length} ${visibleTasks.length === 1 ? "task" : "tasks"}`;
+            assignedTasksBody.innerHTML = visibleTasks.length ? visibleTasks.map(task => `<tr><td><strong>${escapeHtml(task.title)}</strong>${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ""}</td><td>${escapeHtml(task.type || "Task")}</td><td>${escapeHtml(task.priority || "Normal")}</td><td>${escapeHtml(task.assignedToName)}<div class="task-description">@${escapeHtml(task.assignedTo)}</div></td><td>${escapeHtml(task.office || "Unassigned")}</td><td>${escapeHtml(task.dueDate || "-")}</td><td>${escapeHtml(task.status || "Pending")}</td><td>${canDeleteAttendanceTasks ? `<button class="action-btn" data-task-delete-id="${escapeHtml(task.id)}" type="button" aria-label="Delete ${escapeHtml(task.title)}" title="Delete task"><i class="bi bi-trash"></i></button>` : "-"}</td></tr>`).join("") : `<tr><td class="empty-state" colspan="8">No assigned tasks found.</td></tr>`;
+            renderMyTasks();
+        }
+        function renderMyTasks() {
+            const searchTerm = myTaskSearchInput.value.trim().toLowerCase();
+            const selectedStatus = myTaskStatusFilter.value;
+            const visibleTasks = attendanceTasks.filter(task => task.assignedTo === loggedInUsername && (selectedStatus === "All" || task.status === selectedStatus) && (!searchTerm || `${task.title} ${task.description} ${task.office}`.toLowerCase().includes(searchTerm)));
+            document.getElementById("myTaskCountLabel").textContent = `${visibleTasks.length} ${visibleTasks.length === 1 ? "task" : "tasks"}`;
+            myTasksBody.innerHTML = visibleTasks.length ? visibleTasks.map(task => `<tr><td><strong>${escapeHtml(task.title)}</strong>${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ""}</td><td>${escapeHtml(task.type || "Task")}</td><td>${escapeHtml(task.priority || "Normal")}</td><td>${escapeHtml(task.office || "Unassigned")}</td><td>${escapeHtml(task.dueDate || "-")}</td><td><select class="task-status-select" data-my-task-status-id="${escapeHtml(task.id)}" aria-label="Update ${escapeHtml(task.title)} status"><option ${task.status === "Pending" ? "selected" : ""}>Pending</option><option ${task.status === "In Progress" ? "selected" : ""}>In Progress</option><option ${task.status === "Completed" ? "selected" : ""}>Completed</option></select></td></tr>`).join("") : `<tr><td class="empty-state" colspan="6">No tasks have been assigned to you.</td></tr>`;
+        }
+        function openTasksExportDialog() {
+            if (!canManageAttendanceTasks) return;
+            taskExportScope.value = "all";
+            taskExportEmployeeField.hidden = true;
+            exportTasksModal.classList.add("active");
+        }
+        function exportAssignedTasks() {
+            if (!canManageAttendanceTasks) return;
+            const scope = taskExportScope.value;
+            if (scope === "employee" && !taskExportEmployee.value) {
+                alert("Choose an employee to export.");
+                return;
+            }
+            const tasks = attendanceTasks.filter(task => {
+                if (scope === "employee") return task.assignedTo === taskExportEmployee.value;
+                if (scope === "Task" || scope === "Field work") return (task.type || "Task") === scope;
+                return true;
+            });
+            if (!tasks.length) {
+                alert("No tasks match the selected export data.");
+                return;
+            }
+            const csvValue = value => `"${String(value ?? "").replace(/"/g, '""')}"`;
+            const rows = [
+                ["Task", "Type", "Priority", "Details", "Assigned To", "Username", "Office", "Due Date", "Status", "Assigned At"],
+                ...tasks.map(task => [task.title, task.type || "Task", task.priority || "Normal", task.description, task.assignedToName, task.assignedTo, task.office, task.dueDate, task.status, task.createdAt])
+            ];
+            const csv = rows.map(row => row.map(csvValue).join(",")).join("\r\n");
+            const blobUrl = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+            const link = document.createElement("a");
+            const scopeName = scope === "employee" ? taskExportEmployee.value : scope.toLowerCase().replace(/\s+/g, "-");
+            link.href = blobUrl;
+            link.download = `assigned-tasks-${scopeName}-${today()}.csv`;
+            link.click();
+            URL.revokeObjectURL(blobUrl);
+            exportTasksModal.classList.remove("active");
+        }
+        function getTaskClearPeriod() {
+            if (taskClearPeriod.value === "day") return taskClearDay.value;
+            if (taskClearPeriod.value === "month") return taskClearMonth.value;
+            return taskClearYear.value;
+        }
+        function updateTaskClearDescription() {
+            const period = taskClearPeriod.value;
+            const value = getTaskClearPeriod();
+            const labels = { day: "day", month: "month", year: "year" };
+            document.getElementById("clearTasksDescription").textContent = value
+                ? `Tasks assigned during this ${labels[period]} will be cleared.`
+                : `Select a ${labels[period]} to continue.`;
+        }
+        function openClearTasksDialog(scope) {
+            if (!canDeleteAttendanceTasks) return;
+            taskClearScope = scope;
+            const currentDate = today();
+            taskClearDay.value = currentDate;
+            taskClearMonth.value = currentDate.slice(0, 7);
+            taskClearYear.value = currentDate.slice(0, 4);
+            taskClearPeriod.value = "day";
+            document.getElementById("clearTasksTitle").textContent = scope === "my"
+                ? "Clear My Tasks"
+                : "Clear Assigned Tasks";
+            updateTaskClearDescription();
+            clearTasksModal.classList.add("active");
+        }
+        function taskMatchesClearPeriod(task, period, value) {
+            const assignedAt = task.createdAt || task.assignedAt || "";
+            const timestamp = new Date(assignedAt);
+            if (!assignedAt || Number.isNaN(timestamp.getTime())) return false;
+            const assignedDate = timestamp.toISOString().slice(0, 10);
+            if (period === "day") return assignedDate === value;
+            if (period === "month") return assignedDate.startsWith(value);
+            return assignedDate.startsWith(`${value}-`);
+        }
+        function clearTasksForSelectedPeriod() {
+            if (!canDeleteAttendanceTasks) return;
+            const period = taskClearPeriod.value;
+            const value = getTaskClearPeriod();
+            if (!value) {
+                updateTaskClearDescription();
+                return;
+            }
+            const matchesScope = task => taskClearScope !== "my" || task.assignedTo === loggedInUsername;
+            const tasksToClear = attendanceTasks.filter(task => matchesScope(task) && taskMatchesClearPeriod(task, period, value));
+            if (!tasksToClear.length) {
+                alert("No tasks were assigned during the selected period.");
+                return;
+            }
+            if (!confirm(`Clear ${tasksToClear.length} task${tasksToClear.length === 1 ? "" : "s"} assigned during the selected ${period}?`)) return;
+            const taskIdsToClear = new Set(tasksToClear.map(task => task.id));
+            attendanceTasks = attendanceTasks.filter(task => !taskIdsToClear.has(task.id));
+            persistAttendanceTasks();
+            clearTasksModal.classList.remove("active");
+        }
+        function persistAttendanceTasks() {
+            saveAttendanceTasks();
+            if (window.sharedAttendance?.saveTasks) {
+                window.sharedAttendance.saveTasks(attendanceTasks).catch(error => {
+                    console.error("Shared attendance task sync failed.", error);
+                    showTaskNotice("Tasks are saved on this device, but cloud sync failed.");
+                });
+            }
+            renderAttendanceTasks();
+        }
+        async function refreshAttendanceTasks() {
+            if (!window.sharedAttendance?.loadTasks) {
+                renderAttendanceTasks();
+                return;
+            }
+            try {
+                const sharedTasks = await window.sharedAttendance.loadTasks();
+                const mergedTasks = new Map(sharedTasks.map(task => [task.id, task]));
+                readAttendanceTasks().forEach(task => {
+                    const sharedTask = mergedTasks.get(task.id);
+                    if (!sharedTask || new Date(task.updatedAt || 0) > new Date(sharedTask.updatedAt || 0)) mergedTasks.set(task.id, task);
+                });
+                attendanceTasks = [...mergedTasks.values()];
+                saveAttendanceTasks();
+                showTaskNotice("");
+            } catch (error) {
+                console.warn("Shared attendance tasks could not be loaded.", error);
+                attendanceTasks = readAttendanceTasks();
+                showTaskNotice("Showing tasks saved on this device. Shared tasks could not be loaded.");
+            }
+            renderAttendanceTasks();
+        }
+        function appendAttendanceEdit(employeeId, employeeName, workDate, previousRecord, updatedRecord) {
+            const changes = ["timeIn", "timeOut", "status"]
+                .filter(field => String(previousRecord[field] || "") !== String(updatedRecord[field] || ""))
+                .map(field => ({ field, oldValue: previousRecord[field] || "-", newValue: updatedRecord[field] || "-" }));
+            if (!changes.length) return;
+
+            const entry = {
+                id: window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                employeeId,
+                employeeName: employeeName || previousRecord.employeeName || employeeId,
+                office: updatedRecord.office || previousRecord.office || "Unassigned",
+                workDate,
+                editorName: currentAccount?.name || accountName || "Unknown",
+                username: currentAccount?.username || accountName || "Unknown",
+                timestamp: new Date().toISOString(),
+                changes
+            };
+            const recordHistory = Array.isArray(updatedRecord.auditHistory) ? updatedRecord.auditHistory : [];
+            updatedRecord.auditHistory = [...recordHistory, entry].slice(-100);
+            let history = [];
+            try {
+                history = JSON.parse(localStorage.getItem(attendanceHistoryStorageKey) || "[]");
+                if (!Array.isArray(history)) history = [];
+            } catch (error) {
+                history = [];
+            }
+            history.unshift(entry);
+            localStorage.setItem(attendanceHistoryStorageKey, JSON.stringify(history.slice(0, 500)));
+            if (window.sharedAttendance?.saveHistory) {
+                window.sharedAttendance.saveHistory(entry).catch(error => console.warn("Attendance edit history sync failed.", error));
             }
         }
         function recordKey(employeeId) { return `${dateInput.value}:${employeeId}`; }
@@ -232,14 +523,21 @@
                     const employee = employees.find(item => item.id === employeeId) || {};
                     return {
                         ...employee,
+                        ...record,
                         name: employee.name || record.employeeName || employeeId,
                         id: employeeId,
                         office: record.office || employee.office || "Unassigned",
-                        ...record
+                        status: record.timeIn ? statusForTimeIn(record.timeIn, record.status) : (record.status || "Pending")
                     };
                 });
         }
         function statusClass(status) { return status === "Present" ? "status-present" : status === "Late" ? "status-late" : status === "Absent" ? "status-absent" : "status-pending"; }
+        function statusForTimeIn(timeIn, fallbackStatus) {
+            const normalizedTime = toTimeInputValue(timeIn);
+            if (!normalizedTime) return fallbackStatus || "Pending";
+            const [hours, minutes] = normalizedTime.split(":").map(Number);
+            return hours * 60 + minutes <= 9 * 60 ? "Present" : "Late";
+        }
         function render() {
             const rows = getRows();
             const query = searchInput.value.trim().toLowerCase();
@@ -250,42 +548,219 @@
             document.getElementById("lateCount").textContent = rows.filter(row => row.status === "Late").length;
             document.getElementById("absentCount").textContent = rows.filter(row => row.status === "Absent").length;
             const body = document.getElementById("attendanceTableBody");
-            body.innerHTML = filtered.length ? filtered.map(row => `<tr><td><strong>${escapeHtml(row.name)}</strong></td><td>${row.id}</td><td>${row.office}</td><td>${row.timeIn || "-"}</td><td>${row.timeOut || "-"}</td><td><span class="status ${statusClass(row.status)}">${row.status || "Pending"}</span></td><td>${canEditAttendance ? `<select class="status-editor" data-status-id="${row.id}" aria-label="Edit attendance status for ${escapeHtml(row.name)}"><option value="Pending" ${(!row.status || row.status === "Pending") ? "selected" : ""}>Pending</option><option value="Present" ${row.status === "Present" ? "selected" : ""}>Present</option><option value="Late" ${row.status === "Late" ? "selected" : ""}>Late</option><option value="Absent" ${row.status === "Absent" ? "selected" : ""}>Absent</option></select>` : ""}<button class="action-btn" data-action="in" data-id="${row.id}" title="Clock in"><i class="bi bi-box-arrow-in-right"></i></button><button class="action-btn" data-action="out" data-id="${row.id}" title="Clock out"><i class="bi bi-box-arrow-right"></i></button><button class="action-btn" data-action="absent" data-id="${row.id}" title="Mark absent"><i class="bi bi-person-dash"></i></button></td></tr>`).join("") : `<tr><td class="empty-state" colspan="7">No employees match the selected filters.</td></tr>`;
+            body.innerHTML = filtered.length ? filtered.map(row => `<tr><td><strong>${escapeHtml(row.name)}</strong></td><td>${escapeHtml(row.id)}</td><td>${escapeHtml(row.office)}</td><td class="${canEditAttendance ? "time-editable" : ""}" data-time-field="timeIn" data-time-id="${escapeHtml(row.id)}" data-time-value="${escapeHtml(row.timeIn || "")}" title="${canEditAttendance ? "Double-click to edit" : ""}">${escapeHtml(row.timeIn || "-")}</td><td class="${canEditAttendance ? "time-editable" : ""}" data-time-field="timeOut" data-time-id="${escapeHtml(row.id)}" data-time-value="${escapeHtml(row.timeOut || "")}" title="${canEditAttendance ? "Double-click to edit" : ""}">${escapeHtml(row.timeOut || "-")}</td><td><span class="status ${statusClass(row.status)}">${escapeHtml(row.status || "Pending")}</span></td><td${canEditAttendance ? "" : ' style="display:none;"'}>${canEditAttendance ? `<button class="action-btn" data-action="in" data-id="${escapeHtml(row.id)}" title="Clock in"><i class="bi bi-box-arrow-in-right"></i></button><button class="action-btn" data-action="out" data-id="${escapeHtml(row.id)}" title="Clock out"><i class="bi bi-box-arrow-right"></i></button><button class="action-btn" data-action="absent" data-id="${escapeHtml(row.id)}" title="Mark absent"><i class="bi bi-person-dash"></i></button>` : ""}</td></tr>`).join("") : `<tr><td class="empty-state" colspan="7">No employees match the selected filters.</td></tr>`;
         }
         function escapeHtml(value) { return String(value).replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[character])); }
         function updateEmployee(employeeId, action) {
+            if (!canEditAttendance) return;
             const records = readRecords();
             const key = recordKey(employeeId);
             const current = records[key] || {};
             const employee = employees.find(item => item.id === employeeId) || {};
             const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-            records[key] = { ...current, date: dateInput.value, employeeId, employeeName: employee.name, office: employee.office, status: action === "absent" ? "Absent" : (action === "in" ? "Present" : current.status || "Present"), ...(action === "in" ? { timeIn: time } : {}), ...(action === "out" ? { timeOut: time } : {}) };
+            const updated = { ...current, date: dateInput.value, employeeId, employeeName: employee.name || current.employeeName, office: employee.office || current.office, status: action === "absent" ? "Absent" : (current.status || "Present"), ...(action === "in" ? { timeIn: time } : {}), ...(action === "out" ? { timeOut: time } : {}) };
+            if (updated.timeIn) updated.status = statusForTimeIn(updated.timeIn, updated.status);
+            records[key] = updated;
+            appendAttendanceEdit(employeeId, updated.employeeName, dateInput.value, current, updated);
             writeRecords(records); render();
         }
-        function updateEmployeeStatus(employeeId, status) {
+        function toTimeInputValue(value) {
+            const match = String(value || "").trim().match(/^(\d{1,2}):(\d{2})(?:\s*([AP]M))?$/i);
+            if (!match) return "";
+            let hours = Number(match[1]);
+            const minutes = Number(match[2]);
+            if (minutes > 59) return "";
+            if (match[3]) {
+                if (hours < 1 || hours > 12) return "";
+                hours = (hours % 12) + (match[3].toUpperCase() === "PM" ? 12 : 0);
+            } else if (hours > 23) {
+                return "";
+            }
+            return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+        }
+        function updateAttendanceTime(employeeId, field, value) {
+            if (!canEditAttendance) return;
             const records = readRecords();
-            const key = recordKey(employeeId);
+            const normalKey = recordKey(employeeId);
+            const key = records[normalKey] ? normalKey : recordKey(`ACCOUNT-${employeeId}`);
+            if (!records[key]) return;
+            const [hours, minutes] = value.split(":").map(Number);
+            const current = records[key];
             const employee = employees.find(item => item.id === employeeId) || {};
-            records[key] = { ...(records[key] || {}), date: dateInput.value, employeeId, employeeName: employee.name, office: employee.office, status };
+            const updated = {
+                ...current,
+                employeeId: current.employeeId || employeeId,
+                employeeName: current.employeeName || employee.name || employeeId,
+                office: current.office || employee.office || "Unassigned",
+                [field]: new Date(2000, 0, 1, hours, minutes).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+            };
+            if (updated.timeIn) updated.status = statusForTimeIn(updated.timeIn, updated.status);
+            records[key] = updated;
+            appendAttendanceEdit(employeeId, updated.employeeName, dateInput.value, current, updated);
             writeRecords(records);
             render();
+        }
+        let activeTimeEditor = null;
+        function finishAttendanceTimeEdit(saveChanges) {
+            if (!activeTimeEditor) return;
+            const editor = activeTimeEditor;
+            activeTimeEditor = null;
+            if (saveChanges && editor.input.value) {
+                updateAttendanceTime(editor.employeeId, editor.field, editor.input.value);
+            } else {
+                render();
+            }
+        }
+        function editAttendanceTime(cell) {
+            if (!canEditAttendance || activeTimeEditor || cell.querySelector("input")) return;
+            const input = document.createElement("input");
+            input.type = "time";
+            input.className = "form-control form-control-sm";
+            input.value = toTimeInputValue(cell.dataset.timeValue);
+            cell.replaceChildren(input);
+            activeTimeEditor = { input, employeeId: cell.dataset.timeId, field: cell.dataset.timeField };
+            input.focus();
+            input.addEventListener("keydown", event => {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    finishAttendanceTimeEdit(true);
+                }
+                if (event.key === "Escape") {
+                    event.preventDefault();
+                    finishAttendanceTimeEdit(false);
+                }
+            });
         }
         function updateClockTime(type) {
             const employeeId = clockEmployeeInput.value;
             const records = readRecords();
             const key = `${clockDateInput.value}:${employeeId}`;
+            const current = records[key] || {};
             const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
             const employee = employees.find(item => item.id === employeeId) || {};
-            records[key] = { ...(records[key] || {}), date: clockDateInput.value, employeeId, employeeName: employee.name, office: employee.office, [type === "in" ? "timeIn" : "timeOut"]: time, status: "Present" };
+            const updated = { ...current, date: clockDateInput.value, employeeId, employeeName: employee.name || current.employeeName, office: employee.office || current.office, [type === "in" ? "timeIn" : "timeOut"]: time, status: current.status || "Present" };
+            if (updated.timeIn) updated.status = statusForTimeIn(updated.timeIn, updated.status);
+            records[key] = updated;
+            appendAttendanceEdit(employeeId, updated.employeeName, clockDateInput.value, current, updated);
             writeRecords(records);
             dateInput.value = clockDateInput.value;
             render();
             document.getElementById("clockNotice").textContent = `${type === "in" ? "Time in" : "Time out"} recorded at ${time}.`;
         }
-        document.addEventListener("click", event => { const button = event.target.closest("button[data-action]"); if (button) updateEmployee(button.dataset.id, button.dataset.action); });
-        document.addEventListener("change", event => { const editor = event.target.closest("select[data-status-id]"); if (editor && canEditAttendance) updateEmployeeStatus(editor.dataset.statusId, editor.value); });
+        document.addEventListener("click", event => {
+            if (activeTimeEditor && !activeTimeEditor.input.contains(event.target)) finishAttendanceTimeEdit(true);
+        }, true);
+        document.addEventListener("click", event => { const button = event.target.closest("button[data-action]"); if (button && canEditAttendance) updateEmployee(button.dataset.id, button.dataset.action); });
+        document.addEventListener("dblclick", event => { const cell = event.target.closest("td[data-time-field]"); if (cell) editAttendanceTime(cell); });
+        document.getElementById("dailyAttendanceTab").addEventListener("click", () => {
+            document.getElementById("dailyAttendanceView").hidden = false;
+            document.getElementById("assignedTasksView").classList.remove("active");
+            document.getElementById("myTasksView").classList.remove("active");
+            document.getElementById("dailyAttendanceTab").classList.add("active");
+            document.getElementById("assignedTasksTab").classList.remove("active");
+            document.getElementById("myTasksTab").classList.remove("active");
+            document.getElementById("dailyAttendanceTab").setAttribute("aria-selected", "true");
+            document.getElementById("assignedTasksTab").setAttribute("aria-selected", "false");
+            document.getElementById("myTasksTab").setAttribute("aria-selected", "false");
+        });
+        document.getElementById("assignedTasksTab").addEventListener("click", () => {
+            if (!canManageAttendanceTasks) return;
+            document.getElementById("dailyAttendanceView").hidden = true;
+            document.getElementById("myTasksView").classList.remove("active");
+            document.getElementById("assignedTasksView").classList.add("active");
+            document.getElementById("dailyAttendanceTab").classList.remove("active");
+            document.getElementById("assignedTasksTab").classList.add("active");
+            document.getElementById("myTasksTab").classList.remove("active");
+            document.getElementById("dailyAttendanceTab").setAttribute("aria-selected", "false");
+            document.getElementById("assignedTasksTab").setAttribute("aria-selected", "true");
+            document.getElementById("myTasksTab").setAttribute("aria-selected", "false");
+            renderAttendanceTasks();
+        });
+        document.getElementById("myTasksTab").addEventListener("click", () => {
+            document.getElementById("dailyAttendanceView").hidden = true;
+            document.getElementById("assignedTasksView").classList.remove("active");
+            document.getElementById("myTasksView").classList.add("active");
+            document.getElementById("dailyAttendanceTab").classList.remove("active");
+            document.getElementById("assignedTasksTab").classList.remove("active");
+            document.getElementById("myTasksTab").classList.add("active");
+            document.getElementById("dailyAttendanceTab").setAttribute("aria-selected", "false");
+            document.getElementById("assignedTasksTab").setAttribute("aria-selected", "false");
+            document.getElementById("myTasksTab").setAttribute("aria-selected", "true");
+            renderMyTasks();
+        });
+        taskAssignmentForm.addEventListener("submit", event => {
+            event.preventDefault();
+            if (!canManageAttendanceTasks) return;
+            const assignee = employees.find(employee => employee.id === taskAssigneeInput.value);
+            const title = document.getElementById("taskTitleInput").value.trim();
+            if (!assignee || !title) return;
+            const now = new Date().toISOString();
+            attendanceTasks.unshift({
+                id: window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                title,
+                type: document.getElementById("taskTypeInput").value,
+                priority: document.getElementById("taskPriorityInput").value,
+                description: document.getElementById("taskDescriptionInput").value.trim(),
+                assignedTo: assignee.id,
+                assignedToName: assignee.name,
+                office: assignee.office,
+                dueDate: document.getElementById("taskDueDateInput").value,
+                status: "Pending",
+                createdBy: currentAccount?.name || loggedInUsername,
+                createdByUsername: currentAccount?.username || loggedInUsername,
+                createdAt: now,
+                updatedAt: now,
+                updatedBy: loggedInUsername
+            });
+            persistAttendanceTasks();
+            taskAssignmentForm.reset();
+            showTaskNotice("");
+        });
+        taskSearchInput.addEventListener("input", renderAttendanceTasks);
+        taskStatusFilter.addEventListener("change", renderAttendanceTasks);
+        myTaskSearchInput.addEventListener("input", renderMyTasks);
+        myTaskStatusFilter.addEventListener("change", renderMyTasks);
+        myTasksBody.addEventListener("change", event => {
+            const statusSelect = event.target.closest("select[data-my-task-status-id]");
+            if (!statusSelect) return;
+            const task = attendanceTasks.find(item => item.id === statusSelect.dataset.myTaskStatusId);
+            if (!task || task.assignedTo !== loggedInUsername) return;
+            task.status = statusSelect.value;
+            task.updatedAt = new Date().toISOString();
+            task.updatedBy = loggedInUsername;
+            persistAttendanceTasks();
+        });
+        assignedTasksBody.addEventListener("click", event => {
+            const deleteButton = event.target.closest("button[data-task-delete-id]");
+            if (!deleteButton || !canDeleteAttendanceTasks) return;
+            attendanceTasks = attendanceTasks.filter(task => task.id !== deleteButton.dataset.taskDeleteId);
+            persistAttendanceTasks();
+        });
+        document.getElementById("clearAssignedTasksBtn").addEventListener("click", () => openClearTasksDialog("assigned"));
+        document.getElementById("clearMyTasksBtn").addEventListener("click", () => openClearTasksDialog("my"));
+        document.getElementById("exportTasksBtn").addEventListener("click", openTasksExportDialog);
+        taskExportScope.addEventListener("change", () => {
+            taskExportEmployeeField.hidden = taskExportScope.value !== "employee";
+        });
+        document.getElementById("confirmExportTasksBtn").addEventListener("click", exportAssignedTasks);
+        ["closeExportTasksBtn", "cancelExportTasksBtn"].forEach(id => document.getElementById(id).addEventListener("click", () => exportTasksModal.classList.remove("active")));
+        exportTasksModal.addEventListener("click", event => {
+            if (event.target === exportTasksModal) exportTasksModal.classList.remove("active");
+        });
+        taskClearPeriod.addEventListener("change", () => {
+            document.getElementById("taskClearDayField").hidden = taskClearPeriod.value !== "day";
+            document.getElementById("taskClearMonthField").hidden = taskClearPeriod.value !== "month";
+            document.getElementById("taskClearYearField").hidden = taskClearPeriod.value !== "year";
+            updateTaskClearDescription();
+        });
+        [taskClearDay, taskClearMonth, taskClearYear].forEach(input => input.addEventListener("input", updateTaskClearDescription));
+        document.getElementById("confirmClearTasksBtn").addEventListener("click", clearTasksForSelectedPeriod);
+        ["closeClearTasksBtn", "cancelClearTasksBtn"].forEach(id => document.getElementById(id).addEventListener("click", () => clearTasksModal.classList.remove("active")));
+        clearTasksModal.addEventListener("click", event => {
+            if (event.target === clearTasksModal) clearTasksModal.classList.remove("active");
+        });
         [searchInput, dateInput, officeInput].forEach(input => input.addEventListener("input", render));
-        document.getElementById("markAllPresentBtn").addEventListener("click", () => { employees.forEach(employee => updateEmployee(employee.id, "in")); });
+        document.getElementById("markAllPresentBtn").addEventListener("click", () => { if (canEditAttendance) employees.forEach(employee => updateEmployee(employee.id, "in")); });
         const clearAttendanceModal = document.getElementById("clearAttendanceModal");
         const clearAttendanceRange = document.getElementById("clearAttendanceRange");
         const clearAttendanceDescription = document.getElementById("clearAttendanceDescription");
@@ -365,12 +840,24 @@
         const accountName = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser");
         const accounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
         const currentAccount = accounts[accountName];
+        loggedInUsername = currentAccount?.username || accountName || "";
         const userDisplay = document.getElementById("userDisplay");
         const displayName = (currentAccount && currentAccount.name) || accountName || "User";
         const displayUsername = (currentAccount && currentAccount.username) || accountName || "User";
         userDisplay.querySelector(".user-display-name").textContent = displayName;
         userDisplay.querySelector(".user-display-username").textContent = `@${displayUsername}`;
         const canEditAttendance = currentAccount && ["Developer", "IT Admin"].includes(currentAccount.role);
+        canManageAttendanceTasks = Boolean(currentAccount && (currentAccount.role === "Developer" || (Array.isArray(currentAccount.permissions) && currentAccount.permissions.includes("assignedTasks"))));
+        canDeleteAttendanceTasks = currentAccount?.role === "Developer";
+        document.getElementById("assignedTasksTab").hidden = !canManageAttendanceTasks;
+        taskAssignmentForm.hidden = !canManageAttendanceTasks;
+        document.getElementById("clearAssignedTasksBtn").hidden = !canDeleteAttendanceTasks;
+        document.getElementById("clearMyTasksBtn").hidden = !canDeleteAttendanceTasks;
+        taskAssigneeInput.innerHTML = employees.map(employee => `<option value="${escapeHtml(employee.id)}">${escapeHtml(employee.name)} (${escapeHtml(employee.office)})</option>`).join("");
+        taskExportEmployee.innerHTML = `<option value="">Choose an employee</option>${employees.map(employee => `<option value="${escapeHtml(employee.id)}">${escapeHtml(employee.name)} (@${escapeHtml(employee.id)})</option>`).join("")}`;
+        refreshAttendanceTasks();
+        document.getElementById("attendanceActionsHeader").style.display = canEditAttendance ? "" : "none";
+        if (!canEditAttendance) document.getElementById("markAllPresentBtn").style.display = "none";
         if (!canEditAttendance) document.getElementById("clearAttendanceBtn").style.display = "none";
         const isDeveloper = currentAccount && (currentAccount.role === "Developer" || accountName === "admin");
         const permissions = new Set((currentAccount && Array.isArray(currentAccount.permissions)) ? currentAccount.permissions : []);
@@ -423,6 +910,7 @@
             }).catch(error => console.warn("Shared attendance load failed.", error));
             refreshSharedAttendance();
             window.setInterval(refreshSharedAttendance, 10000);
+            window.setInterval(refreshAttendanceTasks, 10000);
         }
     </script>
 </body>
