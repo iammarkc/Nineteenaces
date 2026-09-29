@@ -7,8 +7,8 @@
     <meta name="author" content="">
     <meta name="generator" content="">
     <title>Inventory Management</title>
-    <link rel="icon" type="image/x-icon" href="images/icon256.ico">
-    <link rel="apple-touch-icon" href="images/icon256.ico">
+    <link rel="icon" type="image/x-icon" href="images/icon256.ico?v=20260929-2">
+    <link rel="apple-touch-icon" sizes="512x512" href="images/site-icon.png?v=20260929-1">
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/bootstrap-icons.css">
     <link href="css/login.css" rel="stylesheet">
@@ -374,10 +374,12 @@
         .account-modal-overlay.active {
             display: flex;
         }
-        body.embedded-account { min-height: 100%; overflow: hidden; background: transparent; }
+        html.embedded-account-page { background: transparent !important; }
+        body.embedded-account { min-height: 100%; overflow: hidden; background: transparent !important; }
+        html.embedded-account-page body.embedded-account { background: transparent !important; }
         body.embedded-account > *:not(#inventoryAddUserModal):not(#inventoryUsersModal):not(script):not(style) { display: none !important; }
         html.embedded-account-page body > *:not(#inventoryAddUserModal):not(#inventoryUsersModal):not(script):not(style) { display: none !important; }
-        body.embedded-account .account-modal-overlay { display: none !important; background: transparent; padding: 12px; }
+        body.embedded-account .account-modal-overlay { display: none !important; background: transparent !important; padding: 12px; }
         body.embedded-account-add #inventoryAddUserModal, body.embedded-account-users #inventoryUsersModal { display: flex !important; }
         .account-modal {
             background: white;
@@ -520,7 +522,7 @@
                             </li>
                             <li><button class="dropdown-item" id="changePasswordMenuBtn" type="button"><i class="bi bi-key me-2"></i>Change Password</button></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="todo.html"><i class="bi bi-list-check me-2"></i>To-Do List</a></li>
+                            <li><a class="dropdown-item" data-permission="todoList" href="todo.html"><i class="bi bi-list-check me-2"></i>To-Do List</a></li>
                             <li><a class="dropdown-item" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
                             <li><a class="dropdown-item" href="attendance.html?openClock=1"><i class="bi bi-clock me-2"></i>Clock in / out</a></li>
                         </ul>
@@ -1042,7 +1044,7 @@
             <div class="account-form-group"><label for="inventoryNewUserOffice">Office</label><select id="inventoryNewUserOffice"><option value="">Select an office</option><option value="Rizal">Rizal</option><option value="Cebu">Cebu</option><option value="Both">Both Offices</option></select></div>
             <div class="account-form-group"><label for="inventoryNewUserRole">Role</label><select id="inventoryNewUserRole"><option value="">Select a role</option><option value="Developer">Developer</option><option value="IT Admin">IT Admin</option><option value="IT Manager">IT Manager</option><option value="IT Supervisor">IT Supervisor</option><option value="IT Support">IT Support</option><option value="Management">Management</option></select></div>
             <div class="account-form-group"><label>Inventory Access</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryAccessRizal" value="Rizal"><label for="inventoryAccessRizal">Rizal Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryAccessCebu" value="Cebu"><label for="inventoryAccessCebu">Cebu Inventory</label></div></div></div>
-            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" checked id="inventoryPermissionInventory" value="inventory"><label for="inventoryPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAttendance" value="attendance"><label for="inventoryPermissionAttendance">Attendance</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAssignedTasks" value="assignedTasks"><label for="inventoryPermissionAssignedTasks">Assigned Tasks</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionLocalPosReport" value="localPosReport"><label for="inventoryPermissionLocalPosReport">Local POS Report</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAddAccount" value="addAccount"><label for="inventoryPermissionAddAccount">Add Account</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionUsers" value="users"><label for="inventoryPermissionUsers">Manage Users</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAdministrator" value="administrator"><label for="inventoryPermissionAdministrator">Administrator</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAnnouncement" value="announcement"><label for="inventoryPermissionAnnouncement">Announcement access</label></div></div></div>
+            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" checked id="inventoryPermissionInventory" value="inventory"><label for="inventoryPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAttendance" value="attendance"><label for="inventoryPermissionAttendance">Attendance</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAssignedTasks" value="assignedTasks"><label for="inventoryPermissionAssignedTasks">Assigned Tasks</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionTodoList" value="todoList"><label for="inventoryPermissionTodoList">To-Do List</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionLocalPosReport" value="localPosReport"><label for="inventoryPermissionLocalPosReport">Local POS Report</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAddAccount" value="addAccount"><label for="inventoryPermissionAddAccount">Add Account</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionUsers" value="users"><label for="inventoryPermissionUsers">Manage Users</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAdministrator" value="administrator"><label for="inventoryPermissionAdministrator">Administrator</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAnnouncement" value="announcement"><label for="inventoryPermissionAnnouncement">Announcement access</label></div></div></div>
             <div class="account-modal-buttons"><button type="button" class="btn-submit" id="inventorySubmitUserBtn">Add Account</button><button type="button" class="btn-cancel" id="inventoryCancelUserBtn">Cancel</button></div>
         </div>
     </div>
@@ -1079,7 +1081,7 @@
             <div class="account-form-group" id="inventoryEditAccessControls"><label for="inventoryEditUserOffice">Office</label><select id="inventoryEditUserOffice"><option value="">Select an office</option><option value="Rizal">Rizal</option><option value="Cebu">Cebu</option><option value="Both">Both Offices</option></select></div>
             <div class="account-form-group" id="inventoryEditRoleControl"><label for="inventoryEditUserRole">Role</label><select id="inventoryEditUserRole"><option value="">Select a role</option><option value="Developer">Developer</option><option value="IT Admin">IT Admin</option><option value="IT Manager">IT Manager</option><option value="IT Supervisor">IT Supervisor</option><option value="IT Support">IT Support</option><option value="Management">Management</option></select></div>
             <div class="account-form-group" id="inventoryEditInventoryAccessControl"><label>Inventory Access</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditAccessRizal" value="Rizal"><label for="inventoryEditAccessRizal">Rizal Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditAccessCebu" value="Cebu"><label for="inventoryEditAccessCebu">Cebu Inventory</label></div></div></div>
-            <div class="account-form-group" id="inventoryEditPermissionControl"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionInventory" value="inventory"><label for="inventoryEditPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAttendance" value="attendance"><label for="inventoryEditPermissionAttendance">Attendance</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAssignedTasks" value="assignedTasks"><label for="inventoryEditPermissionAssignedTasks">Assigned Tasks</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionLocalPosReport" value="localPosReport"><label for="inventoryEditPermissionLocalPosReport">Local POS Report</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAddAccount" value="addAccount"><label for="inventoryEditPermissionAddAccount">Add Account</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionUsers" value="users"><label for="inventoryEditPermissionUsers">Manage Users</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAdministrator" value="administrator"><label for="inventoryEditPermissionAdministrator">Administrator</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAnnouncement" value="announcement"><label for="inventoryEditPermissionAnnouncement">Announcement access</label></div></div></div>
+            <div class="account-form-group" id="inventoryEditPermissionControl"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionInventory" value="inventory"><label for="inventoryEditPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAttendance" value="attendance"><label for="inventoryEditPermissionAttendance">Attendance</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAssignedTasks" value="assignedTasks"><label for="inventoryEditPermissionAssignedTasks">Assigned Tasks</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionTodoList" value="todoList"><label for="inventoryEditPermissionTodoList">To-Do List</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionLocalPosReport" value="localPosReport"><label for="inventoryEditPermissionLocalPosReport">Local POS Report</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAddAccount" value="addAccount"><label for="inventoryEditPermissionAddAccount">Add Account</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionUsers" value="users"><label for="inventoryEditPermissionUsers">Manage Users</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAdministrator" value="administrator"><label for="inventoryEditPermissionAdministrator">Administrator</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAnnouncement" value="announcement"><label for="inventoryEditPermissionAnnouncement">Announcement access</label></div></div></div>
             <div class="account-modal-buttons"><button type="button" class="btn-submit" id="inventorySaveEditUserBtn">Save Changes</button><button type="button" class="btn btn-danger" id="inventoryDeleteUserBtn" style="display: none;">Delete Account</button><button type="button" class="btn-cancel" id="inventoryCancelEditUserBtn">Cancel</button></div>
         </div>
     </div>
@@ -1300,7 +1302,7 @@
                     return;
                 }
 
-                if (["localPosReport", "addAccount", "users"].includes(item.dataset.permission) && currentRole === 'Developer') {
+                if (["localPosReport", "addAccount", "users", "todoList"].includes(item.dataset.permission) && currentRole === 'Developer') {
                     menuEntry.style.display = '';
                     return;
                 }
@@ -2604,12 +2606,20 @@
             return Boolean(currentAccount && currentAccount.role === "Developer");
         }
 
+        function canGrantTodoList(accounts) {
+            const currentUsername = (localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser") || "").toLowerCase();
+            const currentAccount = accounts[currentUsername] || Object.values(accounts).find(account => String(account?.username || "").toLowerCase() === currentUsername);
+            return Boolean(currentAccount && currentAccount.role === "Developer");
+        }
+
         function setAddAccountPermissionAvailability(accounts) {
             const administratorPermission = document.getElementById("inventoryPermissionAdministrator");
             const assignedTasksPermission = document.getElementById("inventoryPermissionAssignedTasks");
+            const todoListPermission = document.getElementById("inventoryPermissionTodoList");
             const announcementPermission = document.getElementById("inventoryPermissionAnnouncement");
             const canGrantAdministrator = canManageAccountAccess(accounts);
             const canGrantAssignedTasksPermission = canGrantAssignedTasks(accounts);
+            const canGrantTodoListPermission = canGrantTodoList(accounts);
             const canGrantAnnouncementPermission = canManageAccountAccess(accounts);
             if (administratorPermission) {
                 administratorPermission.disabled = !canGrantAdministrator;
@@ -2620,6 +2630,11 @@
                 assignedTasksPermission.disabled = !canGrantAssignedTasksPermission;
                 assignedTasksPermission.checked = canGrantAssignedTasksPermission && assignedTasksPermission.checked;
                 assignedTasksPermission.closest(".account-permission-item").style.opacity = canGrantAssignedTasksPermission ? "1" : "0.5";
+            }
+            if (todoListPermission) {
+                todoListPermission.disabled = !canGrantTodoListPermission;
+                todoListPermission.checked = canGrantTodoListPermission && todoListPermission.checked;
+                todoListPermission.closest(".account-permission-item").style.opacity = canGrantTodoListPermission ? "1" : "0.5";
             }
             if (announcementPermission) {
                 announcementPermission.disabled = !canGrantAnnouncementPermission;
@@ -2676,6 +2691,11 @@
             if (assignedTasksPermission) {
                 assignedTasksPermission.disabled = !canGrantAssignedTasks(currentAccounts);
                 assignedTasksPermission.closest(".account-permission-item").style.opacity = assignedTasksPermission.disabled ? "0.5" : "1";
+            }
+            const todoListPermission = document.getElementById("inventoryEditPermissionTodoList");
+            if (todoListPermission) {
+                todoListPermission.disabled = !canGrantTodoList(currentAccounts);
+                todoListPermission.closest(".account-permission-item").style.opacity = todoListPermission.disabled ? "0.5" : "1";
             }
             const announcementPermission = document.getElementById("inventoryEditPermissionAnnouncement");
             if (announcementPermission) {
@@ -2854,6 +2874,7 @@
 
             const accessManager = canManageAccountAccess(accounts);
             const assignedTasksPermissionManager = canGrantAssignedTasks(accounts);
+            const todoListPermissionManager = canGrantTodoList(accounts);
 
             if (username !== originalUsername && accounts[username]) {
                 alert("Username already exists.");
@@ -2875,6 +2896,7 @@
                     ? Array.from(document.querySelectorAll("#inventoryEditUserModal input[id^='inventoryEditPermission']:checked"), input => input.value)
                         .filter(permission =>
                             (permission !== "assignedTasks" || assignedTasksPermissionManager || (account.permissions || []).includes("assignedTasks")) &&
+                            (permission !== "todoList" || todoListPermissionManager || (account.permissions || []).includes("todoList")) &&
                             (permission !== "announcement" || accessManager)
                         )
                     : account.permissions
@@ -2944,9 +2966,11 @@
 
                 const canGrantAdministrator = canManageAccountAccess(accounts);
                 const canGrantAssignedTasksPermission = canGrantAssignedTasks(accounts);
+                const canGrantTodoListPermission = canGrantTodoList(accounts);
                 const safePermissions = permissions.filter(permission =>
                     (permission !== "administrator" || canGrantAdministrator) &&
                     (permission !== "assignedTasks" || canGrantAssignedTasksPermission) &&
+                    (permission !== "todoList" || canGrantTodoListPermission) &&
                     (permission !== "announcement" || canManageAccountAccess(accounts))
                 );
 

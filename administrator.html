@@ -4,7 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Administrator</title>
-    <link rel="icon" type="image/x-icon" href="images/icon256.ico">
+    <link rel="icon" type="image/x-icon" href="images/icon256.ico?v=20260929-2">
+    <link rel="apple-touch-icon" sizes="512x512" href="images/site-icon.png?v=20260929-1">
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/bootstrap-icons.css">
     <script src="js/theme-switch.js?v=20260929-1"></script>
@@ -130,7 +131,7 @@
                             <li><a class="dropdown-item" href="inventory.html?office=Rizal&embedded=1&openUsers=1"><i class="bi bi-people me-2"></i>Users</a></li>
                             <li><a class="dropdown-item" href="inventory.html#change-password"><i class="bi bi-key me-2"></i>Change Password</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="todo.html"><i class="bi bi-list-check me-2"></i>To-Do List</a></li>
+                            <li id="todoListMenuItem"><a class="dropdown-item" data-permission="todoList" href="todo.html"><i class="bi bi-list-check me-2"></i>To-Do List</a></li>
                             <li><a class="dropdown-item" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
                             <li><a class="dropdown-item" href="attendance.html?openClock=1"><i class="bi bi-clock me-2"></i>Clock in / out</a></li>
                         </ul>
@@ -239,6 +240,8 @@
         const account = accounts[username];
         const hasAdministratorAccess = username === "admin" || (account && (account.role === "Developer" || (Array.isArray(account.permissions) && account.permissions.includes("administrator"))));
         if (!account || !hasAdministratorAccess) window.location.href = "index.html";
+        const todoListMenuItem = document.getElementById("todoListMenuItem");
+        if (todoListMenuItem) todoListMenuItem.style.display = username === "admin" || account?.role === "Developer" || (Array.isArray(account?.permissions) && account.permissions.includes("todoList")) ? "" : "none";
         document.getElementById("logoutBtn").addEventListener("click", () => {
             if (window.authSession) window.authSession.logout();
             else {

@@ -19,6 +19,16 @@
     const addForm = document.getElementById("todoAddForm");
     const addButton = document.getElementById("toggleTodoForm");
     const notice = document.getElementById("todoNotice");
+    const username = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser") || "User";
+    const accounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
+    const account = accounts[username];
+    const currentRole = username === "admin" || account?.role === "Developer" ? "Developer" : (account?.role || "User");
+    const permissions = new Set(Array.isArray(account?.permissions) ? account.permissions : []);
+
+    if (currentRole !== "Developer" && !permissions.has("todoList")) {
+        window.location.replace("inventory.html");
+        return;
+    }
     let activeTaskEdit = null;
 
     function getLocalMonth() {
@@ -351,14 +361,9 @@
         }
     });
 
-    const username = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser") || "User";
-    const accounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
-    const account = accounts[username];
     document.querySelector(".user-display-name").textContent = account?.name || username;
     document.querySelector(".user-display-username").textContent = `@${username}`;
 
-    const currentRole = username === "admin" || account?.role === "Developer" ? "Developer" : (account?.role || "User");
-    const permissions = new Set(Array.isArray(account?.permissions) ? account.permissions : []);
     const inventoryAccess = new Set(currentRole === "Developer"
         ? ["Rizal", "Cebu"]
         : (Array.isArray(account?.inventoryAccess) ? account.inventoryAccess : (account?.office ? [account.office] : [])));

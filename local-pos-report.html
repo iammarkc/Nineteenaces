@@ -4,7 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Local POS Report</title>
-    <link rel="icon" type="image/x-icon" href="images/icon256.ico">
+    <link rel="icon" type="image/x-icon" href="images/icon256.ico?v=20260929-2">
+    <link rel="apple-touch-icon" sizes="512x512" href="images/site-icon.png?v=20260929-1">
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/bootstrap-icons.css">
     <script src="js/theme-switch.js?v=20260929-1"></script>
@@ -58,7 +59,7 @@
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenu">
                             <li><a class="dropdown-item" href="inventory.html"><i class="bi bi-boxes me-2"></i>Inventory</a></li>
                             <li><a class="dropdown-item" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
-                            <li><a class="dropdown-item" href="todo.html"><i class="bi bi-list-check me-2"></i>To-Do List</a></li>
+                            <li id="todoListMenuItem"><a class="dropdown-item" data-permission="todoList" href="todo.html"><i class="bi bi-list-check me-2"></i>To-Do List</a></li>
                             <li><button class="dropdown-item" id="changePasswordMenuBtn" type="button"><i class="bi bi-key me-2"></i>Change Password</button></li>
                             <li id="administratorMenuItem" style="display: none;"><a class="dropdown-item" href="administrator.html"><i class="bi bi-shield-lock me-2"></i>Administrator</a></li>
                         </ul>
@@ -202,6 +203,8 @@
         userDisplay.querySelector(".user-display-username").textContent = `@${displayUsername}`;
         const administratorMenuItem = document.getElementById("administratorMenuItem");
         if (administratorMenuItem && currentAccount && (currentAccount.role === "Developer" || accountName === "admin" || (Array.isArray(currentAccount.permissions) && currentAccount.permissions.includes("administrator")))) administratorMenuItem.style.display = "";
+        const todoListMenuItem = document.getElementById("todoListMenuItem");
+        if (todoListMenuItem) todoListMenuItem.style.display = currentAccount && (currentAccount.role === "Developer" || accountName === "admin" || (Array.isArray(currentAccount.permissions) && currentAccount.permissions.includes("todoList"))) ? "" : "none";
         renderReport();
         refreshCountersFromInventory();
         window.setInterval(refreshCountersFromInventory, 10000);
