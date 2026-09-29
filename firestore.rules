@@ -22,5 +22,8 @@ service cloud.firestore {
     match /inventoryHistory/{office} {
       allow read, write: if true;
     }
+    match /todoTasks/{taskId} {
+      allow read, write: if true;
+    }
   }
 }

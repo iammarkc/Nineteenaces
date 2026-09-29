@@ -520,6 +520,7 @@
                             </li>
                             <li><button class="dropdown-item" id="changePasswordMenuBtn" type="button"><i class="bi bi-key me-2"></i>Change Password</button></li>
                             <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="todo.html"><i class="bi bi-list-check me-2"></i>To-Do List</a></li>
                             <li><a class="dropdown-item" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
                             <li><a class="dropdown-item" href="attendance.html?openClock=1"><i class="bi bi-clock me-2"></i>Clock in / out</a></li>
                         </ul>
@@ -2486,6 +2487,10 @@
             e.preventDefault();
             clearInventoryData();
         });
+
+            if (new URLSearchParams(window.location.search).get("openClearInventory") === "1" && getCurrentUserRole() === "Developer") {
+                openClearInventoryModal();
+            }
 
         const inventoryAccountsApi = `${window.location.protocol}//${window.location.hostname}:3100/api/accounts`;
 

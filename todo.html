@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="auto">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Monthly to-do list">
+    <title>To-Do List</title>
+    <link rel="icon" type="image/x-icon" href="images/icon256.ico">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap-icons.css">
+    <script src="js/theme-switch.js?v=20260929-1"></script>
+    <link rel="stylesheet" href="css/theme-switch.css?v=20260928-3">
+    <link rel="stylesheet" href="css/app-redesign.css?v=20260929-11">
+    <link rel="stylesheet" href="css/todo-list.css?v=20260929-2">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@1.48.0/dist/umd/lucide.min.js" defer></script>
+    <script src="js/lucide-icons.js?v=20260929-2" defer></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="inventory.html"><i class="bi bi-boxes me-2"></i>Inventory Management</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item d-flex align-items-center ms-2">
+                        <label class="theme-switch" for="themeToggleBtn" title="Toggle light and dark mode"><input id="themeToggleBtn" type="checkbox" role="switch" aria-label="Dark mode" aria-checked="false"><span class="theme-switch-track" aria-hidden="true"><i class="bi bi-sun-fill"></i><i class="bi bi-moon-stars-fill"></i><span class="theme-switch-thumb"><i class="bi bi-sun-fill"></i></span></span></label>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" aria-expanded="false"><i class="bi bi-list me-1"></i>Menu</a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenu">
+                            <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Rizal" href="inventory.html?office=Rizal"><i class="bi bi-boxes me-2"></i>Inventory of Rizal</a></li>
+                            <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Cebu" href="inventory.html?office=Cebu"><i class="bi bi-boxes me-2"></i>Inventory of Cebu</a></li>
+                            <li><a class="dropdown-item" href="local-pos-report.html"><i class="bi bi-bar-chart-line me-2"></i>Local POS Report</a></li>
+                            <li id="administratorMenuItem" style="display: none;"><a class="dropdown-item" data-permission="administrator" href="administrator.html"><i class="bi bi-shield-lock me-2"></i>Administrator</a></li>
+                            <li><a class="dropdown-item" data-permission="inventory" id="clearInventoryMenuBtn" href="inventory.html?openClearInventory=1"><i class="bi bi-trash me-2"></i>Clear Inventory</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li id="addAccountMenuItemContainer" style="display: none;"><a class="dropdown-item" data-permission="addAccount" href="inventory.html?embedded=1"><i class="bi bi-person-plus me-2"></i>Add User</a></li>
+                            <li id="usersMenuItemContainer" style="display: none;"><a class="dropdown-item" data-permission="users" href="inventory.html?embedded=1&amp;openUsers=1"><i class="bi bi-people me-2"></i>Users</a></li>
+                            <li><a class="dropdown-item" href="inventory.html#change-password"><i class="bi bi-key me-2"></i>Change Password</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item active" href="todo.html" aria-current="page"><i class="bi bi-list-check me-2"></i>To-Do List</a></li>
+                            <li><a class="dropdown-item" href="attendance.html"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
+                            <li><a class="dropdown-item" href="attendance.html?openClock=1"><i class="bi bi-clock me-2"></i>Clock in / out</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><span class="nav-link user-display" id="userDisplay"><span class="user-display-name">User</span><small class="user-display-username">@User</small></span></li>
+                    <li class="nav-item"><button class="btn btn-danger ms-2" id="logoutBtn" type="button">Logout</button></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="todo-page">
+        <header class="todo-page-heading">
+            <div>
+                <p class="todo-eyebrow">MONTHLY CHECKLIST</p>
+                <h1>To-Do List</h1>
+            </div>
+            <label class="todo-month-control" for="todoMonth"><span>Month</span><input id="todoMonth" type="month"></label>
+        </header>
+
+        <section class="todo-overview" aria-label="Monthly progress">
+            <div><span class="todo-overview-label">Tasks</span><strong id="totalTaskCount">0</strong></div>
+            <div><span class="todo-overview-label">Pending</span><strong id="pendingTaskCount">0</strong></div>
+            <div><span class="todo-overview-label">Completed</span><strong id="completedTaskCount">0</strong></div>
+            <div class="todo-overview-progress"><span class="todo-overview-label">Progress</span><div class="todo-progress-track" role="progressbar" aria-label="Monthly task completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="overallProgressBar"></span></div><strong id="overallProgressLabel">0%</strong></div>
+        </section>
+
+        <section class="todo-toolbar" aria-label="List controls">
+            <label class="todo-search"><i class="bi bi-search" aria-hidden="true"></i><input id="todoSearch" type="search" placeholder="Search tasks" aria-label="Search tasks"></label>
+            <button class="btn btn-primary" id="toggleTodoForm" type="button" aria-expanded="false" aria-controls="todoAddForm"><i class="bi bi-plus-lg me-1"></i>Add task</button>
+            <button class="btn btn-outline-secondary" id="exportTodoReport" type="button" title="Export monthly summary report" aria-label="Export monthly summary report"><i class="bi bi-download" aria-hidden="true"></i></button>
+        </section>
+
+        <form class="todo-add-form" id="todoAddForm" hidden>
+            <label class="todo-field"><span>Category</span><select id="todoCategory" required><option value="Uploader">Uploader</option><option value="Papel">Papel</option><option value="POS">POS</option><option value="Meeting">Meeting</option><option value="Office Supplies &amp; Equipment">Office Supplies &amp; Equipment</option><option value="Personnel SOP's &amp; Requirements">Personnel SOP's &amp; Requirements</option><option value="Daily IT Output Report">Daily IT Output Report</option><option value="Extra Tasks">Extra Tasks</option><option value="Orientation">Orientation</option><option value="To Do">To Do</option></select></label>
+            <label class="todo-field"><span>Date</span><input id="todoDate" type="date"></label>
+            <label class="todo-field todo-task-field"><span>Task</span><input id="todoTitle" type="text" maxlength="240" required placeholder="Task name"></label>
+            <button class="btn btn-primary todo-submit" type="submit"><i class="bi bi-check-lg me-1"></i>Add</button>
+        </form>
+
+        <p class="todo-notice" id="todoNotice" role="status" hidden></p>
+
+        <section class="todo-board" id="todoBoard" aria-label="Tasks by category">
+            <article class="todo-category" data-category="Uploader">
+                <header class="todo-category-heading"><div><h2>Uploader</h2><p data-category-progress="Uploader">0/0 completed</p></div><span class="todo-category-mark" aria-hidden="true">01</span><div class="todo-category-track"><span data-category-bar="Uploader"></span></div></header>
+                <div class="todo-table-wrap"><table class="todo-table"><thead><tr><th scope="col" aria-label="Completed">&#10003;</th><th scope="col">Date</th><th scope="col">Task</th><th scope="col" aria-label="Actions"></th></tr></thead><tbody data-category-rows="Uploader"></tbody></table></div>
+            </article>
+            <article class="todo-category" data-category="Papel">
+                <header class="todo-category-heading"><div><h2>Papel</h2><p data-category-progress="Papel">0/0 completed</p></div><span class="todo-category-mark" aria-hidden="true">02</span><div class="todo-category-track"><span data-category-bar="Papel"></span></div></header>
+                <div class="todo-table-wrap"><table class="todo-table"><thead><tr><th scope="col" aria-label="Completed">&#10003;</th><th scope="col">Date</th><th scope="col">Task</th><th scope="col" aria-label="Actions"></th></tr></thead><tbody data-category-rows="Papel"></tbody></table></div>
+            </article>
+            <article class="todo-category" data-category="POS">
+                <header class="todo-category-heading"><div><h2>POS</h2><p data-category-progress="POS">0/0 completed</p></div><span class="todo-category-mark" aria-hidden="true">03</span><div class="todo-category-track"><span data-category-bar="POS"></span></div></header>
+                <div class="todo-table-wrap"><table class="todo-table"><thead><tr><th scope="col" aria-label="Completed">&#10003;</th><th scope="col">Date</th><th scope="col">Task</th><th scope="col" aria-label="Actions"></th></tr></thead><tbody data-category-rows="POS"></tbody></table></div>
+            </article>
+            <article class="todo-category" data-category="Meeting">
+                <header class="todo-category-heading"><div><h2>Meeting</h2><p data-category-progress="Meeting">0/0 completed</p></div><span class="todo-category-mark" aria-hidden="true">04</span><div class="todo-category-track"><span data-category-bar="Meeting"></span></div></header>
+                <div class="todo-table-wrap"><table class="todo-table"><thead><tr><th scope="col" aria-label="Completed">&#10003;</th><th scope="col">Date</th><th scope="col">Task</th><th scope="col" aria-label="Actions"></th></tr></thead><tbody data-category-rows="Meeting"></tbody></table></div>
+            </article>
+            <article class="todo-category" data-category="Office Supplies &amp; Equipment">
+                <header class="todo-category-heading"><div><h2>Office Supplies &amp; Equipment</h2><p data-category-progress="Office Supplies &amp; Equipment">0/0 completed</p></div><span class="todo-category-mark" aria-hidden="true">05</span><div class="todo-category-track"><span data-category-bar="Office Supplies &amp; Equipment"></span></div></header>
+                <div class="todo-table-wrap"><table class="todo-table"><thead><tr><th scope="col" aria-label="Completed">&#10003;</th><th scope="col">Date</th><th scope="col">Task</th><th scope="col" aria-label="Actions"></th></tr></thead><tbody data-category-rows="Office Supplies &amp; Equipment"></tbody></table></div>
+            </article>
+            <article class="todo-category" data-category="Personnel SOP's &amp; Requirements">
+                <header class="todo-category-heading"><div><h2>Personnel SOP's &amp; Requirements</h2><p data-category-progress="Personnel SOP's &amp; Requirements">0/0 completed</p></div><span class="todo-category-mark" aria-hidden="true">06</span><div class="todo-category-track"><span data-category-bar="Personnel SOP's &amp; Requirements"></span></div></header>
+                <div class="todo-table-wrap"><table class="todo-table"><thead><tr><th scope="col" aria-label="Completed">&#10003;</th><th scope="col">Date</th><th scope="col">Task</th><th scope="col" aria-label="Actions"></th></tr></thead><tbody data-category-rows="Personnel SOP's &amp; Requirements"></tbody></table></div>
+            </article>
+            <article class="todo-category" data-category="Daily IT Output Report">
+                <header class="todo-category-heading"><div><h2>Daily IT Output Report</h2><p data-category-progress="Daily IT Output Report">0/0 completed</p></div><span class="todo-category-mark" aria-hidden="true">07</span><div class="todo-category-track"><span data-category-bar="Daily IT Output Report"></span></div></header>
+                <div class="todo-table-wrap"><table class="todo-table"><thead><tr><th scope="col" aria-label="Completed">&#10003;</th><th scope="col">Date</th><th scope="col">Task</th><th scope="col" aria-label="Actions"></th></tr></thead><tbody data-category-rows="Daily IT Output Report"></tbody></table></div>
+            </article>
+            <article class="todo-category" data-category="Extra Tasks">
+                <header class="todo-category-heading"><div><h2>Extra Tasks</h2><p data-category-progress="Extra Tasks">0/0 completed</p></div><span class="todo-category-mark" aria-hidden="true">08</span><div class="todo-category-track"><span data-category-bar="Extra Tasks"></span></div></header>
+                <div class="todo-table-wrap"><table class="todo-table"><thead><tr><th scope="col" aria-label="Completed">&#10003;</th><th scope="col">Date</th><th scope="col">Task</th><th scope="col" aria-label="Actions"></th></tr></thead><tbody data-category-rows="Extra Tasks"></tbody></table></div>
+            </article>
+            <article class="todo-category" data-category="Orientation">
+                <header class="todo-category-heading"><div><h2>Orientation</h2><p data-category-progress="Orientation">0/0 completed</p></div><span class="todo-category-mark" aria-hidden="true">09</span><div class="todo-category-track"><span data-category-bar="Orientation"></span></div></header>
+                <div class="todo-table-wrap"><table class="todo-table"><thead><tr><th scope="col" aria-label="Completed">&#10003;</th><th scope="col">Date</th><th scope="col">Task</th><th scope="col" aria-label="Actions"></th></tr></thead><tbody data-category-rows="Orientation"></tbody></table></div>
+            </article>
+            <article class="todo-category" data-category="To Do">
+                <header class="todo-category-heading"><div><h2>To Do</h2><p data-category-progress="To Do">0/0 completed</p></div><span class="todo-category-mark" aria-hidden="true">10</span><div class="todo-category-track"><span data-category-bar="To Do"></span></div></header>
+                <div class="todo-table-wrap"><table class="todo-table"><thead><tr><th scope="col" aria-label="Completed">&#10003;</th><th scope="col">Date</th><th scope="col">Task</th><th scope="col" aria-label="Actions"></th></tr></thead><tbody data-category-rows="To Do"></tbody></table></div>
+            </article>
+        </section>
+    </main>
+
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/auth-session.js?v=20260921-2"></script>
+    <script src="js/firebase-shared.js?v=20260929-4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+    <script src="js/todo-list.js?v=20260929-6"></script>
+    <script src="js/announcements.js?v=20260929-2"></script>
+</body>
+</html>

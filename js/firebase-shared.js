@@ -227,6 +227,29 @@
         if (!response.ok) throw new Error(`Firestore inventory history write failed: ${response.status}`);
     }
 
+    async function loadTodoTasksFromFirestore() {
+        const documents = await loadFirestoreCollection("todoTasks");
+        return documents.map(document => ({
+            id: document.name.split("/").pop(),
+            ...Object.keys(document.fields || {}).reduce((task, key) => ({ ...task, [key]: fromFirestoreValue(document.fields[key]) }), {})
+        }));
+    }
+
+    async function saveTodoTaskToFirestore(task) {
+        const fields = Object.keys(task).filter(key => key !== "id").reduce((result, key) => ({ ...result, [key]: toFirestoreValue(task[key]) }), {});
+        const response = await fetch(`${firestoreRestBase}/todoTasks/${encodeURIComponent(task.id)}?key=${firebaseConfig.apiKey}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fields })
+        });
+        if (!response.ok) throw new Error(`Firestore to-do task write failed: ${response.status}`);
+    }
+
+    async function deleteTodoTaskFromFirestore(taskId) {
+        const response = await fetch(`${firestoreRestBase}/todoTasks/${encodeURIComponent(taskId)}?key=${firebaseConfig.apiKey}`, { method: "DELETE" });
+        if (!response.ok && response.status !== 404) throw new Error(`Firestore to-do task delete failed: ${response.status}`);
+    }
+
     window.sharedAttendance = {
         ready: Promise.resolve(),
         async load() {
@@ -275,6 +298,13 @@
         clear: office => clearInventoryFromFirestore(office),
         loadHistory: office => loadInventoryHistoryFromFirestore(office),
         saveHistory: (office, entries) => saveInventoryHistoryToFirestore(office, entries)
+    };
+
+    window.sharedTodoList = {
+        ready: Promise.resolve(),
+        load: () => loadTodoTasksFromFirestore(),
+        save: task => saveTodoTaskToFirestore(task),
+        delete: taskId => deleteTodoTaskFromFirestore(taskId)
     };
 
     window.sharedAnnouncements = {
