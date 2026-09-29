@@ -284,7 +284,7 @@
 .theme-switch input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
 .theme-switch-track { position: relative; display: inline-flex; align-items: center; justify-content: space-between; width: 64px; height: 30px; padding: 0 8px; border: 1px solid rgba(255,255,255,.58); border-radius: 999px; background: rgba(6, 31, 45, .46); transition: background-color .24s ease, border-color .24s ease, box-shadow .24s ease; }
 .theme-switch-thumb { position: absolute; top: 3px; left: 3px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: #fff; color: #0e7490; box-shadow: 0 2px 5px rgba(0,0,0,.24); transition: transform .24s cubic-bezier(.2,.8,.2,1), background-color .24s ease, color .24s ease; }
-.theme-switch-thumb i { font-size: 12px; line-height: 1; }
+.theme-switch-thumb .app-icon { font-size: 12px; line-height: 1; }
 .theme-switch input:checked + .theme-switch-track { background: #10232e; border-color: #7cc9da; box-shadow: 0 0 0 2px rgba(86,195,212,.16); }
 .theme-switch input:checked + .theme-switch-track .theme-switch-thumb { transform: translateX(36px); background: #d7edf4; color: #174354; }
 .theme-switch input:focus-visible + .theme-switch-track { outline: 3px solid #facc15; outline-offset: 3px; }

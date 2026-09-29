@@ -6,6 +6,7 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "firebase": "^12.19.0"
+    "firebase": "^12.19.0",
+    "lucide": "^1.48.0"
   }
 }

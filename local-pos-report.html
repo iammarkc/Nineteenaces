@@ -42,6 +42,9 @@
         .status-note { margin: 14px 22px 18px; color: var(--muted); font-size: 13px; }
         @media (max-width: 640px) { .report-container { margin-top: 24px; padding: 0 12px; } .report-hero { padding: 26px 22px; } .report-hero h1 { font-size: 25px; } .summary { min-height: 110px; } .report-toolbar { align-items: flex-start; flex-direction: column; } .report-table th, .report-table td { padding: 12px 14px; } .report-table th:last-child, .report-table td:last-child { width: 145px; } .counter-input { width: 105px; } }
     </style>
+    <link rel="stylesheet" href="css/app-redesign.css?v=20260929-9">
+    <script src="node_modules/lucide/dist/umd/lucide.min.js" defer></script>
+    <script src="js/lucide-icons.js?v=20260929-2" defer></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
@@ -111,6 +114,7 @@
         if (!hasLocalPosReportPermission) window.location.href = "index.html";
 
         if (window.self !== window.top) {
+            document.body.classList.add("embedded-report");
             const embeddedControls = [
                 document.getElementById("adminMenu"),
                 document.getElementById("userDisplay"),
@@ -201,5 +205,6 @@
         refreshCountersFromInventory();
         window.setInterval(refreshCountersFromInventory, 10000);
     </script>
+    <script src="js/announcements.js?v=20260929-2"></script>
 </body>
 </html>

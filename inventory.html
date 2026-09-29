@@ -248,7 +248,7 @@
             padding-bottom: 12px;
             border-bottom: 1px solid rgba(148, 187, 204, 0.45);
         }
-        .section-title i {
+        .section-title .app-icon {
             font-size: 20px;
             color: #0891b2;
         }
@@ -482,6 +482,9 @@
             font-weight: 700;
         }
     </style>
+    <link rel="stylesheet" href="css/app-redesign.css?v=20260929-10">
+    <script src="node_modules/lucide/dist/umd/lucide.min.js" defer></script>
+    <script src="js/lucide-icons.js?v=20260929-2" defer></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
@@ -1038,7 +1041,7 @@
             <div class="account-form-group"><label for="inventoryNewUserOffice">Office</label><select id="inventoryNewUserOffice"><option value="">Select an office</option><option value="Rizal">Rizal</option><option value="Cebu">Cebu</option><option value="Both">Both Offices</option></select></div>
             <div class="account-form-group"><label for="inventoryNewUserRole">Role</label><select id="inventoryNewUserRole"><option value="">Select a role</option><option value="Developer">Developer</option><option value="IT Admin">IT Admin</option><option value="IT Manager">IT Manager</option><option value="IT Supervisor">IT Supervisor</option><option value="IT Support">IT Support</option><option value="Management">Management</option></select></div>
             <div class="account-form-group"><label>Inventory Access</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryAccessRizal" value="Rizal"><label for="inventoryAccessRizal">Rizal Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryAccessCebu" value="Cebu"><label for="inventoryAccessCebu">Cebu Inventory</label></div></div></div>
-            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" checked id="inventoryPermissionInventory" value="inventory"><label for="inventoryPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAttendance" value="attendance"><label for="inventoryPermissionAttendance">Attendance</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAssignedTasks" value="assignedTasks"><label for="inventoryPermissionAssignedTasks">Assigned Tasks</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionLocalPosReport" value="localPosReport"><label for="inventoryPermissionLocalPosReport">Local POS Report</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAddAccount" value="addAccount"><label for="inventoryPermissionAddAccount">Add Account</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionUsers" value="users"><label for="inventoryPermissionUsers">Manage Users</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAdministrator" value="administrator"><label for="inventoryPermissionAdministrator">Administrator</label></div></div></div>
+            <div class="account-form-group"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" checked id="inventoryPermissionInventory" value="inventory"><label for="inventoryPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAttendance" value="attendance"><label for="inventoryPermissionAttendance">Attendance</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAssignedTasks" value="assignedTasks"><label for="inventoryPermissionAssignedTasks">Assigned Tasks</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionLocalPosReport" value="localPosReport"><label for="inventoryPermissionLocalPosReport">Local POS Report</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAddAccount" value="addAccount"><label for="inventoryPermissionAddAccount">Add Account</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionUsers" value="users"><label for="inventoryPermissionUsers">Manage Users</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAdministrator" value="administrator"><label for="inventoryPermissionAdministrator">Administrator</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryPermissionAnnouncement" value="announcement"><label for="inventoryPermissionAnnouncement">Announcement access</label></div></div></div>
             <div class="account-modal-buttons"><button type="button" class="btn-submit" id="inventorySubmitUserBtn">Add Account</button><button type="button" class="btn-cancel" id="inventoryCancelUserBtn">Cancel</button></div>
         </div>
     </div>
@@ -1050,8 +1053,8 @@
         </div>
     </div>
     <div class="account-modal-overlay" id="localPosReportModal">
-        <div class="account-modal users-modal" style="width: 96%; max-width: 1600px; height: 90vh; padding: 0; overflow: hidden; background: transparent; border: none; box-shadow: none;">
-            <iframe id="localPosReportFrame" src="local-pos-report.html" style="width: 100%; height: 100%; border: 0; background: white; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.28);"></iframe>
+        <div class="account-modal users-modal local-pos-report-window">
+            <iframe id="localPosReportFrame" src="local-pos-report.html" title="Local POS Report"></iframe>
         </div>
     </div>
     <div id="inventoryClockOverlay" style="position: fixed; inset: 0; z-index: 5000; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(10, 17, 29, 0.62);">
@@ -1075,7 +1078,7 @@
             <div class="account-form-group" id="inventoryEditAccessControls"><label for="inventoryEditUserOffice">Office</label><select id="inventoryEditUserOffice"><option value="">Select an office</option><option value="Rizal">Rizal</option><option value="Cebu">Cebu</option><option value="Both">Both Offices</option></select></div>
             <div class="account-form-group" id="inventoryEditRoleControl"><label for="inventoryEditUserRole">Role</label><select id="inventoryEditUserRole"><option value="">Select a role</option><option value="Developer">Developer</option><option value="IT Admin">IT Admin</option><option value="IT Manager">IT Manager</option><option value="IT Supervisor">IT Supervisor</option><option value="IT Support">IT Support</option><option value="Management">Management</option></select></div>
             <div class="account-form-group" id="inventoryEditInventoryAccessControl"><label>Inventory Access</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditAccessRizal" value="Rizal"><label for="inventoryEditAccessRizal">Rizal Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditAccessCebu" value="Cebu"><label for="inventoryEditAccessCebu">Cebu Inventory</label></div></div></div>
-            <div class="account-form-group" id="inventoryEditPermissionControl"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionInventory" value="inventory"><label for="inventoryEditPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAttendance" value="attendance"><label for="inventoryEditPermissionAttendance">Attendance</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAssignedTasks" value="assignedTasks"><label for="inventoryEditPermissionAssignedTasks">Assigned Tasks</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionLocalPosReport" value="localPosReport"><label for="inventoryEditPermissionLocalPosReport">Local POS Report</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAddAccount" value="addAccount"><label for="inventoryEditPermissionAddAccount">Add Account</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionUsers" value="users"><label for="inventoryEditPermissionUsers">Manage Users</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAdministrator" value="administrator"><label for="inventoryEditPermissionAdministrator">Administrator</label></div></div></div>
+            <div class="account-form-group" id="inventoryEditPermissionControl"><label>Menu Access Permissions</label><div class="account-permissions-grid"><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionInventory" value="inventory"><label for="inventoryEditPermissionInventory">Inventory</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAttendance" value="attendance"><label for="inventoryEditPermissionAttendance">Attendance</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAssignedTasks" value="assignedTasks"><label for="inventoryEditPermissionAssignedTasks">Assigned Tasks</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionLocalPosReport" value="localPosReport"><label for="inventoryEditPermissionLocalPosReport">Local POS Report</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAddAccount" value="addAccount"><label for="inventoryEditPermissionAddAccount">Add Account</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionUsers" value="users"><label for="inventoryEditPermissionUsers">Manage Users</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAdministrator" value="administrator"><label for="inventoryEditPermissionAdministrator">Administrator</label></div><div class="account-permission-item"><input type="checkbox" id="inventoryEditPermissionAnnouncement" value="announcement"><label for="inventoryEditPermissionAnnouncement">Announcement access</label></div></div></div>
             <div class="account-modal-buttons"><button type="button" class="btn-submit" id="inventorySaveEditUserBtn">Save Changes</button><button type="button" class="btn btn-danger" id="inventoryDeleteUserBtn" style="display: none;">Delete Account</button><button type="button" class="btn-cancel" id="inventoryCancelEditUserBtn">Cancel</button></div>
         </div>
     </div>
@@ -2115,7 +2118,7 @@
                 if (!fieldName) return;
 
                 const originalValue = cell.textContent.trim();
-                const isSelectField = fieldName === "rack" || fieldName === "status";
+                const isSelectField = fieldName === "rack" || fieldName === "status" || fieldName === "lokals";
                 const input = isSelectField ? document.createElement("select") : document.createElement("input");
                 if (fieldName === "rack") {
                     ["", ...getSystemOptions()].forEach(optionValue => {
@@ -2123,6 +2126,26 @@
                         option.value = optionValue;
                         option.textContent = optionValue || "-- Select System --";
                         option.selected = optionValue === (originalValue === "-" ? "" : originalValue);
+                        input.appendChild(option);
+                    });
+                } else if (fieldName === "lokals") {
+                    const emptyOption = document.createElement("option");
+                    emptyOption.value = "";
+                    emptyOption.textContent = "-- Select Lokals --";
+                    input.appendChild(emptyOption);
+                    const lokalsOptions = getLokalsOptions();
+                    if (originalValue !== "-" && !lokalsOptions.some(lokal => lokal.toLowerCase() === originalValue.toLowerCase())) {
+                        const currentOption = document.createElement("option");
+                        currentOption.value = originalValue;
+                        currentOption.textContent = originalValue;
+                        currentOption.selected = true;
+                        input.appendChild(currentOption);
+                    }
+                    lokalsOptions.forEach(lokal => {
+                        const option = document.createElement("option");
+                        option.value = lokal;
+                        option.textContent = lokal;
+                        option.selected = lokal.toLowerCase() === originalValue.toLowerCase();
                         input.appendChild(option);
                     });
                 } else if (fieldName === "status") {
@@ -2579,8 +2602,10 @@
         function setAddAccountPermissionAvailability(accounts) {
             const administratorPermission = document.getElementById("inventoryPermissionAdministrator");
             const assignedTasksPermission = document.getElementById("inventoryPermissionAssignedTasks");
+            const announcementPermission = document.getElementById("inventoryPermissionAnnouncement");
             const canGrantAdministrator = canManageAccountAccess(accounts);
             const canGrantAssignedTasksPermission = canGrantAssignedTasks(accounts);
+            const canGrantAnnouncementPermission = canManageAccountAccess(accounts);
             if (administratorPermission) {
                 administratorPermission.disabled = !canGrantAdministrator;
                 administratorPermission.checked = canGrantAdministrator && administratorPermission.checked;
@@ -2590,6 +2615,11 @@
                 assignedTasksPermission.disabled = !canGrantAssignedTasksPermission;
                 assignedTasksPermission.checked = canGrantAssignedTasksPermission && assignedTasksPermission.checked;
                 assignedTasksPermission.closest(".account-permission-item").style.opacity = canGrantAssignedTasksPermission ? "1" : "0.5";
+            }
+            if (announcementPermission) {
+                announcementPermission.disabled = !canGrantAnnouncementPermission;
+                announcementPermission.checked = canGrantAnnouncementPermission && announcementPermission.checked;
+                announcementPermission.closest(".account-permission-item").style.opacity = canGrantAnnouncementPermission ? "1" : "0.5";
             }
         }
 
@@ -2641,6 +2671,11 @@
             if (assignedTasksPermission) {
                 assignedTasksPermission.disabled = !canGrantAssignedTasks(currentAccounts);
                 assignedTasksPermission.closest(".account-permission-item").style.opacity = assignedTasksPermission.disabled ? "0.5" : "1";
+            }
+            const announcementPermission = document.getElementById("inventoryEditPermissionAnnouncement");
+            if (announcementPermission) {
+                announcementPermission.disabled = !canManageAccess;
+                announcementPermission.closest(".account-permission-item").style.opacity = announcementPermission.disabled ? "0.5" : "1";
             }
             document.getElementById("inventoryEditUserModal").style.display = "flex";
         }
@@ -2833,7 +2868,10 @@
                     : account.inventoryAccess,
                 permissions: accessManager
                     ? Array.from(document.querySelectorAll("#inventoryEditUserModal input[id^='inventoryEditPermission']:checked"), input => input.value)
-                        .filter(permission => permission !== "assignedTasks" || assignedTasksPermissionManager || (account.permissions || []).includes("assignedTasks"))
+                        .filter(permission =>
+                            (permission !== "assignedTasks" || assignedTasksPermissionManager || (account.permissions || []).includes("assignedTasks")) &&
+                            (permission !== "announcement" || accessManager)
+                        )
                     : account.permissions
             };
 
@@ -2903,7 +2941,8 @@
                 const canGrantAssignedTasksPermission = canGrantAssignedTasks(accounts);
                 const safePermissions = permissions.filter(permission =>
                     (permission !== "administrator" || canGrantAdministrator) &&
-                    (permission !== "assignedTasks" || canGrantAssignedTasksPermission)
+                    (permission !== "assignedTasks" || canGrantAssignedTasksPermission) &&
+                    (permission !== "announcement" || canManageAccountAccess(accounts))
                 );
 
                 accounts[username] = {
@@ -3435,9 +3474,7 @@
                                         ${statusOptions.map(status => `<option value="${status}" ${String(record.status || "").toUpperCase() === status ? "selected" : ""}>${status}</option>`).join("")}
                                     </select>
                                 </td>
-                                <td style="padding: 12px 10px; vertical-align: top;">${getCurrentUserOffice() === "Rizal"
-                                    ? `<select name="lokals" style="width: 100%; min-width: 130px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; color: #1e3a5f; background: white;"><option value="">-- Select Lokals --</option>${getLokalsOptions().map(lokal => `<option value="${lokal}" ${String(record.lokals || "").toUpperCase() === lokal.toUpperCase() ? "selected" : ""}>${lokal}</option>`).join("")}</select>`
-                                    : `<input name="lokals" value="${escapeDetailHtml(record.lokals || "")}" style="width: 100%; min-width: 120px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; color: #1e3a5f;" />`}</td>
+                                <td style="padding: 12px 10px; vertical-align: top;"><select name="lokals" style="width: 100%; min-width: 130px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; color: #1e3a5f; background: white;"><option value="">-- Select Lokals --</option>${record.lokals && record.lokals !== "-" && !getLokalsOptions().some(lokal => lokal.toLowerCase() === String(record.lokals).toLowerCase()) ? `<option value="${escapeDetailHtml(record.lokals)}" selected>${escapeDetailHtml(record.lokals)}</option>` : ""}${getLokalsOptions().map(lokal => `<option value="${lokal}" ${String(record.lokals || "").toUpperCase() === lokal.toUpperCase() ? "selected" : ""}>${lokal}</option>`).join("")}</select></td>
                                 <td style="padding: 12px 10px; vertical-align: top;"><textarea name="noteIssue" style="width: 100%; min-width: 160px; min-height: 70px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; resize: vertical; color: #1e3a5f;">${escapeDetailHtml(record.noteIssue || "")}</textarea></td>
                                 <td style="padding: 12px 10px; vertical-align: top;"><input name="transferTo" value="${escapeDetailHtml(record.transferTo || "")}" style="width: 100%; min-width: 120px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; color: #1e3a5f;" /></td>
                                 <td style="padding: 12px 10px; vertical-align: top;"><textarea name="columnJ" style="width: 100%; min-width: 160px; min-height: 70px; padding: 8px 10px; border: 1px solid #dfe6ef; border-radius: 6px; resize: vertical; color: #1e3a5f;">${escapeDetailHtml(record.columnJ || "")}</textarea></td>
@@ -3529,5 +3566,6 @@
             }
         });
     </script>
+    <script src="js/announcements.js?v=20260929-2"></script>
 </body>
 </html>

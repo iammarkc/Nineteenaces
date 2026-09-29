@@ -121,6 +121,9 @@
         @media (max-width: 760px) { .task-form { grid-template-columns: 1fr 1fr; } .task-form .task-description { grid-column: 1 / -1; } }
         @media (max-width: 575px) { .attendance-container { margin-top: 24px; padding: 0 12px; } .hero { padding: 26px 22px; } .hero h1 { font-size: 25px; } .toolbar, .task-toolbar { padding: 14px; } .task-form { grid-template-columns: 1fr; padding: 14px; } .task-form .task-description { grid-column: auto; } }
     </style>
+    <link rel="stylesheet" href="css/app-redesign.css?v=20260929-9">
+    <script src="node_modules/lucide/dist/umd/lucide.min.js" defer></script>
+    <script src="js/lucide-icons.js?v=20260929-2" defer></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
@@ -147,7 +150,6 @@
                             <li id="administratorMenuItem" style="display: none;"><a class="dropdown-item" href="administrator.html"><i class="bi bi-shield-lock me-2"></i>Administrator</a></li>
                             <li><a class="dropdown-item" data-permission="inventory" href="#" id="clearInventoryMenuBtn"><i class="bi bi-trash me-2"></i>Clear Inventory</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li id="addAccountMenuItemDivider" style="display: none;"><hr class="dropdown-divider"></li>
                             <li id="addAccountMenuItemContainer" style="display: none;"><a class="dropdown-item" data-permission="addAccount" href="inventory.html?office=Rizal&embedded=1&openAddUser=1" id="addAccountBtn"><i class="bi bi-person-plus me-2"></i>Add User</a></li>
                             <li id="usersMenuItemContainer" style="display: none;"><a class="dropdown-item" data-permission="users" href="inventory.html?office=Rizal&embedded=1&openUsers=1" id="usersMenuBtn"><i class="bi bi-people me-2"></i>Users</a></li>
                             <li><button class="dropdown-item" id="changePasswordMenuBtn" type="button"><i class="bi bi-key me-2"></i>Change Password</button></li>
@@ -914,7 +916,6 @@
         const canAddAccount = isDeveloper || permissions.has("addAccount");
         const canManageUsers = isDeveloper || permissions.has("users");
         setMenuItemVisibility("addAccountMenuItemContainer", canAddAccount);
-        setMenuItemVisibility("addAccountMenuItemDivider", canAddAccount);
         setMenuItemVisibility("usersMenuItemContainer", canManageUsers);
         dateInput.value = today();
         clockDateInput.value = dateInput.value;
@@ -948,5 +949,6 @@
             window.setInterval(refreshAttendanceTasks, 10000);
         }
     </script>
+    <script src="js/announcements.js?v=20260929-2"></script>
 </body>
 </html>

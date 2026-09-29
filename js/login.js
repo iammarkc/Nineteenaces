@@ -331,10 +331,10 @@ document.addEventListener("DOMContentLoaded", function () {
         icon.addEventListener("click", function () {
             if (pwd.type === "password") {
                 pwd.type = "text";
-                icon.classList.replace("bi-eye", "bi-eye-slash");
+                window.setLucideIcon?.(icon, "eye-off");
             } else {
                 pwd.type = "password";
-                icon.classList.replace("bi-eye-slash", "bi-eye");
+                window.setLucideIcon?.(icon, "eye");
             }
         });
     }

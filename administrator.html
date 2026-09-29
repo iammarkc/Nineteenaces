@@ -46,7 +46,7 @@
         .admin-nav { display: grid; gap: 2px; }
         .admin-nav button { width: 100%; padding: 12px 16px; border: 0; background: transparent; color: var(--ink); font-size: 14px; text-align: left; cursor: pointer; }
         .admin-nav button:hover, .admin-nav button.active { background: var(--yellow); }
-        .admin-nav i { width: 21px; margin-right: 3px; text-align: center; }
+        .admin-nav .app-icon { width: 21px; margin-right: 3px; text-align: center; }
         .admin-content { min-width: 0; padding: 30px 94px 42px; background: #fff; }
         .content-heading { margin-bottom: 10px; }
         .content-heading h1 { margin: 0 0 14px; font-size: 17px; font-weight: 700; }
@@ -103,6 +103,9 @@
         :root[data-bs-theme="dark"] .logout-btn:hover { background: #3b5665; }
         @media (max-width: 760px) { .top-strip { height: 38px; } .admin-shell { width: calc(100% - 20px); min-height: 0; margin-top: 0; grid-template-columns: 1fr; border-radius: 0 0 10px 10px; } .admin-sidebar { padding: 18px 0 0; } .admin-brand { padding-bottom: 10px; } .admin-nav { grid-template-columns: repeat(3, 1fr); } .admin-nav button { padding: 10px; font-size: 12px; } .admin-content { padding: 26px 22px 32px; } .status-grid { grid-template-columns: 1fr; } .section-rule, .section-label { grid-column: auto; } .history-filters, .delete-record-filters { grid-template-columns: 1fr; } .history-list-scroll { max-height: 55vh; } }
     </style>
+    <link rel="stylesheet" href="css/app-redesign.css?v=20260929-9">
+    <script src="node_modules/lucide/dist/umd/lucide.min.js" defer></script>
+    <script src="js/lucide-icons.js?v=20260929-2" defer></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
@@ -119,7 +122,7 @@
                         <ul class="dropdown-menu dropdown-menu-end" id="adminDropdown" aria-labelledby="adminMenu">
                             <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Rizal" href="inventory.html?office=Rizal"><i class="bi bi-boxes me-2"></i>Inventory of Rizal</a></li>
                             <li><a class="dropdown-item" data-permission="inventory" data-inventory-office="Cebu" href="inventory.html?office=Cebu"><i class="bi bi-boxes me-2"></i>Inventory of Cebu</a></li>
-                            <li><a class="dropdown-item" href="local-pos-report.html"><i class="bi bi-bar-chart-line me-2"></i>Local POS Report</a></li>
+                            <li><a class="dropdown-item" href="#" id="localPosReportMenuBtn"><i class="bi bi-bar-chart-line me-2"></i>Local POS Report</a></li>
                             <li><a class="dropdown-item active" href="administrator.html"><i class="bi bi-shield-lock me-2"></i>Administrator</a></li>
                             <li><a class="dropdown-item" href="inventory.html"><i class="bi bi-trash me-2"></i>Clear Inventory</a></li>
                             <li><hr class="dropdown-divider"></li>
@@ -144,6 +147,12 @@
     </div>
     <div id="administratorAccountOverlay" style="position: fixed; inset: 0; z-index: 5000; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(10, 17, 29, 0.62);">
         <iframe id="administratorAccountFrame" title="Account management" style="width: min(1000px, 100%); height: min(760px, 94vh); border: 0; border-radius: 14px; background: transparent; box-shadow: 0 20px 60px rgba(0,0,0,.28);"></iframe>
+    </div>
+    <div class="administrator-report-overlay" id="administratorLocalPosReportOverlay" role="dialog" aria-modal="true" aria-label="Local POS Report">
+        <div class="administrator-report-window">
+            <iframe id="administratorLocalPosReportFrame" src="about:blank" title="Local POS Report"></iframe>
+            <button class="administrator-report-close" id="closeAdministratorLocalPosReportBtn" type="button" title="Close Local POS Report" aria-label="Close Local POS Report"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        </div>
     </div>
     <main class="admin-shell">
         <aside class="admin-sidebar" aria-label="Administrator navigation">
@@ -712,6 +721,25 @@
             if (overlay) overlay.style.display = "none";
         }
         document.querySelectorAll('a[href*="attendance.html?openClock=1"]').forEach(link => link.addEventListener("click", openAdministratorClockOverlay));
+        function openAdministratorLocalPosReportOverlay(event) {
+            event.preventDefault();
+            const overlay = document.getElementById("administratorLocalPosReportOverlay");
+            const frame = document.getElementById("administratorLocalPosReportFrame");
+            if (!overlay || !frame) return;
+            frame.src = "local-pos-report.html";
+            overlay.style.display = "flex";
+        }
+        function closeAdministratorLocalPosReportOverlay() {
+            const overlay = document.getElementById("administratorLocalPosReportOverlay");
+            const frame = document.getElementById("administratorLocalPosReportFrame");
+            if (frame) frame.src = "about:blank";
+            if (overlay) overlay.style.display = "none";
+        }
+        document.getElementById("localPosReportMenuBtn")?.addEventListener("click", openAdministratorLocalPosReportOverlay);
+        document.getElementById("closeAdministratorLocalPosReportBtn")?.addEventListener("click", closeAdministratorLocalPosReportOverlay);
+        document.getElementById("administratorLocalPosReportOverlay")?.addEventListener("click", event => {
+            if (event.target.id === "administratorLocalPosReportOverlay") closeAdministratorLocalPosReportOverlay();
+        });
         function openAdministratorAccountOverlay(event) {
             if (event) event.preventDefault();
             const overlay = document.getElementById("administratorAccountOverlay");
@@ -734,8 +762,12 @@
             if (event.data?.type === "closeClockOverlay") closeAdministratorClockOverlay();
         });
         document.addEventListener("keydown", event => {
-            if (event.key === "Escape") closeAdministratorClockOverlay();
+            if (event.key === "Escape") {
+                closeAdministratorClockOverlay();
+                closeAdministratorLocalPosReportOverlay();
+            }
         });
     </script>
+    <script src="js/announcements.js?v=20260929-2"></script>
 </body>
 </html>

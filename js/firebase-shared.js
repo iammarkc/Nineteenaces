@@ -152,6 +152,24 @@
         ]);
     }
 
+    async function saveAnnouncementToFirestore(announcement) {
+        const response = await fetch(`${firestoreRestBase}/announcements/${encodeURIComponent(announcement.id)}?key=${firebaseConfig.apiKey}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fields: Object.keys(announcement).reduce((fields, key) => ({ ...fields, [key]: toFirestoreValue(announcement[key]) }), {}) })
+        });
+        if (!response.ok) throw new Error(`Announcement write failed: ${response.status}`);
+    }
+
+    async function loadAnnouncementsFromFirestore(since) {
+        const documents = await loadFirestoreCollection("announcements");
+        return documents.map(document => ({
+            id: document.name.split("/").pop(),
+            ...Object.keys(document.fields || {}).reduce((announcement, key) => ({ ...announcement, [key]: fromFirestoreValue(document.fields[key]) }), {})
+        })).filter(announcement => Number(announcement.createdAt) > since)
+            .sort((first, second) => Number(first.createdAt) - Number(second.createdAt));
+    }
+
     async function clearAttendanceFromFirestore(date) {
         return clearAttendanceRangeFromFirestore(date, date);
     }
@@ -257,6 +275,11 @@
         clear: office => clearInventoryFromFirestore(office),
         loadHistory: office => loadInventoryHistoryFromFirestore(office),
         saveHistory: (office, entries) => saveInventoryHistoryToFirestore(office, entries)
+    };
+
+    window.sharedAnnouncements = {
+        send: announcement => saveAnnouncementToFirestore(announcement),
+        loadSince: timestamp => loadAnnouncementsFromFirestore(timestamp)
     };
 
     window.sharedAccounts = {
