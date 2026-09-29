@@ -20,9 +20,10 @@
     const username = readStoredUser();
     let accounts = readAccounts();
     let account = getAccount(accounts, username);
-    const initialTheme = VALID_THEMES.has(account?.theme)
-        ? account.theme
-        : (VALID_THEMES.has(localStorage.getItem(THEME_KEY)) ? localStorage.getItem(THEME_KEY) : "light");
+    const storedTheme = localStorage.getItem(THEME_KEY);
+    const initialTheme = VALID_THEMES.has(storedTheme)
+        ? storedTheme
+        : (VALID_THEMES.has(account?.theme) ? account.theme : "light");
 
     function applyTheme(theme) {
         const normalizedTheme = VALID_THEMES.has(theme) ? theme : "light";
@@ -58,6 +59,7 @@
     applyTheme(initialTheme);
 
     document.addEventListener("DOMContentLoaded", () => {
+        applyTheme(document.documentElement.getAttribute("data-bs-theme") || initialTheme);
         const toggle = document.getElementById("themeToggleBtn");
         if (toggle) {
             toggle.addEventListener("change", () => {
@@ -67,7 +69,7 @@
             });
         }
 
-        if (username && !VALID_THEMES.has(account?.theme) && window.sharedAccounts?.load) {
+        if (username && !VALID_THEMES.has(storedTheme) && !VALID_THEMES.has(account?.theme) && window.sharedAccounts?.load) {
             window.sharedAccounts.load().then(sharedAccounts => {
                 const sharedAccount = getAccount(sharedAccounts || {}, username);
                 if (!VALID_THEMES.has(sharedAccount?.theme)) return;
@@ -82,6 +84,12 @@
                     applyTheme(sharedAccount.theme);
                 }
             }).catch(error => console.warn("Account theme preference could not be loaded.", error));
+        }
+    });
+
+    window.addEventListener("storage", event => {
+        if (event.key === THEME_KEY && VALID_THEMES.has(event.newValue)) {
+            applyTheme(event.newValue);
         }
     });
 })();

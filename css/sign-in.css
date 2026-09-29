@@ -146,6 +146,41 @@ body::after {
   border-top-right-radius: 0;
 }
 
+:root[data-bs-theme="light"] body {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(34, 211, 238, 0.18), transparent 24%),
+    radial-gradient(circle at 88% 82%, rgba(14, 165, 233, 0.16), transparent 30%),
+    linear-gradient(125deg, #eaf4f8 0%, #f8fbfc 46%, #dceef3 100%);
+}
+
+:root[data-bs-theme="light"] body::after {
+  opacity: 0.08;
+  mix-blend-mode: multiply;
+}
+
+:root[data-bs-theme="light"] .form-signin {
+  color: #18344a;
+  border-color: rgba(15, 73, 95, 0.16);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 24px 70px rgba(15, 54, 76, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+:root[data-bs-theme="light"] .form-signin h5,
+:root[data-bs-theme="light"] .form-signin h1 {
+  color: #18344a;
+}
+
+:root[data-bs-theme="light"] .form-signin .form-control {
+  border-color: #bfd1da;
+  background-color: rgba(255, 255, 255, 0.92);
+  color: #18344a;
+}
+
+:root[data-bs-theme="light"] .form-signin .form-control::placeholder,
+:root[data-bs-theme="light"] .form-signin .form-floating > label {
+  color: #607789;
+}
+
 @media (prefers-reduced-motion: reduce) {
   body,
   .form-signin {

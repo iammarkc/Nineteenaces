@@ -1,5 +1,10 @@
 :root[data-bs-theme="dark"] {
     color-scheme: dark;
+    --bs-body-color: #e5edf3;
+    --bs-body-bg: #111b24;
+    --bs-secondary-color: #a8b8c5;
+    --bs-tertiary-bg: #243744;
+    --bs-border-color: #354958;
     --app-bg: #111b24;
     --app-surface: #1a2934;
     --app-surface-raised: #1d2d39;
@@ -209,6 +214,50 @@
 :root[data-bs-theme="dark"] [style*="#18344a"],
 :root[data-bs-theme="dark"] [style*="#0c4a6e"] {
     color: var(--app-text) !important;
+}
+
+:root[data-bs-theme="dark"] .inventory-container .card,
+:root[data-bs-theme="dark"] .inventory-container .feature-card,
+:root[data-bs-theme="dark"] .inventory-container .feature-card:hover {
+    color: var(--app-text);
+    background: var(--app-surface) !important;
+    border-color: var(--app-border);
+}
+
+:root[data-bs-theme="dark"] .inventory-container .feature-card h6,
+:root[data-bs-theme="dark"] .inventory-container .section-title {
+    color: var(--app-text) !important;
+}
+
+:root[data-bs-theme="dark"] .inventory-container .feature-card p,
+:root[data-bs-theme="dark"] .inventory-container .stat-label,
+:root[data-bs-theme="dark"] .inventory-container .stat-label-subtitle {
+    color: var(--app-muted) !important;
+}
+
+:root[data-bs-theme="dark"] .inventory-container .stat-value {
+    color: #8ed8e8 !important;
+}
+
+:root[data-bs-theme="dark"] .inventory-table thead,
+:root[data-bs-theme="dark"] .inventory-table tbody tr,
+:root[data-bs-theme="dark"] .inventory-table tbody tr:hover {
+    background: var(--app-surface-muted) !important;
+}
+
+:root[data-bs-theme="dark"] .inventory-container .dropdown-menu {
+    color: var(--app-text);
+    background: var(--app-surface) !important;
+    border-color: var(--app-border);
+}
+
+:root[data-bs-theme="dark"] .inventory-container .dropdown-item {
+    color: var(--app-text) !important;
+}
+
+:root[data-bs-theme="dark"] .inventory-container .dropdown-item:hover,
+:root[data-bs-theme="dark"] .inventory-container .dropdown-item:focus {
+    background: var(--app-surface-muted) !important;
 }
 
 :root[data-bs-theme="dark"] .btn-light {
