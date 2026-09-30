@@ -25,5 +25,11 @@ service cloud.firestore {
     match /todoTasks/{taskId} {
       allow read, write: if true;
     }
+    match /onlinePresence/{sessionId} {
+      allow read, write: if true;
+    }
+    match /onlineChats/{chatId}/messages/{messageId} {
+      allow read, write: if true;
+    }
   }
 }

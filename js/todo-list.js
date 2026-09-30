@@ -58,6 +58,17 @@
         notice.hidden = !message;
     }
 
+    function getFirestoreErrorMessage(action, error, collection = "todoTasks") {
+        const details = String(error?.message || "");
+        if (/429|quota|rate limit/i.test(details)) {
+            return `${action} failed because Firebase is rate limiting requests. Wait briefly, then retry.`;
+        }
+        if (/403|permission|denied/i.test(details)) {
+            return `Firestore denied ${action.toLowerCase()}. Deploy the ${collection} rule, then retry.`;
+        }
+        return `${action} failed. ${details || "Check your connection and try again."}`;
+    }
+
     function getMonthTasks() {
         return tasks.filter(task => task.month === monthInput.value);
     }
@@ -106,7 +117,7 @@
         } catch (error) {
             tasks[index] = previousTask;
             render();
-            showNotice("The task could not be saved. Verify the todoTasks rule is deployed in Firebase, then try again.", "error");
+            showNotice(getFirestoreErrorMessage("Task save", error), "error");
             console.error("To-do task save failed.", error);
         }
     }
@@ -129,19 +140,19 @@
             .filter(task => !existingIds.has(task.id));
 
         const savedTasks = [];
-        const failedTasks = [];
-        await Promise.all(carryTasks.map(async task => {
+        let firstCarryError = null;
+        for (const task of carryTasks) {
             try {
                 await window.sharedTodoList.save(task);
                 savedTasks.push(task);
             } catch (error) {
-                failedTasks.push(task);
+                firstCarryError ||= error;
                 console.error("Pending task carry-forward failed.", error);
             }
-        }));
+        }
         if (savedTasks.length) tasks.push(...savedTasks);
-        if (failedTasks.length) {
-            showNotice("Some pending tasks could not be carried into this month. Verify the todoTasks rule is deployed in Firebase.", "error");
+        if (firstCarryError) {
+            showNotice(getFirestoreErrorMessage("Some pending tasks could not be carried forward", firstCarryError), "error");
         }
         render();
     }
@@ -239,7 +250,7 @@
         } catch (error) {
             tasks.splice(index, 0, task);
             render();
-            showNotice("The task could not be deleted. Verify the todoTasks rule is deployed in Firebase, then try again.", "error");
+            showNotice(getFirestoreErrorMessage("Task delete", error), "error");
             console.error("To-do task delete failed.", error);
         }
     });
@@ -274,7 +285,7 @@
             showNotice("");
             titleInput.focus();
         } catch (error) {
-            showNotice("The task could not be added. Verify the todoTasks rule is deployed in Firebase, then try again.", "error");
+            showNotice(getFirestoreErrorMessage("Task add", error), "error");
             console.error("To-do task create failed.", error);
         } finally {
             submitButton.disabled = false;
@@ -406,7 +417,7 @@
         render();
     }).catch(error => {
         render();
-        showNotice("The to-do list could not be loaded. Verify the todoTasks rule is deployed in Firebase, then reload this page.", "error");
+        showNotice(getFirestoreErrorMessage("To-Do list load", error), "error");
         console.error("To-do task load failed.", error);
     });
 })();

@@ -105,6 +105,7 @@
         @media (max-width: 760px) { .top-strip { height: 38px; } .admin-shell { width: calc(100% - 20px); min-height: 0; margin-top: 0; grid-template-columns: 1fr; border-radius: 0 0 10px 10px; } .admin-sidebar { padding: 18px 0 0; } .admin-brand { padding-bottom: 10px; } .admin-nav { grid-template-columns: repeat(3, 1fr); } .admin-nav button { padding: 10px; font-size: 12px; } .admin-content { padding: 26px 22px 32px; } .status-grid { grid-template-columns: 1fr; } .section-rule, .section-label { grid-column: auto; } .history-filters, .delete-record-filters { grid-template-columns: 1fr; } .history-list-scroll { max-height: 55vh; } }
     </style>
     <link rel="stylesheet" href="css/app-redesign.css?v=20260929-9">
+    <link rel="stylesheet" href="css/online-presence.css?v=20260930-2">
     <script src="https://cdn.jsdelivr.net/npm/lucide@1.48.0/dist/umd/lucide.min.js" defer></script>
     <script src="js/lucide-icons.js?v=20260929-2" defer></script>
 </head>
@@ -233,7 +234,7 @@
         </section>
     </main>
     <script src="js/auth-session.js?v=20260921-2"></script>
-    <script src="js/firebase-shared.js?v=20260928-3"></script>
+    <script src="js/firebase-shared.js?v=20260930-1"></script>
     <script>
         const username = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser");
         const accounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
@@ -773,5 +774,6 @@
         });
     </script>
     <script src="js/announcements.js?v=20260929-2"></script>
+    <script src="js/online-presence.js?v=20260930-4"></script>
 </body>
 </html>

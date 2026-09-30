@@ -70,6 +70,10 @@
         }));
     }
 
+    async function saveAccountToFirestore(username, account) {
+        return saveAccountsToFirestore({ [username]: account });
+    }
+
     async function deleteAccountFromFirestore(username) {
         const response = await fetch(`${firestoreRestBase}/accounts/${encodeURIComponent(username)}?key=${firebaseConfig.apiKey}`, { method: "DELETE" });
         if (!response.ok) throw new Error(`Firestore account delete failed: ${response.status}`);
@@ -250,6 +254,50 @@
         if (!response.ok && response.status !== 404) throw new Error(`Firestore to-do task delete failed: ${response.status}`);
     }
 
+    async function loadOnlinePresenceFromFirestore() {
+        const documents = await loadFirestoreCollection("onlinePresence");
+        return documents.map(document => ({
+            id: document.name.split("/").pop(),
+            ...Object.keys(document.fields || {}).reduce((entry, key) => ({ ...entry, [key]: fromFirestoreValue(document.fields[key]) }), {})
+        }));
+    }
+
+    async function saveOnlinePresenceToFirestore(sessionId, presence) {
+        const fields = Object.keys(presence).reduce((result, key) => ({ ...result, [key]: toFirestoreValue(presence[key]) }), {});
+        const response = await fetch(`${firestoreRestBase}/onlinePresence/${encodeURIComponent(sessionId)}?key=${firebaseConfig.apiKey}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fields })
+        });
+        if (!response.ok) throw new Error(`Online presence write failed: ${response.status}`);
+    }
+
+    async function removeOnlinePresenceFromFirestore(sessionId) {
+        const response = await fetch(`${firestoreRestBase}/onlinePresence/${encodeURIComponent(sessionId)}?key=${firebaseConfig.apiKey}`, {
+            method: "DELETE",
+            keepalive: true
+        });
+        if (!response.ok && response.status !== 404) throw new Error(`Online presence delete failed: ${response.status}`);
+    }
+
+    async function loadOnlineChatMessagesFromFirestore(chatId) {
+        const documents = await loadFirestoreCollection(`onlineChats/${encodeURIComponent(chatId)}/messages`);
+        return documents.map(document => ({
+            id: document.name.split("/").pop(),
+            ...Object.keys(document.fields || {}).reduce((message, key) => ({ ...message, [key]: fromFirestoreValue(document.fields[key]) }), {})
+        }));
+    }
+
+    async function saveOnlineChatMessageToFirestore(chatId, message) {
+        const fields = Object.keys(message).filter(key => key !== "id").reduce((result, key) => ({ ...result, [key]: toFirestoreValue(message[key]) }), {});
+        const response = await fetch(`${firestoreRestBase}/onlineChats/${encodeURIComponent(chatId)}/messages/${encodeURIComponent(message.id)}?key=${firebaseConfig.apiKey}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fields })
+        });
+        if (!response.ok) throw new Error(`Online chat message write failed: ${response.status}`);
+    }
+
     window.sharedAttendance = {
         ready: Promise.resolve(),
         async load() {
@@ -307,6 +355,19 @@
         delete: taskId => deleteTodoTaskFromFirestore(taskId)
     };
 
+    window.sharedOnlinePresence = {
+        ready: Promise.resolve(),
+        load: () => loadOnlinePresenceFromFirestore(),
+        save: (sessionId, presence) => saveOnlinePresenceToFirestore(sessionId, presence),
+        remove: sessionId => removeOnlinePresenceFromFirestore(sessionId)
+    };
+
+    window.sharedOnlineChat = {
+        ready: Promise.resolve(),
+        load: chatId => loadOnlineChatMessagesFromFirestore(chatId),
+        send: (chatId, message) => saveOnlineChatMessageToFirestore(chatId, message)
+    };
+
     window.sharedAnnouncements = {
         send: announcement => saveAnnouncementToFirestore(announcement),
         loadSince: timestamp => loadAnnouncementsFromFirestore(timestamp)
@@ -316,6 +377,7 @@
         ready: window.sharedAttendance.ready,
         load: () => window.sharedAttendance.loadAccounts(),
         save: accounts => window.sharedAttendance.saveAccounts(accounts),
+        saveOne: (username, account) => saveAccountToFirestore(username, account),
         saveTheme: (username, theme) => saveAccountThemeToFirestore(username, theme),
         delete: username => window.sharedAttendance.deleteAccount(username)
     };
