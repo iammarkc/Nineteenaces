@@ -3,8 +3,8 @@
 
     if (window.self !== window.top || !window.sharedOnlinePresence) return;
 
-    const HEARTBEAT_INTERVAL_MS = 20000;
-    const ONLINE_WINDOW_MS = 70000;
+    const HEARTBEAT_INTERVAL_MS = 60000;
+    const ONLINE_WINDOW_MS = 180000;
     const OFFICES = ["Rizal", "Cebu"];
     const username = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser");
     const accounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
@@ -90,6 +90,8 @@
     let presenceAvailable = false;
     let presenceErrorMessage = "Online status is unavailable. Check the onlinePresence Firestore rule and Firebase quota.";
     let requestInProgress = false;
+    let consecutivePresenceFailures = 0;
+    let retryPresenceAfter = 0;
     let activeChatId = "";
     let activeChatPerson = null;
     let activeChatOffice = "";
@@ -296,7 +298,7 @@
     });
 
     async function refreshPresence() {
-        if (requestInProgress) return;
+        if (requestInProgress || Date.now() < retryPresenceAfter) return;
         requestInProgress = true;
         try {
             await window.sharedOnlinePresence.save(sessionId, {
@@ -311,9 +313,13 @@
             const records = await window.sharedOnlinePresence.load();
             cachedOnlinePeople = records.filter(person => Number(person.lastSeen) >= now - ONLINE_WINDOW_MS);
             presenceAvailable = true;
+            consecutivePresenceFailures = 0;
+            retryPresenceAfter = 0;
             renderPeople();
         } catch (error) {
             presenceAvailable = false;
+            consecutivePresenceFailures += 1;
+            retryPresenceAfter = Date.now() + Math.min(300000, 30000 * (2 ** Math.min(consecutivePresenceFailures - 1, 3)));
             const errorText = String(error?.message || "");
             presenceErrorMessage = /403|permission|denied/i.test(errorText)
                 ? "Firestore denied online status. Publish the onlinePresence rule, then reload."

@@ -11,6 +11,9 @@
     const menu = document.querySelector("#adminMenu + .dropdown-menu");
     const originalTitle = document.title;
     let lastCheckedAt = Date.now();
+    let announcementCheckInProgress = false;
+    let consecutiveAnnouncementFailures = 0;
+    let nextAnnouncementCheckAt = 0;
 
     const styles = document.createElement("style");
     styles.textContent = `
@@ -154,8 +157,12 @@
     });
 
     async function checkAnnouncements() {
+        if (announcementCheckInProgress || Date.now() < nextAnnouncementCheckAt) return;
+        announcementCheckInProgress = true;
         try {
             const announcements = await window.sharedAnnouncements.loadSince(lastCheckedAt);
+            consecutiveAnnouncementFailures = 0;
+            nextAnnouncementCheckAt = 0;
             if (announcements.length) {
                 lastCheckedAt = Math.max(...announcements.map(announcement => Number(announcement.createdAt) || 0));
                 const incoming = announcements.filter(announcement => announcement.senderUsername !== username && claimAnnouncement(announcement.id));
@@ -170,9 +177,15 @@
                 }
             }
         } catch (error) {
+            consecutiveAnnouncementFailures += 1;
+            const backoffMs = Math.min(300000, 15000 * (2 ** Math.min(consecutiveAnnouncementFailures - 1, 4)));
+            nextAnnouncementCheckAt = Date.now() + backoffMs;
             console.warn("Announcements could not be checked.", error);
+        } finally {
+            announcementCheckInProgress = false;
         }
     }
 
-    window.setInterval(checkAnnouncements, 5000 + Math.random() * 1000);
+    window.setTimeout(checkAnnouncements, 2000 + Math.random() * 3000);
+    window.setInterval(checkAnnouncements, 60000 + Math.random() * 15000);
 })();

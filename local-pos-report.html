@@ -208,9 +208,9 @@
         if (todoListMenuItem) todoListMenuItem.style.display = currentAccount && (currentAccount.role === "Developer" || accountName === "admin" || (Array.isArray(currentAccount.permissions) && currentAccount.permissions.includes("todoList"))) ? "" : "none";
         renderReport();
         refreshCountersFromInventory();
-        window.setInterval(refreshCountersFromInventory, 10000);
+        window.setInterval(refreshCountersFromInventory, 30000);
     </script>
-    <script src="js/announcements.js?v=20260929-2"></script>
-    <script src="js/online-presence.js?v=20260930-4"></script>
+    <script src="js/announcements.js?v=20260930-1"></script>
+    <script src="js/online-presence.js?v=20260930-5"></script>
 </body>
 </html>

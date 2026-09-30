@@ -949,11 +949,11 @@
                 render();
             }).catch(error => console.warn("Shared attendance load failed.", error));
             refreshSharedAttendance();
-            window.setInterval(refreshSharedAttendance, 10000);
-            window.setInterval(refreshAttendanceTasks, 10000);
+            window.setInterval(refreshSharedAttendance, 30000);
+            window.setInterval(refreshAttendanceTasks, 30000);
         }
     </script>
-    <script src="js/announcements.js?v=20260929-2"></script>
-    <script src="js/online-presence.js?v=20260930-4"></script>
+    <script src="js/announcements.js?v=20260930-1"></script>
+    <script src="js/online-presence.js?v=20260930-5"></script>
 </body>
 </html>

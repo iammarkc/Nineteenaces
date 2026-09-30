@@ -1352,7 +1352,7 @@
             loadSavedData().then(async () => {
                 await syncInventoryHistoryFromFirestore();
                 if (window.sharedInventory) {
-                    window.setInterval(refreshSharedInventory, 10000);
+                    window.setInterval(refreshSharedInventory, 30000);
                 }
             });
             setupInlineInventoryEditing();
@@ -3622,7 +3622,7 @@
             }
         });
     </script>
-    <script src="js/announcements.js?v=20260929-2"></script>
-    <script src="js/online-presence.js?v=20260930-4"></script>
+    <script src="js/announcements.js?v=20260930-1"></script>
+    <script src="js/online-presence.js?v=20260930-5"></script>
 </body>
 </html>
