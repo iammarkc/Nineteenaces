@@ -1022,7 +1022,7 @@
             : loggedInEmployee ? [loggedInEmployee] : employees;
         clockEmployeeInput.innerHTML = clockEmployees.map(employee => `<option value="${escapeHtml(employee.id)}">${escapeHtml(employee.name)}${employee.office ? ` (${escapeHtml(employee.office)})` : ""}</option>`).join("");
         if (loggedInEmployee) clockEmployeeInput.value = loggedInEmployee.id;
-        clockEmployeeInput.disabled = !canEditAttendance;
+        clockEmployeeInput.disabled = !isDeveloper;
         updateClockButtonStates();
         render();
         if (new URLSearchParams(window.location.search).get("embedded") === "1") {
