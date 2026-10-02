@@ -10,7 +10,15 @@ service cloud.firestore {
     match /attendanceTasks/{taskId} {
       allow read, write: if true;
     }
+    match /attendanceTaskDeletions/{taskId} {
+      allow read, write: if true;
+    }
     match /accounts/{username} {
+      allow read: if true;
+      allow create, update: if !exists(/databases/$(database)/documents/accountDeletions/$(username));
+      allow delete: if true;
+    }
+    match /accountDeletions/{username} {
       allow read, write: if true;
     }
     match /announcements/{announcementId} {

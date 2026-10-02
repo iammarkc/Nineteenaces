@@ -1098,10 +1098,10 @@
 
     <script src="js/bootstrap.bundle.min.js"></script>
     <script src="js/auth-session.js?v=20260921-2"></script>
-    <script src="js/firebase-shared.js?v=20260930-1"></script>
+    <script src="js/firebase-shared.js?v=20261002-1"></script>
     <script src="js/password-security.js?v=20260919-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/sql.js@1.11.0/dist/sql-wasm.js"></script>
-    <script src="js/sqlite-login.js?v=20260919-2"></script>
+    <script src="js/sqlite-login.js?v=20261002-1"></script>
     <script src="js/change-password.js?v=20260919-4"></script>
     <script>
         function getLoggedInDisplayName() {
@@ -2854,6 +2854,7 @@
             const accounts = JSON.parse(localStorage.getItem("userAccounts")) || {};
 
             try {
+                const sqliteAccountDeleted = window.deleteSqliteAccount ? await window.deleteSqliteAccount(username) : false;
                 if (window.sharedAccounts) {
                     await window.sharedAccounts.delete(username);
                 } else {
@@ -2873,7 +2874,7 @@
                 localStorage.setItem("userAccounts", JSON.stringify(accounts));
                 closeInventoryAccountModals();
                 openInventoryUsers();
-                alert("Account deleted successfully.");
+                alert(sqliteAccountDeleted ? "Account permanently deleted." : "Account deleted from shared stores. The local login cache could not be fully cleared, but the deleted-account marker blocks sign-in on this device.");
             } catch (error) {
                 alert("The account was removed locally, but could not be deleted from all shared stores. Check Firestore rules and the server, then try again.");
             }

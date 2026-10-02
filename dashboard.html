@@ -1098,6 +1098,9 @@
 
     <script src="js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/firebase-shared.js?v=20261002-1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sql.js@1.11.0/dist/sql-wasm.js"></script>
+    <script src="js/sqlite-login.js?v=20261002-1"></script>
     <script>
         // Get username from localStorage or sessionStorage
         document.addEventListener("DOMContentLoaded", function () {
@@ -1831,7 +1834,7 @@
             document.getElementById('editAccountModal').dataset.originalUsername = '';
         }
 
-        function handleUserAction(action, username) {
+        async function handleUserAction(action, username) {
             const currentUsername = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser') || 'User';
             const accounts = getAccounts();
             const account = accounts[username];
@@ -1887,11 +1890,37 @@
                     return;
                 }
 
+                const deletionErrors = [];
+                if (window.deleteSqliteAccount) {
+                    if (!await window.deleteSqliteAccount(username)) deletionErrors.push('local login database');
+                } else {
+                    deletionErrors.push('local login database');
+                }
+                try {
+                    if (!window.sharedAccounts) throw new Error('Shared account service is unavailable.');
+                    await window.sharedAccounts.delete(username);
+                } catch (error) {
+                    console.error('Shared account deletion failed.', error);
+                    deletionErrors.push('shared account store');
+                }
+                try {
+                    const response = await fetch(getBackendApiUrl('/api/accounts'), {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username })
+                    });
+                    if (!response.ok && response.status !== 404) throw new Error(`Backend account delete failed: ${response.status}`);
+                } catch (error) {
+                    console.error('Backend account deletion failed.', error);
+                    deletionErrors.push('local backend');
+                }
                 delete accounts[username];
-                saveAccounts(accounts);
+                localStorage.setItem('userAccounts', JSON.stringify(accounts));
                 renderUsersTable();
                 document.getElementById('userDetailsPanel').style.display = 'none';
-                alert(`Account "${username}" was deleted.`);
+                alert(deletionErrors.length
+                    ? `Account "${username}" was removed from this device, but deletion could not be confirmed in: ${deletionErrors.join(', ')}.`
+                    : `Account "${username}" was permanently deleted.`);
             }
         }
 

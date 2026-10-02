@@ -51,16 +51,26 @@
     }
 
     async function loadAccountsFromFirestore() {
-        const documents = await loadFirestoreCollection("accounts");
+        const [documents, deletedUsernames] = await Promise.all([
+            loadFirestoreCollection("accounts"),
+            loadDeletedAccountUsernamesFromFirestore()
+        ]);
         return documents.reduce((accounts, document) => {
             const username = document.name.split("/").pop();
+            if (deletedUsernames.has(username.toLowerCase())) return accounts;
             accounts[username] = Object.keys(document.fields || {}).reduce((account, key) => ({ ...account, [key]: fromFirestoreValue(document.fields[key]) }), {});
             return accounts;
         }, {});
     }
 
+    async function loadDeletedAccountUsernamesFromFirestore() {
+        const documents = await loadFirestoreCollection("accountDeletions");
+        return new Set(documents.map(document => document.name.split("/").pop().toLowerCase()));
+    }
+
     async function saveAccountsToFirestore(accounts) {
-        await Promise.all(Object.entries(accounts).map(async ([username, account]) => {
+        const deletedUsernames = await loadDeletedAccountUsernamesFromFirestore();
+        await Promise.all(Object.entries(accounts).filter(([username]) => !deletedUsernames.has(username.toLowerCase())).map(async ([username, account]) => {
             const response = await fetch(`${firestoreRestBase}/accounts/${encodeURIComponent(username)}?key=${firebaseConfig.apiKey}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
@@ -75,8 +85,14 @@
     }
 
     async function deleteAccountFromFirestore(username) {
+        const deletionResponse = await fetch(`${firestoreRestBase}/accountDeletions/${encodeURIComponent(username)}?key=${firebaseConfig.apiKey}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fields: { username: toFirestoreValue(username), deletedAt: toFirestoreValue(new Date().toISOString()) } })
+        });
+        if (!deletionResponse.ok) throw new Error(`Firestore account deletion record failed: ${deletionResponse.status}`);
         const response = await fetch(`${firestoreRestBase}/accounts/${encodeURIComponent(username)}?key=${firebaseConfig.apiKey}`, { method: "DELETE" });
-        if (!response.ok) throw new Error(`Firestore account delete failed: ${response.status}`);
+        if (!response.ok && response.status !== 404) throw new Error(`Firestore account delete failed: ${response.status}`);
     }
 
     async function saveAccountThemeToFirestore(username, theme) {
@@ -127,18 +143,43 @@
     }
 
     async function loadAttendanceTasksFromFirestore() {
-        const documents = await loadFirestoreCollection("attendanceTasks");
-        return documents.map(document => ({
+        const [documents, deletedTaskIds] = await Promise.all([
+            loadFirestoreCollection("attendanceTasks"),
+            loadDeletedAttendanceTaskIdsFromFirestore()
+        ]);
+        return documents.filter(document => !deletedTaskIds.has(document.name.split("/").pop())).map(document => ({
             id: document.name.split("/").pop(),
             ...Object.keys(document.fields || {}).reduce((task, key) => ({ ...task, [key]: fromFirestoreValue(document.fields[key]) }), {})
         }));
     }
 
+    async function loadDeletedAttendanceTaskIdsFromFirestore() {
+        const documents = await loadFirestoreCollection("attendanceTaskDeletions");
+        return new Set(documents.map(document => document.name.split("/").pop()));
+    }
+
+    async function deleteAttendanceTasksFromFirestore(taskIds) {
+        await Promise.all([...new Set(taskIds)].map(async taskId => {
+            const deletionResponse = await fetch(`${firestoreRestBase}/attendanceTaskDeletions/${encodeURIComponent(taskId)}?key=${firebaseConfig.apiKey}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ fields: { taskId: toFirestoreValue(taskId), deletedAt: toFirestoreValue(new Date().toISOString()) } })
+            });
+            if (!deletionResponse.ok) throw new Error(`Firestore attendance task deletion record failed: ${deletionResponse.status}`);
+            const response = await fetch(`${firestoreRestBase}/attendanceTasks/${encodeURIComponent(taskId)}?key=${firebaseConfig.apiKey}`, { method: "DELETE" });
+            if (!response.ok && response.status !== 404) throw new Error(`Firestore attendance task delete failed: ${response.status}`);
+        }));
+    }
+
     async function saveAttendanceTasksToFirestore(tasks) {
-        const existingDocuments = await loadFirestoreCollection("attendanceTasks");
-        const taskIds = new Set(tasks.map(task => task.id));
+        const [existingDocuments, deletedTaskIds] = await Promise.all([
+            loadFirestoreCollection("attendanceTasks"),
+            loadDeletedAttendanceTaskIdsFromFirestore()
+        ]);
+        const activeTasks = tasks.filter(task => !deletedTaskIds.has(task.id));
+        const taskIds = new Set(activeTasks.map(task => task.id));
         await Promise.all([
-            ...tasks.map(async task => {
+            ...activeTasks.map(async task => {
                 const response = await fetch(`${firestoreRestBase}/attendanceTasks/${encodeURIComponent(task.id)}?key=${firebaseConfig.apiKey}`, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
@@ -319,6 +360,12 @@
         async loadTasks() {
             return loadAttendanceTasksFromFirestore();
         },
+        async loadDeletedTaskIds() {
+            return [...await loadDeletedAttendanceTaskIdsFromFirestore()];
+        },
+        async deleteTasks(taskIds) {
+            return deleteAttendanceTasksFromFirestore(taskIds);
+        },
         async saveTasks(tasks) {
             return saveAttendanceTasksToFirestore(tasks);
         },
@@ -379,6 +426,7 @@
         save: accounts => window.sharedAttendance.saveAccounts(accounts),
         saveOne: (username, account) => saveAccountToFirestore(username, account),
         saveTheme: (username, theme) => saveAccountThemeToFirestore(username, theme),
-        delete: username => window.sharedAttendance.deleteAccount(username)
+        delete: username => window.sharedAttendance.deleteAccount(username),
+        loadDeleted: async () => [...await loadDeletedAccountUsernamesFromFirestore()]
     };
 })();

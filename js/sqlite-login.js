@@ -1,5 +1,6 @@
 (function () {
     const SQLITE_DB_KEY = "sqliteLoginDatabase";
+    const DELETED_ACCOUNTS_KEY = "deletedAccountUsernames";
     const DEFAULT_USERS = [
         {
             username: "admin",
@@ -13,6 +14,42 @@
     ];
 
     let sqlInstance = null;
+
+    function getDeletedAccountUsernames() {
+        let storedNames = null;
+        try {
+            storedNames = localStorage.getItem(DELETED_ACCOUNTS_KEY);
+        } catch (error) {
+            storedNames = null;
+        }
+        if (!storedNames) {
+            try {
+                storedNames = sessionStorage.getItem(DELETED_ACCOUNTS_KEY);
+            } catch (error) {
+                storedNames = null;
+            }
+        }
+        try {
+            const names = JSON.parse(storedNames || "[]");
+            return new Set(Array.isArray(names) ? names.map(username => String(username).toLowerCase()) : []);
+        } catch (error) {
+            return new Set();
+        }
+    }
+
+    function removeLegacyAccount(username) {
+        [localStorage, sessionStorage].forEach(storage => {
+            try {
+                const accounts = JSON.parse(storage.getItem("userAccounts") || "{}");
+                Object.keys(accounts).forEach(key => {
+                    if (key.toLowerCase() === username.toLowerCase()) delete accounts[key];
+                });
+                storage.setItem("userAccounts", JSON.stringify(accounts));
+            } catch (error) {
+                console.warn("Could not remove deleted account from local storage.", error);
+            }
+        });
+    }
 
     function serializeDatabase(database) {
         const bytes = database.export();
@@ -76,8 +113,14 @@
         try {
             const existingAccounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
             const legacyAccounts = existingAccounts && typeof existingAccounts === 'object' ? existingAccounts : {};
+            const deletedUsernames = getDeletedAccountUsernames();
+
+            Object.keys(legacyAccounts).forEach(username => {
+                if (deletedUsernames.has(username.toLowerCase())) delete legacyAccounts[username];
+            });
 
             accounts.forEach((account) => {
+                if (deletedUsernames.has(String(account.username).toLowerCase())) return;
                 legacyAccounts[account.username] = {
                     name: account.name,
                     username: account.username,
@@ -131,7 +174,7 @@
         const existingUsernames = new Set(existingAccounts.map((account) => account.username.toLowerCase()));
 
         DEFAULT_USERS.forEach((account) => {
-            if (existingUsernames.has(account.username.toLowerCase())) {
+            if (existingUsernames.has(account.username.toLowerCase()) || getDeletedAccountUsernames().has(account.username.toLowerCase())) {
                 return;
             }
 
@@ -194,6 +237,10 @@
                 return { status: "invalid" };
             }
 
+            if (getDeletedAccountUsernames().has(matchedAccount.username.toLowerCase())) {
+                return { status: "invalid" };
+            }
+
             if (matchedAccount.disabled) {
                 return { status: "disabled", account: matchedAccount };
             }
@@ -223,5 +270,34 @@
         database.run("UPDATE users SET password = ? WHERE username = ?", [newPassword, username]);
         savePersistedDatabase(database);
         return true;
+    };
+
+    window.deleteSqliteAccount = async function (username) {
+        const normalizedUsername = String(username || "").trim();
+        if (!normalizedUsername) return false;
+        const deletedUsernames = getDeletedAccountUsernames();
+        deletedUsernames.add(normalizedUsername.toLowerCase());
+        try {
+            localStorage.setItem(DELETED_ACCOUNTS_KEY, JSON.stringify([...deletedUsernames]));
+        } catch (error) {
+            try {
+                sessionStorage.setItem(DELETED_ACCOUNTS_KEY, JSON.stringify([...deletedUsernames]));
+            } catch (sessionError) {
+                console.warn("Could not persist deleted account marker.", error);
+                return false;
+            }
+        }
+        removeLegacyAccount(normalizedUsername);
+        try {
+            await ensureLoginDatabase();
+            if (!sqlInstance) return false;
+            sqlInstance.run("DELETE FROM users WHERE lower(username) = ?", [normalizedUsername.toLowerCase()]);
+            savePersistedDatabase(sqlInstance);
+            syncLegacyAccounts(getAccountsFromDatabase(sqlInstance));
+            return true;
+        } catch (error) {
+            console.warn("Could not remove deleted account from SQLite.", error);
+            return false;
+        }
     };
 })();

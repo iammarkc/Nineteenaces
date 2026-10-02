@@ -1,7 +1,7 @@
 {
   "admin": {
     "username": "admin",
-    "name": "System Administrator",
+    "name": "Mark Codilan",
     "email": "admin@system.com",
     "role": "Developer",
     "permissions": [

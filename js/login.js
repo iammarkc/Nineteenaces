@@ -97,6 +97,29 @@ function getInventoryRedirect(account) {
 }
 
 const REMOVED_TEST_ACCOUNTS = new Set(["testuser", "demo", "testceb", "testrizal"]);
+const DELETED_ACCOUNTS_KEY = "deletedAccountUsernames";
+
+function readDeletedAccountUsernames() {
+    try {
+        const usernames = JSON.parse(readStoredValue(DELETED_ACCOUNTS_KEY) || "[]");
+        return new Set(Array.isArray(usernames) ? usernames.map(username => String(username).toLowerCase()) : []);
+    } catch (error) {
+        return new Set();
+    }
+}
+
+async function loadDeletedAccountUsernames() {
+    const deletedUsernames = readDeletedAccountUsernames();
+    if (window.sharedAccounts?.loadDeleted) {
+        try {
+            (await window.sharedAccounts.loadDeleted()).forEach(username => deletedUsernames.add(String(username).toLowerCase()));
+        } catch (error) {
+            console.warn("Shared account deletion markers unavailable.", error);
+        }
+    }
+    writeStoredValue(DELETED_ACCOUNTS_KEY, JSON.stringify([...deletedUsernames]));
+    return deletedUsernames;
+}
 
 const DEFAULT_ACCOUNT_SEED = {
     admin: {
@@ -114,8 +137,9 @@ const DEFAULT_ACCOUNT_SEED = {
 
 function ensureDefaultAdminAccount() {
     const storedAccounts = JSON.parse(readStoredValue("userAccounts") || "{}") || {};
+    const deletedUsernames = readDeletedAccountUsernames();
     const accounts = Object.fromEntries(Object.entries({ ...DEFAULT_ACCOUNT_SEED, ...storedAccounts })
-        .filter(([username, account]) => !REMOVED_TEST_ACCOUNTS.has(String(username).toLowerCase()) && !REMOVED_TEST_ACCOUNTS.has(String(account?.username || "").toLowerCase())));
+        .filter(([username, account]) => !REMOVED_TEST_ACCOUNTS.has(String(username).toLowerCase()) && !REMOVED_TEST_ACCOUNTS.has(String(account?.username || "").toLowerCase()) && !deletedUsernames.has(String(username).toLowerCase())));
 
     writeStoredValue("userAccounts", JSON.stringify(accounts));
 
@@ -182,6 +206,7 @@ async function login() {
         return;
     }
 
+    const deletedUsernames = await loadDeletedAccountUsernames();
     let backendMessage = null;
 
     if (backendUrl) {
@@ -199,7 +224,7 @@ async function login() {
 
             const result = await response.json();
 
-            if (result.ok) {
+            if (result.ok && !deletedUsernames.has(String(result.account.username).toLowerCase())) {
                 messageDiv.textContent = "✓ Login successful!";
                 messageDiv.style.color = "green";
 
@@ -214,7 +239,7 @@ async function login() {
                 return;
             }
 
-            backendMessage = result.message || "Invalid credentials";
+            backendMessage = result.ok ? "Invalid credentials" : (result.message || "Invalid credentials");
         } catch (error) {
             console.warn("Backend login unavailable, falling back to local login flow.", error);
         }
@@ -231,8 +256,11 @@ async function login() {
     if (sharedAccounts) {
         const storedAccounts = JSON.parse(readStoredValue("userAccounts") || "{}") || {};
         accounts = { ...accounts, ...storedAccounts, ...sharedAccounts };
-        writeStoredValue("userAccounts", JSON.stringify(accounts));
     }
+    Object.keys(accounts).forEach(username => {
+        if (deletedUsernames.has(username.toLowerCase())) delete accounts[username];
+    });
+    writeStoredValue("userAccounts", JSON.stringify(accounts));
 
     let sqliteResult = { status: "fallback" };
 

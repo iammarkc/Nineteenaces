@@ -54,6 +54,9 @@
         .attendance-table th { color: var(--navy); background: var(--surface-muted); text-transform: uppercase; font-size: 12px; letter-spacing: .3px; padding: 13px 16px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
         .attendance-table td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
         .time-editable { cursor: pointer; }
+        .attendance-location { display: flex; align-items: center; gap: 4px; margin-top: 4px; color: var(--muted); font-size: 11px; line-height: 1.3; }
+        .attendance-location a { color: var(--blue); text-decoration: underline; text-underline-offset: 2px; }
+        .attendance-location.unavailable { color: var(--muted); font-style: italic; }
         .attendance-table tbody tr { transition: background .18s ease; }
         .attendance-table tbody tr:hover { background: var(--table-hover); }
         .attendance-view-tabs { display: flex; gap: 6px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
@@ -299,7 +302,7 @@
 
     <script src="js/bootstrap.bundle.min.js"></script>
     <script src="js/auth-session.js?v=20260921-2"></script>
-    <script src="js/firebase-shared.js?v=20260930-1"></script>
+    <script src="js/firebase-shared.js?v=20261002-1"></script>
     <script src="js/password-security.js?v=20260919-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/sql.js@1.11.0/dist/sql-wasm.js"></script>
     <script src="js/sqlite-login.js?v=20260919-2"></script>
@@ -315,6 +318,7 @@
             }));
         const storageKey = "attendanceRecords";
         const taskStorageKey = "attendanceTasks";
+        const taskDeletionStorageKey = "attendanceTaskDeletionIds";
         const attendanceHistoryStorageKey = "attendanceEditHistory";
         const dateInput = document.getElementById("attendanceDate");
         const searchInput = document.getElementById("attendanceSearch");
@@ -370,6 +374,32 @@
         }
         function saveAttendanceTasks() {
             localStorage.setItem(taskStorageKey, JSON.stringify(attendanceTasks));
+        }
+        function readDeletedAttendanceTaskIds() {
+            try {
+                const ids = JSON.parse(localStorage.getItem(taskDeletionStorageKey) || "[]");
+                return new Set(Array.isArray(ids) ? ids.map(String) : []);
+            } catch (error) {
+                return new Set();
+            }
+        }
+        async function deleteAttendanceTasks(taskIds) {
+            const ids = [...new Set(taskIds.map(String))];
+            if (!ids.length) return;
+            const deletedIds = readDeletedAttendanceTaskIds();
+            ids.forEach(id => deletedIds.add(id));
+            localStorage.setItem(taskDeletionStorageKey, JSON.stringify([...deletedIds]));
+            attendanceTasks = attendanceTasks.filter(task => !deletedIds.has(String(task.id)));
+            saveAttendanceTasks();
+            renderAttendanceTasks();
+            if (window.sharedAttendance?.deleteTasks) {
+                try {
+                    await window.sharedAttendance.deleteTasks(ids);
+                } catch (error) {
+                    console.error("Shared attendance task delete failed.", error);
+                    showTaskNotice("Tasks are deleted on this device; shared deletion will retry when connected.");
+                }
+            }
         }
         function showTaskNotice(message) {
             taskNotice.textContent = message;
@@ -484,8 +514,7 @@
             }
             if (!confirm(`Clear ${tasksToClear.length} task${tasksToClear.length === 1 ? "" : "s"} assigned during the selected ${period}?`)) return;
             const taskIdsToClear = new Set(tasksToClear.map(task => task.id));
-            attendanceTasks = attendanceTasks.filter(task => !taskIdsToClear.has(task.id));
-            persistAttendanceTasks();
+            deleteAttendanceTasks([...taskIdsToClear]);
             clearTasksModal.classList.remove("active");
         }
         function persistAttendanceTasks() {
@@ -505,8 +534,21 @@
             }
             try {
                 const sharedTasks = await window.sharedAttendance.loadTasks();
-                const mergedTasks = new Map(sharedTasks.map(task => [task.id, task]));
-                readAttendanceTasks().forEach(task => {
+                const sharedDeletedIds = window.sharedAttendance.loadDeletedTaskIds
+                    ? await window.sharedAttendance.loadDeletedTaskIds()
+                    : [];
+                const deletedIds = readDeletedAttendanceTaskIds();
+                sharedDeletedIds.forEach(id => deletedIds.add(String(id)));
+                localStorage.setItem(taskDeletionStorageKey, JSON.stringify([...deletedIds]));
+                const pendingDeletes = [...deletedIds].filter(id => !sharedDeletedIds.includes(id));
+                if (pendingDeletes.length && window.sharedAttendance.deleteTasks) {
+                    window.sharedAttendance.deleteTasks(pendingDeletes).catch(error => {
+                        console.error("Pending attendance task deletes could not sync.", error);
+                        showTaskNotice("Showing saved tasks. Deleted tasks will sync when connected.");
+                    });
+                }
+                const mergedTasks = new Map(sharedTasks.filter(task => !deletedIds.has(String(task.id))).map(task => [task.id, task]));
+                readAttendanceTasks().filter(task => !deletedIds.has(String(task.id))).forEach(task => {
                     const sharedTask = mergedTasks.get(task.id);
                     if (!sharedTask || new Date(task.updatedAt || 0) > new Date(sharedTask.updatedAt || 0)) mergedTasks.set(task.id, task);
                 });
@@ -578,6 +620,16 @@
             const [hours, minutes] = normalizedTime.split(":").map(Number);
             return hours * 60 + minutes <= 9 * 60 ? "Present" : "Late";
         }
+        function renderClockLocation(location) {
+            if (!location || !Number.isFinite(Number(location.latitude)) || !Number.isFinite(Number(location.longitude))) {
+                return `<div class="attendance-location unavailable">Location unavailable</div>`;
+            }
+            const latitude = Number(location.latitude);
+            const longitude = Number(location.longitude);
+            const coordinates = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+            const accuracy = Number(location.accuracy);
+            return `<div class="attendance-location"><i class="bi bi-geo-alt" aria-hidden="true"></i><a href="https://www.google.com/maps?q=${latitude},${longitude}" target="_blank" rel="noopener noreferrer" aria-label="Open clock location in Google Maps">${coordinates}</a>${Number.isFinite(accuracy) ? `<span>±${Math.round(accuracy)} m</span>` : ""}</div>`;
+        }
         function render() {
             const rows = getRows();
             const query = searchInput.value.trim().toLowerCase();
@@ -588,7 +640,7 @@
             document.getElementById("lateCount").textContent = rows.filter(row => row.status === "Late").length;
             document.getElementById("absentCount").textContent = rows.filter(row => row.status === "Absent").length;
             const body = document.getElementById("attendanceTableBody");
-            body.innerHTML = filtered.length ? filtered.map(row => `<tr><td><strong>${escapeHtml(row.name)}</strong></td><td>${escapeHtml(row.id)}</td><td>${escapeHtml(row.office)}</td><td class="${canEditAttendance ? "time-editable" : ""}" data-time-field="timeIn" data-time-id="${escapeHtml(row.id)}" data-time-value="${escapeHtml(row.timeIn || "")}" title="${canEditAttendance ? "Double-click to edit" : ""}">${escapeHtml(row.timeIn || "-")}</td><td class="${canEditAttendance ? "time-editable" : ""}" data-time-field="timeOut" data-time-id="${escapeHtml(row.id)}" data-time-value="${escapeHtml(row.timeOut || "")}" title="${canEditAttendance ? "Double-click to edit" : ""}">${escapeHtml(row.timeOut || "-")}</td><td><span class="status ${statusClass(row.status)}">${escapeHtml(row.status || "Pending")}</span></td><td${canEditAttendance ? "" : ' style="display:none;"'}>${canEditAttendance ? `<button class="action-btn" data-action="in" data-id="${escapeHtml(row.id)}" title="Clock in"><i class="bi bi-box-arrow-in-right"></i></button><button class="action-btn" data-action="out" data-id="${escapeHtml(row.id)}" title="Clock out"><i class="bi bi-box-arrow-right"></i></button><button class="action-btn" data-action="absent" data-id="${escapeHtml(row.id)}" title="Mark absent"><i class="bi bi-person-dash"></i></button>` : ""}</td></tr>`).join("") : `<tr><td class="empty-state" colspan="7">No employees match the selected filters.</td></tr>`;
+            body.innerHTML = filtered.length ? filtered.map(row => `<tr><td><strong>${escapeHtml(row.name)}</strong></td><td>${escapeHtml(row.id)}</td><td>${escapeHtml(row.office)}</td><td class="${canEditAttendance ? "time-editable" : ""}" data-time-field="timeIn" data-time-id="${escapeHtml(row.id)}" data-time-value="${escapeHtml(row.timeIn || "")}" title="${canEditAttendance ? "Double-click to edit" : ""}">${escapeHtml(row.timeIn || "-")}${row.timeInLocation !== undefined ? renderClockLocation(row.timeInLocation) : ""}</td><td class="${canEditAttendance ? "time-editable" : ""}" data-time-field="timeOut" data-time-id="${escapeHtml(row.id)}" data-time-value="${escapeHtml(row.timeOut || "")}" title="${canEditAttendance ? "Double-click to edit" : ""}">${escapeHtml(row.timeOut || "-")}${row.timeOutLocation !== undefined ? renderClockLocation(row.timeOutLocation) : ""}</td><td><span class="status ${statusClass(row.status)}">${escapeHtml(row.status || "Pending")}</span></td><td${canEditAttendance ? "" : ' style="display:none;"'}>${canEditAttendance ? `<button class="action-btn" data-action="in" data-id="${escapeHtml(row.id)}" title="Clock in"><i class="bi bi-box-arrow-in-right"></i></button><button class="action-btn" data-action="out" data-id="${escapeHtml(row.id)}" title="Clock out"><i class="bi bi-box-arrow-right"></i></button><button class="action-btn" data-action="absent" data-id="${escapeHtml(row.id)}" title="Mark absent"><i class="bi bi-person-dash"></i></button>` : ""}</td></tr>`).join("") : `<tr><td class="empty-state" colspan="7">No employees match the selected filters.</td></tr>`;
         }
         function escapeHtml(value) { return String(value).replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[character])); }
         function updateEmployee(employeeId, action) {
@@ -671,21 +723,58 @@
                 }
             });
         }
-        function updateClockTime(type) {
+        function getClockLocation() {
+            return new Promise(resolve => {
+                if (!navigator.geolocation) {
+                    resolve(null);
+                    return;
+                }
+                let settled = false;
+                const finish = location => {
+                    if (settled) return;
+                    settled = true;
+                    window.clearTimeout(timeoutId);
+                    resolve(location);
+                };
+                const timeoutId = window.setTimeout(() => finish(null), 8000);
+                try {
+                    navigator.geolocation.getCurrentPosition(position => finish({
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy
+                    }), () => finish(null), { enableHighAccuracy: true, timeout: 7000, maximumAge: 0 });
+                } catch (error) {
+                    finish(null);
+                }
+            });
+        }
+        async function updateClockTime(type) {
             const employeeId = clockEmployeeInput.value;
+            const workDate = clockDateInput.value;
+            const clickedAt = new Date();
+            (type === "in" ? clockInButton : clockOutButton).disabled = true;
+            clockNotice.textContent = "Getting device location...";
+            const location = await getClockLocation();
             const records = readRecords();
-            const key = `${clockDateInput.value}:${employeeId}`;
+            const key = `${workDate}:${employeeId}`;
             const current = records[key] || {};
-            const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+            const time = clickedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
             const employee = employees.find(item => item.id === employeeId) || {};
-            const updated = { ...current, date: clockDateInput.value, employeeId, employeeName: employee.name || current.employeeName, office: employee.office || current.office, [type === "in" ? "timeIn" : "timeOut"]: time, status: current.status || "Present" };
+            const updated = { ...current, date: workDate, employeeId, employeeName: employee.name || current.employeeName, office: employee.office || current.office, [type === "in" ? "timeIn" : "timeOut"]: time, [type === "in" ? "timeInLocation" : "timeOutLocation"]: location, status: current.status || "Present" };
             if (updated.timeIn) updated.status = statusForTimeIn(updated.timeIn, updated.status);
             records[key] = updated;
-            appendAttendanceEdit(employeeId, updated.employeeName, clockDateInput.value, current, updated);
+            appendAttendanceEdit(employeeId, updated.employeeName, workDate, current, updated);
             writeRecords(records);
-            dateInput.value = clockDateInput.value;
+            dateInput.value = workDate;
             render();
-            document.getElementById("clockNotice").textContent = `${type === "in" ? "Time in" : "Time out"} recorded at ${time}.`;
+            updateClockButtonStates();
+            clockNotice.textContent = `${type === "in" ? "Time in" : "Time out"} recorded at ${time}.${location ? "" : " Device location unavailable."}`;
+        }
+        function updateClockButtonStates() {
+            const key = `${clockDateInput.value}:${clockEmployeeInput.value}`;
+            const record = readRecords()[key] || {};
+            clockInButton.disabled = Boolean(record.timeIn);
+            clockOutButton.disabled = !record.timeIn || Boolean(record.timeOut);
         }
         document.addEventListener("click", event => {
             if (activeTimeEditor && !activeTimeEditor.input.contains(event.target)) finishAttendanceTimeEdit(true);
@@ -773,8 +862,9 @@
         assignedTasksBody.addEventListener("click", event => {
             const deleteButton = event.target.closest("button[data-task-delete-id]");
             if (!deleteButton || !canDeleteAttendanceTasks) return;
-            attendanceTasks = attendanceTasks.filter(task => task.id !== deleteButton.dataset.taskDeleteId);
-            persistAttendanceTasks();
+            const task = attendanceTasks.find(item => item.id === deleteButton.dataset.taskDeleteId);
+            if (!task || !confirm(`Permanently delete "${task.title}"?`)) return;
+            deleteAttendanceTasks([task.id]);
         });
         document.getElementById("clearAssignedTasksBtn").addEventListener("click", () => openClearTasksDialog("assigned"));
         document.getElementById("clearMyTasksBtn").addEventListener("click", () => openClearTasksDialog("my"));
@@ -849,7 +939,7 @@
             render();
         });
         document.getElementById("exportAttendanceBtn").addEventListener("click", () => { const csv = ["Date,Employee,Employee ID,Office,Time in,Time out,Status", ...getRows().map(row => [dateInput.value, row.name, row.id, row.office, row.timeIn || "", row.timeOut || "", row.status || "Pending"].map(value => `"${String(value).replace(/"/g, '""')}"`).join(","))].join("\n"); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); link.download = `attendance-${dateInput.value}.csv`; link.click(); URL.revokeObjectURL(link.href); });
-        document.getElementById("openClockModalMenuBtn").addEventListener("click", () => { clockDateInput.value = dateInput.value; clockModal.classList.add("active"); });
+        document.getElementById("openClockModalMenuBtn").addEventListener("click", () => { clockDateInput.value = dateInput.value; updateClockButtonStates(); clockModal.classList.add("active"); });
         function openAttendanceAccountOverlay(event) {
             if (event) event.preventDefault();
             const overlay = document.getElementById("attendanceAccountOverlay");
@@ -875,7 +965,8 @@
         clockModal.addEventListener("click", event => { if (event.target === clockModal) clockModal.classList.remove("active"); });
         clockInButton.addEventListener("click", () => updateClockTime("in"));
         clockOutButton.addEventListener("click", () => updateClockTime("out"));
-        clockDateInput.addEventListener("change", () => { dateInput.value = clockDateInput.value; render(); });
+        clockDateInput.addEventListener("change", () => { dateInput.value = clockDateInput.value; updateClockButtonStates(); render(); });
+        clockEmployeeInput.addEventListener("change", updateClockButtonStates);
         document.getElementById("logoutBtn").addEventListener("click", () => { if (window.authSession) window.authSession.logout(); else { localStorage.removeItem("loggedInUser"); sessionStorage.removeItem("loggedInUser"); } window.location.href = "index.html"; });
         const accountName = localStorage.getItem("loggedInUser") || sessionStorage.getItem("loggedInUser");
         const accounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
@@ -923,14 +1014,16 @@
         setMenuItemVisibility("usersMenuItemContainer", canManageUsers);
         dateInput.value = today();
         clockDateInput.value = dateInput.value;
-        const loggedInEmployee = currentAccount && currentAccount.name
-            ? { name: currentAccount.name, id: currentAccount.username || accountName, office: currentAccount.office === "Both" ? "Both Offices" : (currentAccount.office || "Unassigned") }
+        const loggedInEmployee = currentAccount
+            ? { name: currentAccount.name || currentAccount.username || accountName, id: currentAccount.username || accountName, office: currentAccount.office === "Both" ? "Both Offices" : (currentAccount.office || "Unassigned") }
             : null;
-        const clockEmployees = loggedInEmployee && !["Developer", "IT Admin"].includes(currentAccount.role)
-            ? [loggedInEmployee]
-            : employees;
+        const clockEmployees = loggedInEmployee && ["Developer", "IT Admin"].includes(currentAccount.role)
+            ? [loggedInEmployee, ...employees.filter(employee => employee.id !== loggedInEmployee.id)]
+            : loggedInEmployee ? [loggedInEmployee] : employees;
         clockEmployeeInput.innerHTML = clockEmployees.map(employee => `<option value="${escapeHtml(employee.id)}">${escapeHtml(employee.name)}${employee.office ? ` (${escapeHtml(employee.office)})` : ""}</option>`).join("");
+        if (loggedInEmployee) clockEmployeeInput.value = loggedInEmployee.id;
         clockEmployeeInput.disabled = !canEditAttendance;
+        updateClockButtonStates();
         render();
         if (new URLSearchParams(window.location.search).get("embedded") === "1") {
             document.body.classList.add("embedded-clock");
@@ -946,6 +1039,7 @@
         if (window.sharedAttendance) {
             const refreshSharedAttendance = () => window.sharedAttendance.load().then(sharedRecords => {
                 localStorage.setItem(storageKey, JSON.stringify(sharedRecords));
+                updateClockButtonStates();
                 render();
             }).catch(error => console.warn("Shared attendance load failed.", error));
             refreshSharedAttendance();

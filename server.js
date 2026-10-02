@@ -9,6 +9,7 @@ const ROOT_DIR = __dirname;
 const DATA_DIR = path.join(ROOT_DIR, 'data');
 const SEED_ACCOUNTS_FILE = path.join(DATA_DIR, 'accounts.json');
 const ACCOUNTS_FILE = path.join(os.tmpdir(), 'r2-lucky9-games-accounts.json');
+const DELETED_ACCOUNTS_FILE = path.join(os.tmpdir(), 'r2-lucky9-games-deleted-accounts.json');
 const PORT = process.env.PORT || 3100;
 const HOST = '0.0.0.0';
 
@@ -59,12 +60,31 @@ async function ensureAccountsFile() {
 async function loadAccounts() {
   await ensureAccountsFile();
   const content = await fs.readFile(ACCOUNTS_FILE, 'utf8');
-  return JSON.parse(content || '{}');
+  const accounts = JSON.parse(content || '{}');
+  const deletedUsernames = await loadDeletedAccountUsernames();
+  return Object.fromEntries(Object.entries(accounts).filter(([username]) => !deletedUsernames.has(username.toLowerCase())));
+}
+
+async function loadDeletedAccountUsernames() {
+  try {
+    const content = await fs.readFile(DELETED_ACCOUNTS_FILE, 'utf8');
+    const usernames = JSON.parse(content || '[]');
+    return new Set(Array.isArray(usernames) ? usernames.map(username => String(username).toLowerCase()) : []);
+  } catch (error) {
+    if (error.code === 'ENOENT') return new Set();
+    throw error;
+  }
+}
+
+async function saveDeletedAccountUsernames(usernames) {
+  await fs.writeFile(DELETED_ACCOUNTS_FILE, JSON.stringify([...usernames]), 'utf8');
 }
 
 async function saveAccounts(accounts) {
   await ensureAccountsFile();
-  await fs.writeFile(ACCOUNTS_FILE, JSON.stringify(accounts, null, 2), 'utf8');
+  const deletedUsernames = await loadDeletedAccountUsernames();
+  const activeAccounts = Object.fromEntries(Object.entries(accounts).filter(([username]) => !deletedUsernames.has(username.toLowerCase())));
+  await fs.writeFile(ACCOUNTS_FILE, JSON.stringify(activeAccounts, null, 2), 'utf8');
 }
 
 function sanitizeAccount(account) {
@@ -82,7 +102,7 @@ function sanitizeAccount(account) {
 
 function setCorsHeaders(response) {
   response.setHeader('Access-Control-Allow-Origin', '*');
-  response.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  response.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
   response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 }
 
@@ -207,12 +227,17 @@ async function handleApiAccounts(request, response) {
         const username = String(payload.username || '').trim();
         const accounts = await loadAccounts();
 
-        if (!username || !accounts[username]) {
-          sendJson(response, 404, { ok: false, message: 'Account not found.' });
+        if (!username) {
+          sendJson(response, 400, { ok: false, message: 'Username is required.' });
           return;
         }
 
-        delete accounts[username];
+        const deletedUsernames = await loadDeletedAccountUsernames();
+        deletedUsernames.add(username.toLowerCase());
+        await saveDeletedAccountUsernames(deletedUsernames);
+        Object.keys(accounts).forEach(key => {
+          if (key.toLowerCase() === username.toLowerCase()) delete accounts[key];
+        });
         await saveAccounts(accounts);
         sendJson(response, 200, { ok: true, message: 'Account deleted successfully.' });
       } catch (error) {
@@ -234,9 +259,11 @@ async function handleApiAccounts(request, response) {
         const parsed = body ? JSON.parse(body) : {};
         const submittedAccounts = parsed && typeof parsed === 'object' ? parsed : {};
         const existingAccounts = await loadAccounts();
+        const deletedUsernames = await loadDeletedAccountUsernames();
         const accounts = { ...existingAccounts };
 
         Object.keys(submittedAccounts).forEach((username) => {
+          if (deletedUsernames.has(username.toLowerCase())) return;
           const submittedAccount = submittedAccounts[username];
           const existingAccount = existingAccounts[username];
 
