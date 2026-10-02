@@ -125,6 +125,35 @@
     async function carryPendingTasksIntoMonth(targetMonth) {
         if (!/^\d{4}-\d{2}$/.test(targetMonth)) return;
         const sourceMonth = getPreviousMonth(targetMonth);
+        const completedTaskIds = new Set(tasks.filter(task => task.completed).map(task => task.id));
+        const obsoleteCarryIds = new Set();
+        let foundObsoleteCarry = true;
+        while (foundObsoleteCarry) {
+            foundObsoleteCarry = false;
+            tasks.forEach(task => {
+                if (task.carriedFrom && !task.completed && completedTaskIds.has(task.carriedFrom) && !obsoleteCarryIds.has(task.id)) {
+                    obsoleteCarryIds.add(task.id);
+                    completedTaskIds.add(task.id);
+                    foundObsoleteCarry = true;
+                }
+            });
+        }
+
+        let firstCleanupError = null;
+        for (const task of tasks.filter(item => obsoleteCarryIds.has(item.id))) {
+            try {
+                await window.sharedTodoList.delete(task.id);
+            } catch (error) {
+                firstCleanupError ||= error;
+                console.error("Obsolete carried task cleanup failed.", error);
+            }
+        }
+        if (obsoleteCarryIds.size) {
+            for (let index = tasks.length - 1; index >= 0; index -= 1) {
+                if (obsoleteCarryIds.has(tasks[index].id)) tasks.splice(index, 1);
+            }
+        }
+
         const existingIds = new Set(tasks.map(task => task.id));
         const pendingSources = tasks.filter(task => task.month === sourceMonth && !task.completed);
         const carryTasks = pendingSources
@@ -151,6 +180,9 @@
             }
         }
         if (savedTasks.length) tasks.push(...savedTasks);
+        if (firstCleanupError) {
+            showNotice(getFirestoreErrorMessage("Completed task carry cleanup", firstCleanupError), "error");
+        }
         if (firstCarryError) {
             showNotice(getFirestoreErrorMessage("Some pending tasks could not be carried forward", firstCarryError), "error");
         }
