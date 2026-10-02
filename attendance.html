@@ -302,7 +302,7 @@
 
     <script src="js/bootstrap.bundle.min.js"></script>
     <script src="js/auth-session.js?v=20260921-2"></script>
-    <script src="js/firebase-shared.js?v=20261002-1"></script>
+    <script src="js/firebase-shared.js?v=20261002-2"></script>
     <script src="js/password-security.js?v=20260919-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/sql.js@1.11.0/dist/sql-wasm.js"></script>
     <script src="js/sqlite-login.js?v=20260919-2"></script>
@@ -606,6 +606,7 @@
                     return {
                         ...employee,
                         ...record,
+                        recordKey: key,
                         name: employee.name || record.employeeName || employeeId,
                         id: employeeId,
                         office: record.office || employee.office || "Unassigned",
@@ -640,7 +641,7 @@
             document.getElementById("lateCount").textContent = rows.filter(row => row.status === "Late").length;
             document.getElementById("absentCount").textContent = rows.filter(row => row.status === "Absent").length;
             const body = document.getElementById("attendanceTableBody");
-            body.innerHTML = filtered.length ? filtered.map(row => `<tr><td><strong>${escapeHtml(row.name)}</strong></td><td>${escapeHtml(row.id)}</td><td>${escapeHtml(row.office)}</td><td class="${canEditAttendance ? "time-editable" : ""}" data-time-field="timeIn" data-time-id="${escapeHtml(row.id)}" data-time-value="${escapeHtml(row.timeIn || "")}" title="${canEditAttendance ? "Double-click to edit" : ""}">${escapeHtml(row.timeIn || "-")}${row.timeInLocation !== undefined ? renderClockLocation(row.timeInLocation) : ""}</td><td class="${canEditAttendance ? "time-editable" : ""}" data-time-field="timeOut" data-time-id="${escapeHtml(row.id)}" data-time-value="${escapeHtml(row.timeOut || "")}" title="${canEditAttendance ? "Double-click to edit" : ""}">${escapeHtml(row.timeOut || "-")}${row.timeOutLocation !== undefined ? renderClockLocation(row.timeOutLocation) : ""}</td><td><span class="status ${statusClass(row.status)}">${escapeHtml(row.status || "Pending")}</span></td><td${canEditAttendance ? "" : ' style="display:none;"'}>${canEditAttendance ? `<button class="action-btn" data-action="in" data-id="${escapeHtml(row.id)}" title="Clock in"><i class="bi bi-box-arrow-in-right"></i></button><button class="action-btn" data-action="out" data-id="${escapeHtml(row.id)}" title="Clock out"><i class="bi bi-box-arrow-right"></i></button><button class="action-btn" data-action="absent" data-id="${escapeHtml(row.id)}" title="Mark absent"><i class="bi bi-person-dash"></i></button>` : ""}</td></tr>`).join("") : `<tr><td class="empty-state" colspan="7">No employees match the selected filters.</td></tr>`;
+            body.innerHTML = filtered.length ? filtered.map(row => `<tr><td><strong>${escapeHtml(row.name)}</strong></td><td>${escapeHtml(row.id)}</td><td>${escapeHtml(row.office)}</td><td class="${canEditAttendance ? "time-editable" : ""}" data-time-field="timeIn" data-time-id="${escapeHtml(row.id)}" data-time-value="${escapeHtml(row.timeIn || "")}" title="${canEditAttendance ? "Double-click to edit" : ""}">${escapeHtml(row.timeIn || "-")}${row.timeInLocation !== undefined ? renderClockLocation(row.timeInLocation) : ""}</td><td class="${canEditAttendance ? "time-editable" : ""}" data-time-field="timeOut" data-time-id="${escapeHtml(row.id)}" data-time-value="${escapeHtml(row.timeOut || "")}" title="${canEditAttendance ? "Double-click to edit" : ""}">${escapeHtml(row.timeOut || "-")}${row.timeOutLocation !== undefined ? renderClockLocation(row.timeOutLocation) : ""}</td><td><span class="status ${statusClass(row.status)}">${escapeHtml(row.status || "Pending")}</span></td><td${canEditAttendance ? "" : ' style="display:none;"'}>${canEditAttendance ? `<button class="action-btn" data-action="in" data-id="${escapeHtml(row.id)}" title="Clock in"><i class="bi bi-box-arrow-in-right"></i></button><button class="action-btn" data-action="out" data-id="${escapeHtml(row.id)}" title="Clock out"><i class="bi bi-box-arrow-right"></i></button><button class="action-btn" data-action="absent" data-id="${escapeHtml(row.id)}" title="Mark absent"><i class="bi bi-person-dash"></i></button><button class="action-btn" data-action="delete" data-id="${escapeHtml(row.id)}" data-record-key="${escapeHtml(row.recordKey)}" title="Delete attendance record" aria-label="Delete attendance record for ${escapeHtml(row.name)}"><i class="bi bi-trash3"></i></button>` : ""}</td></tr>`).join("") : `<tr><td class="empty-state" colspan="7">No employees match the selected filters.</td></tr>`;
         }
         function escapeHtml(value) { return String(value).replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[character])); }
         function updateEmployee(employeeId, action) {
@@ -655,6 +656,27 @@
             records[key] = updated;
             appendAttendanceEdit(employeeId, updated.employeeName, dateInput.value, current, updated);
             writeRecords(records); render();
+        }
+        async function deleteAttendanceRecord(recordKey, employeeId) {
+            if (!canEditAttendance) return;
+            const records = readRecords();
+            const record = records[recordKey];
+            if (!record) return;
+            const employee = employees.find(item => item.id === employeeId) || {};
+            const employeeName = record.employeeName || employee.name || employeeId;
+            const recordDate = record.date || recordKey.split(":")[0];
+            if (!confirm(`Permanently delete attendance for ${employeeName} on ${recordDate}?`)) return;
+            try {
+                if (!window.sharedAttendance?.deleteRecord) throw new Error("Shared attendance delete service is unavailable.");
+                await window.sharedAttendance.deleteRecord(recordKey);
+                delete records[recordKey];
+                localStorage.setItem(storageKey, JSON.stringify(records));
+                render();
+                document.getElementById("clockNotice").textContent = `Attendance for ${employeeName} on ${recordDate} was permanently deleted.`;
+            } catch (error) {
+                console.error("Attendance record delete failed.", error);
+                alert("The attendance record could not be permanently deleted. It remains unchanged; check the connection and Firestore rules, then try again.");
+            }
         }
         function toTimeInputValue(value) {
             const match = String(value || "").trim().match(/^(\d{1,2}):(\d{2})(?:\s*([AP]M))?$/i);
@@ -779,7 +801,15 @@
         document.addEventListener("click", event => {
             if (activeTimeEditor && !activeTimeEditor.input.contains(event.target)) finishAttendanceTimeEdit(true);
         }, true);
-        document.addEventListener("click", event => { const button = event.target.closest("button[data-action]"); if (button && canEditAttendance) updateEmployee(button.dataset.id, button.dataset.action); });
+        document.addEventListener("click", event => {
+            const button = event.target.closest("button[data-action]");
+            if (!button || !canEditAttendance) return;
+            if (button.dataset.action === "delete") {
+                void deleteAttendanceRecord(button.dataset.recordKey, button.dataset.id);
+                return;
+            }
+            updateEmployee(button.dataset.id, button.dataset.action);
+        });
         document.addEventListener("dblclick", event => { const cell = event.target.closest("td[data-time-field]"); if (cell) editAttendanceTime(cell); });
         document.getElementById("dailyAttendanceTab").addEventListener("click", () => {
             document.getElementById("dailyAttendanceView").hidden = false;

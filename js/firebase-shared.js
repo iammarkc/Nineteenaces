@@ -106,16 +106,26 @@
     }
 
     async function loadAttendanceFromFirestore() {
-        const documents = await loadFirestoreCollection("attendanceRecords");
+        const [documents, deletedRecordIds] = await Promise.all([
+            loadFirestoreCollection("attendanceRecords"),
+            loadDeletedAttendanceRecordIdsFromFirestore()
+        ]);
         return documents.reduce((records, document) => {
             const recordId = document.name.split("/").pop();
+            if (deletedRecordIds.has(recordId)) return records;
             records[recordId] = Object.keys(document.fields || {}).reduce((record, key) => ({ ...record, [key]: fromFirestoreValue(document.fields[key]) }), {});
             return records;
         }, {});
     }
 
+    async function loadDeletedAttendanceRecordIdsFromFirestore() {
+        const documents = await loadFirestoreCollection("attendanceRecordDeletions");
+        return new Set(documents.map(document => document.name.split("/").pop()));
+    }
+
     async function saveAttendanceToFirestore(records) {
-        await Promise.all(Object.entries(records).map(async ([recordId, record]) => {
+        const deletedRecordIds = await loadDeletedAttendanceRecordIdsFromFirestore();
+        await Promise.all(Object.entries(records).filter(([recordId]) => !deletedRecordIds.has(recordId)).map(async ([recordId, record]) => {
             const response = await fetch(`${firestoreRestBase}/attendanceRecords/${encodeURIComponent(recordId)}?key=${firebaseConfig.apiKey}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
@@ -123,6 +133,17 @@
             });
             if (!response.ok) throw new Error(`Firestore attendance write failed: ${response.status}`);
         }));
+    }
+
+    async function deleteAttendanceRecordFromFirestore(recordId) {
+        const deletionResponse = await fetch(`${firestoreRestBase}/attendanceRecordDeletions/${encodeURIComponent(recordId)}?key=${firebaseConfig.apiKey}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fields: { recordId: toFirestoreValue(recordId), deletedAt: toFirestoreValue(new Date().toISOString()) } })
+        });
+        if (!deletionResponse.ok) throw new Error(`Firestore attendance deletion record failed: ${deletionResponse.status}`);
+        const response = await fetch(`${firestoreRestBase}/attendanceRecords/${encodeURIComponent(recordId)}?key=${firebaseConfig.apiKey}`, { method: "DELETE" });
+        if (!response.ok && response.status !== 404) throw new Error(`Firestore attendance delete failed: ${response.status}`);
     }
 
     async function loadAttendanceHistoryFromFirestore() {
@@ -350,6 +371,9 @@
                 [key]: { ...record, date: record.date || key.split(":")[0] }
             }), {});
             return saveAttendanceToFirestore(normalizedRecords);
+        },
+        async deleteRecord(recordId) {
+            return deleteAttendanceRecordFromFirestore(recordId);
         },
         async loadHistory() {
             return loadAttendanceHistoryFromFirestore();
