@@ -7,15 +7,15 @@
     function getStorage() {
         try {
             const probeKey = "__auth_storage_probe__";
-            sessionStorage.setItem(probeKey, "1");
-            sessionStorage.removeItem(probeKey);
-            return sessionStorage;
+            localStorage.setItem(probeKey, "1");
+            localStorage.removeItem(probeKey);
+            return localStorage;
         } catch (error) {
             try {
                 const probeKey = "__auth_storage_probe__";
-                localStorage.setItem(probeKey, "1");
-                localStorage.removeItem(probeKey);
-                return localStorage;
+                sessionStorage.setItem(probeKey, "1");
+                sessionStorage.removeItem(probeKey);
+                return sessionStorage;
             } catch (sessionError) {
                 return null;
             }
@@ -23,12 +23,14 @@
     }
 
     function removeStoredSession() {
-        const storage = getStorage();
-        if (storage) {
-            storage.removeItem(SESSION_KEY);
-            storage.removeItem(LOGGED_IN_USER_KEY);
-        }
-        sessionStorage.removeItem("firebaseAuthTokens");
+        [localStorage, sessionStorage].forEach(storage => {
+            try {
+                storage.removeItem(SESSION_KEY);
+                storage.removeItem(LOGGED_IN_USER_KEY);
+            } catch (error) {
+                // Storage may be unavailable in restricted browsing modes.
+            }
+        });
     }
 
     function getSession() {
@@ -42,17 +44,14 @@
             session = null;
         }
 
-        let firebaseTokens;
-        try {
-            firebaseTokens = JSON.parse(sessionStorage.getItem("firebaseAuthTokens") || "null");
-        } catch (error) {
-            firebaseTokens = null;
+        if (!session) {
+            const legacyUsername = storage.getItem(LOGGED_IN_USER_KEY);
+            if (legacyUsername) {
+                return setSession(legacyUsername);
+            }
         }
-        const requiredProjects = ["main", "attendanceTodo", "cebuInventory"];
-        const hasAllProjectSessions = requiredProjects.every(project => firebaseTokens?.projects?.[project]?.refreshToken);
 
-        if (!session || !session.username || !session.uid || !hasAllProjectSessions ||
-            !Number.isFinite(session.expiresAt) || Date.now() >= session.expiresAt) {
+        if (!session || !session.username || !Number.isFinite(session.expiresAt) || Date.now() >= session.expiresAt) {
             removeStoredSession();
             return null;
         }
@@ -67,12 +66,10 @@
         return session;
     }
 
-    function setSession(username, uid) {
-        if (!username || !uid) return null;
+    function setSession(username) {
         const now = Date.now();
         const session = {
             username: String(username),
-            uid: String(uid),
             loginAt: now,
             expiresAt: now + SESSION_DURATION_MS
         };
@@ -83,7 +80,7 @@
             storage.setItem(SESSION_KEY, JSON.stringify(session));
             storage.setItem(LOGGED_IN_USER_KEY, session.username);
             const storedSession = JSON.parse(storage.getItem(SESSION_KEY) || "null");
-            if (!storedSession || storedSession.username !== session.username || storedSession.uid !== session.uid) return null;
+            if (!storedSession || storedSession.username !== session.username) return null;
         } catch (error) {
             return null;
         }
@@ -96,10 +93,6 @@
             expirationTimer = null;
         }
         removeStoredSession();
-        localStorage.removeItem(SESSION_KEY);
-        localStorage.removeItem(LOGGED_IN_USER_KEY);
-        sessionStorage.removeItem("firebaseAuthTokens");
-        localStorage.removeItem("userAccounts");
     }
 
     function requireSession() {

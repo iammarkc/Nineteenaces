@@ -33,7 +33,7 @@
   <body class="d-flex align-items-center py-4 bg-body-tertiary">
 
 <main class="form-signin w-100 m-auto text-center">
-  <form id="form1" autocomplete="on">
+  <form method="post" action="/pares/pareslogin.aspx" id="form1" autocomplete="off">
 <div class="aspNetHidden">
 <input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="QcDVwubB9+jjQvxLu2maz62UnPM9x3i5BRijjgpHubwJ2MkKc0Ju/g2sQMFQJs1EzWPa/m/28t+q0Debq6FYbN7Zjq5fFrlJZmE1VwRrWnk=">
 </div>
@@ -50,15 +50,15 @@
     <h1 class="h3 mb-3 fw-normal">Sign In</h1>
     <h6 id="divMessage" class="error-message"></h6>
     <div class="form-floating">
-      <input name="UsernameInput" type="email" id="UsernameInput" class="form-control" placeholder="" maxlength="100" autocomplete="username" required>
-      <label for="UsernameInput">Email</label>
+      <input name="UsernameInput" type="text" id="UsernameInput" class="form-control" placeholder="" maxlength="100" autocomplete="off">
+      <label for="UsernameInput">Email or Username</label>
     </div>
 
 
 
 
 <div class="form-floating position-relative mb-3">
-  <input name="PasswordInput" type="password" id="PasswordInput" class="form-control pe-5" placeholder="Password" autocomplete="current-password" required>
+  <input name="PasswordInput" type="password" id="PasswordInput" class="form-control pe-5" placeholder="Password" autocomplete="off">
 
   <label for="PasswordInput">Password</label>
 
@@ -71,9 +71,11 @@
 </main>
 <script src="js/bootstrap.bundle.min.js"></script>
 
-      <script src="js/firebase-config.js?v=20261003-1"></script>
-      <script src="js/firebase-shared.js?v=20261003-1"></script>
-      <script src="js/login.js?v=20261003-1"></script>
+      <script src="https://cdn.jsdelivr.net/npm/sql.js@1.11.0/dist/sql-wasm.js"></script>
+      <script src="js/firebase-shared.js?v=20261002-1"></script>
+      <script src="js/password-security.js?v=20260919-1"></script>
+      <script src="js/sqlite-login.js?v=20261002-1"></script>
+      <script src="js/login.js?v=20261002-1"></script>
     
 
 </body></html>

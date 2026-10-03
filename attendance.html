@@ -155,8 +155,8 @@
                             <li id="administratorMenuItem" style="display: none;"><a class="dropdown-item" href="administrator.html"><i class="bi bi-shield-lock me-2"></i>Administrator</a></li>
                             <li><a class="dropdown-item" data-permission="inventory" href="#" id="clearInventoryMenuBtn"><i class="bi bi-trash me-2"></i>Clear Inventory</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li id="addAccountMenuItemContainer" style="display: none;"><a class="dropdown-item" data-permission="addAccount" href="#" id="addAccountBtn"><i class="bi bi-person-plus me-2"></i>Add User</a></li>
-                            <li id="usersMenuItemContainer" style="display: none;"><a class="dropdown-item" data-permission="users" href="#" id="usersMenuBtn"><i class="bi bi-people me-2"></i>Users</a></li>
+                            <li id="addAccountMenuItemContainer" style="display: none;"><a class="dropdown-item" data-permission="addAccount" href="inventory.html?office=Rizal&embedded=1&openAddUser=1" id="addAccountBtn"><i class="bi bi-person-plus me-2"></i>Add User</a></li>
+                            <li id="usersMenuItemContainer" style="display: none;"><a class="dropdown-item" data-permission="users" href="inventory.html?office=Rizal&embedded=1&openUsers=1" id="usersMenuBtn"><i class="bi bi-people me-2"></i>Users</a></li>
                             <li><button class="dropdown-item" id="changePasswordMenuBtn" type="button"><i class="bi bi-key me-2"></i>Change Password</button></li>
                             <li><hr class="dropdown-divider"></li>
                             <li id="todoListMenuItem"><a class="dropdown-item" data-permission="todoList" href="todo.html"><i class="bi bi-list-check me-2"></i>To-Do List</a></li>
@@ -302,12 +302,14 @@
 
     <script src="js/bootstrap.bundle.min.js"></script>
     <script src="js/auth-session.js?v=20260921-2"></script>
-    <script src="js/firebase-config.js?v=20261003-1"></script>
-    <script src="js/firebase-shared.js?v=20261003-1"></script>
+    <script src="js/firebase-shared.js?v=20261002-2"></script>
+    <script src="js/password-security.js?v=20260919-1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sql.js@1.11.0/dist/sql-wasm.js"></script>
+    <script src="js/sqlite-login.js?v=20260919-2"></script>
     <script src="js/change-password.js?v=20260919-4"></script>
     <script>
         const storedAccounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
-        let employees = Object.values(storedAccounts)
+        const employees = Object.values(storedAccounts)
             .filter(account => account && account.username && !account.disabled)
             .map(account => ({
                 name: account.name || account.username,
@@ -1036,8 +1038,10 @@
         setMenuItemVisibility("administratorMenuItem", isDeveloper || permissions.has("administrator"));
         setMenuItemVisibility("todoListMenuItem", isDeveloper || permissions.has("todoList"));
         setMenuItemVisibility("clearInventoryMenuBtn", isDeveloper);
-        setMenuItemVisibility("addAccountMenuItemContainer", false);
-        setMenuItemVisibility("usersMenuItemContainer", false);
+        const canAddAccount = isDeveloper || permissions.has("addAccount");
+        const canManageUsers = isDeveloper || permissions.has("users");
+        setMenuItemVisibility("addAccountMenuItemContainer", canAddAccount);
+        setMenuItemVisibility("usersMenuItemContainer", canManageUsers);
         dateInput.value = today();
         clockDateInput.value = dateInput.value;
         const loggedInEmployee = currentAccount
@@ -1049,26 +1053,6 @@
         clockEmployeeInput.innerHTML = clockEmployees.map(employee => `<option value="${escapeHtml(employee.id)}">${escapeHtml(employee.name)}${employee.office ? ` (${escapeHtml(employee.office)})` : ""}</option>`).join("");
         if (loggedInEmployee) clockEmployeeInput.value = loggedInEmployee.id;
         clockEmployeeInput.disabled = !isDeveloper;
-        window.sharedAttendance.loadAccounts().then(loadedAccounts => {
-            employees = Object.values(loadedAccounts || {})
-                .filter(employee => employee && employee.username && !employee.disabled)
-                .map(employee => ({
-                    name: employee.name || employee.username,
-                    id: employee.username,
-                    office: employee.office === "Both" ? "Both Offices" : (employee.office || "Unassigned")
-                }));
-            taskAssigneeInput.innerHTML = employees.map(employee => `<option value="${escapeHtml(employee.id)}">${escapeHtml(employee.name)} (${escapeHtml(employee.office)})</option>`).join("");
-            taskExportEmployee.innerHTML = `<option value="">Choose an employee</option>${employees.map(employee => `<option value="${escapeHtml(employee.id)}">${escapeHtml(employee.name)} (@${escapeHtml(employee.id)})</option>`).join("")}`;
-            const refreshedClockEmployees = loggedInEmployee && isDeveloper
-                ? [loggedInEmployee, ...employees.filter(employee => employee.id !== loggedInEmployee.id)]
-                : loggedInEmployee ? [loggedInEmployee] : employees;
-            clockEmployeeInput.innerHTML = refreshedClockEmployees.map(employee => `<option value="${escapeHtml(employee.id)}">${escapeHtml(employee.name)}${employee.office ? ` (${escapeHtml(employee.office)})` : ""}</option>`).join("");
-            if (loggedInEmployee) clockEmployeeInput.value = loggedInEmployee.id;
-            render();
-        }).catch(error => {
-            console.error("Staff profiles could not be loaded from the main Firebase project.", error);
-            showTaskNotice("Staff directory could not be loaded. Check Firebase Authentication and main-project Firestore rules.");
-        });
         updateClockButtonStates();
         render();
         if (new URLSearchParams(window.location.search).get("embedded") === "1") {
