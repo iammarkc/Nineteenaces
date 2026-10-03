@@ -1,15 +1,148 @@
 (function () {
-    const firebaseConfig = {
-        apiKey: "AIzaSyA259wFRhJ89YtjrAnnyiHsebXS3cgTY-g",
-        authDomain: "nineteenaces-8ba08.firebaseapp.com",
-        projectId: "nineteenaces-8ba08",
-        storageBucket: "nineteenaces-8ba08.firebasestorage.app",
-        messagingSenderId: "1011766262049",
-        appId: "1:1011766262049:web:6c2641612938379dab2660",
-        measurementId: "G-P1FSYLFE5Z"
-    };
-
+    const firebaseProjects = window.firebaseProjects;
+    const firebaseAuthStorageKey = "firebaseAuthTokens";
+    const firebaseConfig = firebaseProjects.main;
     const firestoreRestBase = "https://firestore.googleapis.com/v1/projects/nineteenaces-8ba08/databases/(default)/documents";
+
+    function readAuthState() {
+        try {
+            return JSON.parse(sessionStorage.getItem(firebaseAuthStorageKey) || "null");
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function writeAuthState(authState) {
+        sessionStorage.setItem(firebaseAuthStorageKey, JSON.stringify(authState));
+    }
+
+    function clearAuthState() {
+        sessionStorage.removeItem(firebaseAuthStorageKey);
+    }
+
+    function getProjectForDocumentPath(pathname) {
+        const match = pathname.match(/\/documents\/(.+)$/);
+        const collection = match ? decodeURIComponent(match[1].split("/")[0]) : "";
+        if (collection === "attendanceRecords" || collection === "attendanceRecordDeletions" ||
+            collection === "attendanceHistory" || collection === "attendanceTasks" ||
+            collection === "attendanceTaskDeletions" || collection === "todoTasks") {
+            return ["attendanceTodo", firebaseProjects.attendanceTodo];
+        }
+        const inventoryOffice = match ? decodeURIComponent(match[1].split("/")[1] || "").toLowerCase() : "";
+        if ((collection === "inventoryData" || collection === "inventoryHistory") && inventoryOffice === "cebu") {
+            return ["cebuInventory", firebaseProjects.cebuInventory];
+        }
+        return ["main", firebaseProjects.main];
+    }
+
+    async function getProjectIdToken(projectKey) {
+        const authState = readAuthState();
+        const projectAuth = authState?.projects?.[projectKey];
+        if (!projectAuth) throw new Error("Sign in is required to access Firebase data.");
+        if (projectAuth.expiresAt > Date.now() + 60_000) return projectAuth.idToken;
+
+        const config = firebaseProjects[projectKey];
+        const response = await window.fetch(`https://securetoken.googleapis.com/v1/token?key=${config.apiKey}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({ grant_type: "refresh_token", refresh_token: projectAuth.refreshToken })
+        });
+        const result = await response.json();
+        if (!response.ok) {
+            clearAuthState();
+            throw new Error(result.error?.message || `Firebase session refresh failed: ${response.status}`);
+        }
+
+        authState.projects[projectKey] = {
+            idToken: result.id_token,
+            refreshToken: result.refresh_token,
+            expiresAt: Date.now() + Number(result.expires_in) * 1000
+        };
+        writeAuthState(authState);
+        return result.id_token;
+    }
+
+    async function firestoreFetch(url, options = {}) {
+        const requestUrl = new URL(url, window.location.href);
+        const [projectKey, projectConfig] = getProjectForDocumentPath(requestUrl.pathname);
+        requestUrl.pathname = requestUrl.pathname.replace(
+            /\/projects\/[^/]+\/databases\//,
+            `/projects/${projectConfig.projectId}/databases/`
+        );
+        requestUrl.searchParams.set("key", projectConfig.apiKey);
+        const token = await getProjectIdToken(projectKey);
+        const headers = new Headers(options.headers || {});
+        headers.set("Authorization", `Bearer ${token}`);
+        return window.fetch(requestUrl.toString(), { ...options, headers });
+    }
+
+    const fetch = firestoreFetch;
+
+    async function firebaseAuthRequest(projectKey, endpoint, body) {
+        const config = firebaseProjects[projectKey];
+        const response = await window.fetch(`https://identitytoolkit.googleapis.com/v1/${endpoint}?key=${config.apiKey}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error?.message || `Firebase Authentication failed: ${response.status}`);
+        return result;
+    }
+
+    async function signInToAllProjects(email, password) {
+        clearAuthState();
+        try {
+            const entries = await Promise.all(Object.entries(firebaseProjects).map(async ([projectKey]) => {
+                const result = await firebaseAuthRequest(projectKey, "accounts:signInWithPassword", {
+                    email,
+                    password,
+                    returnSecureToken: true
+                });
+                return [projectKey, {
+                    idToken: result.idToken,
+                    refreshToken: result.refreshToken,
+                    expiresAt: Date.now() + Number(result.expiresIn) * 1000,
+                    uid: result.localId,
+                    email: result.email
+                }];
+            }));
+            const projects = Object.fromEntries(entries);
+            writeAuthState({
+                uid: projects.main.uid,
+                email: projects.main.email,
+                projects
+            });
+
+            const profileResponse = await fetch(
+                `${firestoreRestBase}/userProfiles/${encodeURIComponent(projects.main.uid)}?key=${firebaseConfig.apiKey}`
+            );
+            if (profileResponse.status === 404) {
+                throw new Error("Your Firebase Auth account is signed in, but its userProfiles document is missing in the main Firebase project. Create it in Firestore using your main-project UID.");
+            }
+            if (!profileResponse.ok) throw new Error(`User profile read failed: ${profileResponse.status}`);
+            const profileDocument = await profileResponse.json();
+            const profile = Object.keys(profileDocument.fields || {}).reduce((result, key) => ({
+                ...result,
+                [key]: fromFirestoreValue(profileDocument.fields[key])
+            }), {});
+            if (profile.disabled) throw new Error("This account is disabled. Contact your administrator.");
+            if (!profile.username) throw new Error("The user profile must include a username.");
+            return { uid: projects.main.uid, email: projects.main.email, profile };
+        } catch (error) {
+            clearAuthState();
+            throw error;
+        }
+    }
+
+    window.firebaseServices = {
+        signIn: signInToAllProjects,
+        signOut: clearAuthState,
+        getCurrentUser() {
+            const authState = readAuthState();
+            return authState ? { uid: authState.uid, email: authState.email } : null;
+        }
+    };
 
     function toFirestoreValue(value) {
         if (value === null) return { nullValue: null };
@@ -51,53 +184,38 @@
     }
 
     async function loadAccountsFromFirestore() {
-        const [documents, deletedUsernames] = await Promise.all([
-            loadFirestoreCollection("accounts"),
-            loadDeletedAccountUsernamesFromFirestore()
-        ]);
+        const documents = await loadFirestoreCollection("userProfiles");
         return documents.reduce((accounts, document) => {
-            const username = document.name.split("/").pop();
-            if (deletedUsernames.has(username.toLowerCase())) return accounts;
-            accounts[username] = Object.keys(document.fields || {}).reduce((account, key) => ({ ...account, [key]: fromFirestoreValue(document.fields[key]) }), {});
+            const account = Object.keys(document.fields || {}).reduce((result, key) => ({
+                ...result,
+                [key]: fromFirestoreValue(document.fields[key])
+            }), {});
+            if (account.username) accounts[account.username] = account;
             return accounts;
         }, {});
     }
 
     async function loadDeletedAccountUsernamesFromFirestore() {
-        const documents = await loadFirestoreCollection("accountDeletions");
-        return new Set(documents.map(document => document.name.split("/").pop().toLowerCase()));
+        return new Set();
     }
 
-    async function saveAccountsToFirestore(accounts) {
-        const deletedUsernames = await loadDeletedAccountUsernamesFromFirestore();
-        await Promise.all(Object.entries(accounts).filter(([username]) => !deletedUsernames.has(username.toLowerCase())).map(async ([username, account]) => {
-            const response = await fetch(`${firestoreRestBase}/accounts/${encodeURIComponent(username)}?key=${firebaseConfig.apiKey}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ fields: Object.keys(account).reduce((fields, key) => ({ ...fields, [key]: toFirestoreValue(account[key]) }), {}) })
-            });
-            if (!response.ok) throw new Error(`Firestore account write failed: ${response.status}`);
-        }));
+    async function saveAccountsToFirestore() {
+        throw new Error("Account management is disabled in the static site. Manage Firebase Authentication users and profiles in Firebase Console.");
     }
 
-    async function saveAccountToFirestore(username, account) {
-        return saveAccountsToFirestore({ [username]: account });
+    async function saveAccountToFirestore() {
+        return saveAccountsToFirestore();
     }
 
-    async function deleteAccountFromFirestore(username) {
-        const deletionResponse = await fetch(`${firestoreRestBase}/accountDeletions/${encodeURIComponent(username)}?key=${firebaseConfig.apiKey}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ fields: { username: toFirestoreValue(username), deletedAt: toFirestoreValue(new Date().toISOString()) } })
-        });
-        if (!deletionResponse.ok) throw new Error(`Firestore account deletion record failed: ${deletionResponse.status}`);
-        const response = await fetch(`${firestoreRestBase}/accounts/${encodeURIComponent(username)}?key=${firebaseConfig.apiKey}`, { method: "DELETE" });
-        if (!response.ok && response.status !== 404) throw new Error(`Firestore account delete failed: ${response.status}`);
+    async function deleteAccountFromFirestore() {
+        return saveAccountsToFirestore();
     }
 
     async function saveAccountThemeToFirestore(username, theme) {
+        const authState = readAuthState();
+        if (!authState?.uid) throw new Error("Sign in is required to save the theme.");
         const params = new URLSearchParams({ key: firebaseConfig.apiKey, "updateMask.fieldPaths": "theme" });
-        const response = await fetch(`${firestoreRestBase}/accounts/${encodeURIComponent(username)}?${params.toString()}`, {
+        const response = await fetch(`${firestoreRestBase}/userProfiles/${encodeURIComponent(authState.uid)}?${params.toString()}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ fields: { theme: toFirestoreValue(theme) } })

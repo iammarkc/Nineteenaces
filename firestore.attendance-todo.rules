@@ -1,0 +1,41 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function hasPermission(permission) {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/userAccess/$(request.auth.uid))
+        && get(/databases/$(database)/documents/userAccess/$(request.auth.uid)).data.permissions.hasAny([permission]);
+    }
+
+    function hasAnyPermission(permissions) {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/userAccess/$(request.auth.uid))
+        && get(/databases/$(database)/documents/userAccess/$(request.auth.uid)).data.permissions.hasAny(permissions);
+    }
+
+    match /userAccess/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
+    }
+    match /attendanceRecords/{recordId} {
+      allow read: if hasAnyPermission(['attendance', 'attendanceReport']);
+      allow create, update, delete: if hasPermission('attendance');
+    }
+    match /attendanceRecordDeletions/{recordId} {
+      allow read, write: if hasPermission('attendance');
+    }
+    match /attendanceHistory/{entryId} {
+      allow read, write: if hasPermission('attendance');
+    }
+    match /attendanceTasks/{taskId} {
+      allow read: if hasAnyPermission(['attendance', 'assignedTasks']);
+      allow create, update, delete: if hasAnyPermission(['attendance', 'assignedTasks']);
+    }
+    match /attendanceTaskDeletions/{taskId} {
+      allow read, write: if hasAnyPermission(['attendance', 'assignedTasks']);
+    }
+    match /todoTasks/{taskId} {
+      allow read, write: if hasPermission('todoList');
+    }
+  }
+}

@@ -1098,10 +1098,8 @@
 
     <script src="js/bootstrap.bundle.min.js"></script>
     <script src="js/auth-session.js?v=20260921-2"></script>
-    <script src="js/firebase-shared.js?v=20261002-1"></script>
-    <script src="js/password-security.js?v=20260919-1"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sql.js@1.11.0/dist/sql-wasm.js"></script>
-    <script src="js/sqlite-login.js?v=20261002-1"></script>
+    <script src="js/firebase-config.js?v=20261003-1"></script>
+    <script src="js/firebase-shared.js?v=20261003-1"></script>
     <script src="js/change-password.js?v=20260919-4"></script>
     <script>
         function getLoggedInDisplayName() {
@@ -1282,8 +1280,8 @@
                 clearDataBtn.style.display = currentRole === "Developer" ? '' : 'none';
             }
 
-            const canAddAccount = currentRole === 'Developer' || permissions.has('addAccount');
-            const canManageUsers = currentRole === 'Developer' || permissions.has('users');
+            const canAddAccount = false;
+            const canManageUsers = false;
 
             if (currentRole === 'Developer' || permissions.has('administrator')) {
                 if (administratorMenuItem) administratorMenuItem.style.display = '';
@@ -1344,10 +1342,6 @@
             if (welcomeTitle && currentOffice) welcomeTitle.textContent = `${currentOffice} Inventory Management`;
             updateSystemOptions();
             updateMenuVisibility();
-            if (window.location.hash === "#users" && (getCurrentUserRole() === "Developer" || getCurrentUserPermissions().includes("users"))) {
-                openInventoryUsers();
-            }
-
             // Load saved data from localStorage and the shared office store.
             loadSavedData().then(async () => {
                 await syncInventoryHistoryFromFirestore();
@@ -1358,20 +1352,6 @@
             setupInlineInventoryEditing();
             setupSummaryInlineEditing();
 
-            if (new URLSearchParams(window.location.search).get("embedded") === "1") {
-                document.body.classList.add("embedded-account");
-                window.setTimeout(() => {
-                    if (window.location.search.includes("openUsers=1")) {
-                        document.body.classList.add("embedded-account-users");
-                        openInventoryUsers();
-                    } else {
-                        document.body.classList.add("embedded-account-add");
-                        setAddAccountPermissionAvailability(JSON.parse(localStorage.getItem("userAccounts") || "{}"));
-                        document.getElementById("inventoryAddUserModal").style.display = "flex";
-                    }
-                }, 0);
-            }
-            
             // Update last update time
             const now = new Date();
             document.getElementById("lastUpdateTime").textContent = now.toLocaleTimeString();
@@ -2746,14 +2726,12 @@
 
         document.getElementById("addAccountBtn")?.addEventListener("click", function (event) {
             event.preventDefault();
-            const accounts = JSON.parse(localStorage.getItem("userAccounts") || "{}");
-            setAddAccountPermissionAvailability(accounts);
-            document.getElementById("inventoryAddUserModal").style.display = "flex";
+            alert("Account creation is managed in Firebase Console.");
         });
 
         document.getElementById("usersMenuBtn")?.addEventListener("click", function (event) {
             event.preventDefault();
-            openInventoryUsers();
+            alert("User management is disabled on the static site. Manage users in Firebase Console.");
         });
 
         function openLocalPosReportModal() {

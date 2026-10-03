@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function canAccessOffice(office) {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/userAccess/$(request.auth.uid))
+        && get(/databases/$(database)/documents/userAccess/$(request.auth.uid)).data.permissions.hasAny(['inventory'])
+        && get(/databases/$(database)/documents/userAccess/$(request.auth.uid)).data.inventoryAccess.hasAny([office]);
+    }
+
+    match /userAccess/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
+    }
+    match /inventoryData/{office} {
+      allow read, write: if canAccessOffice(office);
+    }
+    match /inventoryHistory/{office} {
+      allow read, write: if canAccessOffice(office);
+    }
+  }
+}
